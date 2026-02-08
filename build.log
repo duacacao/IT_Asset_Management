@@ -1,0 +1,76 @@
+
+> shadcn-dashboard-nextjs@1.0.0 build
+> next build
+
+Γû▓ Next.js 16.1.1 (Turbopack)
+- Experiments (use with caution):
+  ┬╖ optimizePackageImports
+
+ΓÜá The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+  Creating an optimized production build ...
+Γ£ô Compiled successfully in 7.6s
+  Running TypeScript ...
+  Collecting page data using 11 workers ...
+  Generating static pages using 11 workers (0/35) ...
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+  Generating static pages using 11 workers (8/35) 
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+  Generating static pages using 11 workers (17/35) 
+  Generating static pages using 11 workers (26/35) 
+Γ£ô Generating static pages using 11 workers (35/35) in 1080.7ms
+  Finalizing page optimization ...
+
+Route (app)
+Γöî Γùï /
+Γö£ Γùï /_not-found
+Γö£ Γùï /calendar
+Γö£ Γùï /chat
+Γö£ Γùï /dashboard
+Γö£ Γùï /dashboard-2
+Γö£ Γùï /devices
+Γö£ Γùï /errors/forbidden
+Γö£ Γùï /errors/internal-server-error
+Γö£ Γùï /errors/not-found
+Γö£ Γùï /errors/unauthorized
+Γö£ Γùï /errors/under-maintenance
+Γö£ Γùï /faqs
+Γö£ Γùï /forgot-password
+Γö£ Γùï /forgot-password-2
+Γö£ Γùï /forgot-password-3
+Γö£ Γùï /landing
+Γö£ Γùï /mail
+Γö£ Γùï /pricing
+Γö£ Γùï /settings/account
+Γö£ Γùï /settings/appearance
+Γö£ Γùï /settings/billing
+Γö£ Γùï /settings/connections
+Γö£ Γùï /settings/notifications
+Γö£ Γùï /settings/user
+Γö£ Γùï /sign-in
+Γö£ Γùï /sign-in-2
+Γö£ Γùï /sign-in-3
+Γö£ Γùï /sign-up
+Γö£ Γùï /sign-up-2
+Γö£ Γùï /sign-up-3
+Γö£ Γùï /tasks
+Γöö Γùï /users
+
+
+╞Æ Proxy (Middleware)
+
+Γùï  (Static)  prerendered as static content
+
