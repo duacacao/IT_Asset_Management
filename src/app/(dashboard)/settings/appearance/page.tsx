@@ -1,6 +1,6 @@
 import { Separator } from "@/components/ui/separator"
 import { CustomizerContent } from "@/components/theme-customizer/index"
-import { ThemeWrapper } from "@/components/theme-wrapper"
+import { ThemeWrapper } from "@/components/theme-customizer/theme-wrapper"
 
 export default function AppearanceSettings() {
   return (

@@ -2,12 +2,9 @@
 
 import { cn } from "@/lib/utils"
 
-interface ThemeWrapperProps extends React.ComponentProps<"div"> {
-    defaultTheme?: string
-}
+interface ThemeWrapperProps extends React.ComponentProps<"div"> { }
 
 export function ThemeWrapper({
-    defaultTheme,
     children,
     className,
     ...props
