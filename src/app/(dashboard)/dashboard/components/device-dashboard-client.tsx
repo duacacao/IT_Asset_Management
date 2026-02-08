@@ -1,8 +1,6 @@
 "use client"
 
-import { StatsCards } from "@/components/dashboard/StatsCards"
 import { StatusDonut } from "@/components/dashboard/StatusDonut"
-import { ImportTimeline } from "@/components/dashboard/ImportTimeline"
 import { DeviceOSChart } from "@/components/dashboard/DeviceOSChart"
 import { HardwareOverview } from "@/components/dashboard/HardwareOverview"
 import { RecentActivity } from "@/components/dashboard/RecentActivity"
@@ -60,22 +58,18 @@ export function DeviceDashboardClient() {
                 </Button>
             </div>
 
-            {/* Row 1 — Stats Cards */}
-            <StatsCards devices={devices} />
-
-            {/* Row 2 — Hero Charts */}
+            {/* Row 1 — Status Donut + OS Area Chart */}
             <div className="grid gap-4 lg:grid-cols-5">
                 <div className="lg:col-span-2">
                     <StatusDonut devices={devices} />
                 </div>
                 <div className="lg:col-span-3">
-                    <ImportTimeline devices={devices} />
+                    <DeviceOSChart devices={devices} />
                 </div>
             </div>
 
-            {/* Row 3 — Distribution + Activity */}
-            <div className="grid gap-4 lg:grid-cols-3">
-                <DeviceOSChart devices={devices} />
+            {/* Row 2 — Hardware Column Stacked + Recent Activity */}
+            <div className="grid gap-4 lg:grid-cols-2">
                 <HardwareOverview devices={devices} />
                 <RecentActivity devices={devices} />
             </div>

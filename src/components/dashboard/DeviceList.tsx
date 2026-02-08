@@ -370,10 +370,11 @@ export function DeviceList({
                 </div>
             )}
 
-            {/* Table */}
+            {/* Table — chiều cao cố định, scroll nếu nhiều thiết bị */}
             <div className="rounded-md border">
+                <div className="h-[480px] overflow-auto">
                 <Table>
-                    <TableHeader>
+                    <TableHeader className="sticky top-0 z-10 bg-background">
                         {table.getHeaderGroups().map((headerGroup) => (
                             <TableRow key={headerGroup.id}>
                                 {headerGroup.headers.map((header) => (
@@ -414,6 +415,7 @@ export function DeviceList({
                         )}
                     </TableBody>
                 </Table>
+                </div>
             </div>
 
             {/* Pagination */}

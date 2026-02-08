@@ -18,12 +18,10 @@ interface DeviceState {
     devices: Device[];
     selectedDevice: Device | null;
     isLoading: boolean;
-    defaultVisibleSheets: string[];
     importProgress: ImportProgress;
 
     // Actions
     setSelectedDevice: (device: Device | null) => void;
-    setDefaultVisibleSheets: (sheets: string[]) => void;
     addDevice: (file: File, selectedSheets?: string[]) => Promise<Device>;
     addMultipleDevices: (files: File[], selectedSheets?: string[]) => Promise<void>;
     removeDevice: (deviceId: string) => void;
@@ -54,12 +52,9 @@ export const useDeviceStore = create<DeviceState>()(
             devices: [],
             selectedDevice: null,
             isLoading: false,
-            defaultVisibleSheets: [],
             importProgress: INITIAL_PROGRESS,
 
             setSelectedDevice: (device) => set({ selectedDevice: device }),
-
-            setDefaultVisibleSheets: (sheets) => set({ defaultVisibleSheets: sheets }),
 
             addDevice: async (file: File, selectedSheets?: string[]) => {
                 set({ isLoading: true });
@@ -229,7 +224,6 @@ export const useDeviceStore = create<DeviceState>()(
             // Chỉ track thay đổi devices — không track transient state
             partialize: (state) => ({
                 devices: state.devices,
-                defaultVisibleSheets: state.defaultVisibleSheets,
             }),
             limit: 30, // Giữ tối đa 30 bước undo
         }),
@@ -240,7 +234,6 @@ export const useDeviceStore = create<DeviceState>()(
             // Không persist selectedDevice, isLoading, importProgress (transient state)
             partialize: (state) => ({
                 devices: state.devices,
-                defaultVisibleSheets: state.defaultVisibleSheets,
             }),
         }
     )

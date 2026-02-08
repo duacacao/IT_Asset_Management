@@ -32,8 +32,6 @@ export default function DevicesPage() {
         exportDevice,
     } = useDevices();
 
-    const defaultVisibleSheets = useDeviceStore((s) => s.defaultVisibleSheets);
-    const setDefaultVisibleSheets = useDeviceStore((s) => s.setDefaultVisibleSheets);
     const importProgress = useDeviceStore((s) => s.importProgress);
 
     // Undo/Redo
@@ -83,8 +81,6 @@ export default function DevicesPage() {
     // Sau khi chọn sheets → thực hiện import
     const handleSheetConfirm = useCallback(async (selectedSheets: string[]) => {
         setIsSheetSelectOpen(false);
-        // Lưu lại làm global default
-        setDefaultVisibleSheets(selectedSheets);
 
         if (pendingFiles.length === 1) {
             await addDevice(pendingFiles[0], selectedSheets);
@@ -92,7 +88,7 @@ export default function DevicesPage() {
             await addMultipleDevices(pendingFiles, selectedSheets);
         }
         setPendingFiles([]);
-    }, [pendingFiles, addDevice, addMultipleDevices, setDefaultVisibleSheets]);
+    }, [pendingFiles, addDevice, addMultipleDevices]);
 
     return (
         <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
@@ -196,7 +192,6 @@ export default function DevicesPage() {
                     setPendingFiles([]);
                 }}
                 files={pendingFiles}
-                defaultSelected={defaultVisibleSheets}
                 onConfirm={handleSheetConfirm}
             />
 

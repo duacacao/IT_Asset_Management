@@ -21,7 +21,6 @@ interface SheetSelectionDialogProps {
     isOpen: boolean;
     onClose: () => void;
     files: File[];
-    defaultSelected?: string[];
     onConfirm: (selectedSheets: string[]) => void;
 }
 
@@ -37,14 +36,13 @@ export function SheetSelectionDialog({
     isOpen,
     onClose,
     files,
-    defaultSelected,
     onConfirm,
 }: SheetSelectionDialogProps) {
     const [availableSheets, setAvailableSheets] = useState<string[]>([]);
     const [selectedSheets, setSelectedSheets] = useState<string[]>([]);
     const [isScanning, setIsScanning] = useState(false);
 
-    // Scan sheet names từ file đầu tiên khi dialog mở
+    // Scan sheet names từ file đầu tiên khi dialog mở — luôn check ALL
     useEffect(() => {
         if (!isOpen || files.length === 0) return;
 
@@ -53,17 +51,9 @@ export function SheetSelectionDialog({
             try {
                 const sheetNames = await scanSheetNames(files[0]);
                 setAvailableSheets(sheetNames);
-
-                // Nếu có default → dùng default, nếu không → chọn tất cả
-                if (defaultSelected && defaultSelected.length > 0) {
-                    // Chỉ giữ sheets có trong file
-                    const valid = defaultSelected.filter((s) => sheetNames.includes(s));
-                    setSelectedSheets(valid.length > 0 ? valid : sheetNames);
-                } else {
-                    setSelectedSheets(sheetNames);
-                }
+                // Luôn chọn tất cả sheets — user tự deselect nếu cần
+                setSelectedSheets(sheetNames);
             } catch {
-                // Fallback: cho import không filter
                 setAvailableSheets([]);
                 setSelectedSheets([]);
             } finally {
@@ -72,7 +62,7 @@ export function SheetSelectionDialog({
         };
 
         scan();
-    }, [isOpen, files, defaultSelected]);
+    }, [isOpen, files]);
 
     const toggleSheet = (sheet: string) => {
         setSelectedSheets((prev) =>
