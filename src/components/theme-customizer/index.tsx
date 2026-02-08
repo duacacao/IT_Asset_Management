@@ -59,7 +59,11 @@ export function CustomizerContent({ className }: { className?: string }) {
     setImportModalOpen(true)
   }
 
+  // Stable key cho importedTheme để track thay đổi mà không gây infinite loop
+  const importedThemeKey = importedTheme ? JSON.stringify(Object.keys(importedTheme)) : null
+
   // Apply persisted theme on mount + when dark mode changes
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- Chỉ react theo data values, không theo callback references
   React.useEffect(() => {
     if (importedTheme) {
       applyImportedTheme(importedTheme, isDarkMode)
@@ -75,7 +79,7 @@ export function CustomizerContent({ className }: { className?: string }) {
     if (selectedRadius && selectedRadius !== '0.5rem') {
       applyRadius(selectedRadius)
     }
-  }, [isDarkMode, importedTheme, selectedTheme, selectedTweakcnTheme, selectedRadius, applyImportedTheme, applyTheme, applyTweakcnTheme, applyRadius])
+  }, [isDarkMode, selectedTheme, selectedTweakcnTheme, selectedRadius, importedThemeKey])
 
   return (
     <div className={cn("flex flex-col space-y-4", className)}>
