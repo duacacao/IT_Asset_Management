@@ -7,8 +7,9 @@ import { DeviceList } from '@/components/dashboard/DeviceList';
 import { DeviceDetail } from '@/components/dashboard/DeviceDetail';
 import { SheetSelectionDialog } from '@/components/dashboard/SheetSelectionDialog';
 import { Button } from '@/components/ui/button';
-import { Upload } from 'lucide-react';
-import { useState, useCallback } from 'react';
+import { Progress } from '@/components/ui/progress';
+import { Upload, CheckCircle2, XCircle, Undo2, Redo2 } from 'lucide-react';
+import { useState, useCallback, useEffect } from 'react';
 import {
     Dialog,
     DialogContent,
@@ -33,6 +34,28 @@ export default function DevicesPage() {
 
     const defaultVisibleSheets = useDeviceStore((s) => s.defaultVisibleSheets);
     const setDefaultVisibleSheets = useDeviceStore((s) => s.setDefaultVisibleSheets);
+    const importProgress = useDeviceStore((s) => s.importProgress);
+
+    // Undo/Redo
+    const { undo, redo, pastStates, futureStates } = useDeviceStore.temporal.getState();
+    const canUndo = pastStates.length > 0;
+    const canRedo = futureStates.length > 0;
+
+    // Keyboard shortcut: Ctrl+Z / Ctrl+Y
+    useEffect(() => {
+        const handler = (e: KeyboardEvent) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+                e.preventDefault();
+                undo();
+            }
+            if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) {
+                e.preventDefault();
+                redo();
+            }
+        };
+        window.addEventListener('keydown', handler);
+        return () => window.removeEventListener('keydown', handler);
+    }, [undo, redo]);
 
     const [isDetailOpen, setIsDetailOpen] = useState(false);
     const [isImportOpen, setIsImportOpen] = useState(false);
@@ -76,6 +99,12 @@ export default function DevicesPage() {
             <div className="flex items-center justify-between space-y-2">
                 <h2 className="text-3xl font-bold tracking-tight">Devices</h2>
                 <div className="flex items-center space-x-2">
+                    <Button variant="outline" size="icon" onClick={() => undo()} disabled={!canUndo} title="Undo (Ctrl+Z)">
+                        <Undo2 className="h-4 w-4" />
+                    </Button>
+                    <Button variant="outline" size="icon" onClick={() => redo()} disabled={!canRedo} title="Redo (Ctrl+Y)">
+                        <Redo2 className="h-4 w-4" />
+                    </Button>
                     <Button onClick={() => setIsImportOpen(true)}>
                         <Upload className="mr-2 h-4 w-4" />
                         Import Excel
@@ -83,14 +112,62 @@ export default function DevicesPage() {
                 </div>
             </div>
 
-            <div className="hidden h-full flex-1 flex-col space-y-8 md:flex">
-                <DeviceList
-                    devices={devices}
-                    onViewDevice={handleViewDevice}
-                    onExportDevice={exportDevice}
-                    onDeleteDevice={removeDevice}
-                />
-            </div>
+            {/* Import progress bar */}
+            {importProgress.isImporting && (
+                <div className="rounded-lg border bg-card p-4 space-y-3">
+                    <div className="flex items-center justify-between text-sm">
+                        <span className="font-medium">
+                            Importing... {importProgress.current}/{importProgress.total}
+                        </span>
+                        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                            {importProgress.successCount > 0 && (
+                                <span className="flex items-center gap-1 text-green-600">
+                                    <CheckCircle2 className="h-3.5 w-3.5" />
+                                    {importProgress.successCount}
+                                </span>
+                            )}
+                            {importProgress.failCount > 0 && (
+                                <span className="flex items-center gap-1 text-red-600">
+                                    <XCircle className="h-3.5 w-3.5" />
+                                    {importProgress.failCount}
+                                </span>
+                            )}
+                        </div>
+                    </div>
+                    <Progress
+                        value={importProgress.total > 0 ? (importProgress.current / importProgress.total) * 100 : 0}
+                    />
+                </div>
+            )}
+
+            {/* Stats cards tổng quan */}
+            {devices.length > 0 && <StatsCards devices={devices} />}
+
+            {devices.length === 0 ? (
+                /* Empty state */
+                <div className="flex flex-col items-center justify-center py-20 text-center">
+                    <div className="rounded-full bg-muted p-6 mb-6">
+                        <Upload className="h-10 w-10 text-muted-foreground" />
+                    </div>
+                    <h3 className="text-xl font-semibold mb-2">Chưa có thiết bị nào</h3>
+                    <p className="text-muted-foreground mb-6 max-w-sm">
+                        Import file Excel (.xlsx) để bắt đầu quản lý thiết bị. Hỗ trợ import nhiều files cùng lúc.
+                    </p>
+                    <Button size="lg" onClick={() => setIsImportOpen(true)}>
+                        <Upload className="mr-2 h-5 w-5" />
+                        Import thiết bị đầu tiên
+                    </Button>
+                </div>
+            ) : (
+                <div className="flex-1 flex-col space-y-8 flex">
+                    <DeviceList
+                        devices={devices}
+                        onViewDevice={handleViewDevice}
+                        onExportDevice={exportDevice}
+                        onDeleteDevice={removeDevice}
+                    />
+                </div>
+            )}
 
             {/* Import Dialog — chỉ chọn files */}
             <Dialog open={isImportOpen} onOpenChange={setIsImportOpen}>

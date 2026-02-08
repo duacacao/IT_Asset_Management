@@ -38,7 +38,7 @@ export function RecentActivity({ devices }: RecentActivityProps) {
                             <div className="ml-4 space-y-1">
                                 <p className="text-sm font-medium leading-none">{device.deviceInfo.name}</p>
                                 <p className="text-sm text-muted-foreground">
-                                    {device.deviceInfo.os} • {device.deviceInfo.ip || "No IP"}
+                                    {device.deviceInfo.os} • {device.deviceInfo.ram}
                                 </p>
                             </div>
                             <div className="ml-auto flex items-center text-sm text-muted-foreground">

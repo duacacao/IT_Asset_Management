@@ -1,15 +1,25 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { Device } from '@/types/device';
+import { temporal } from 'zundo';
+import { Device, DeviceStatus } from '@/types/device';
 import { importExcelDevice, exportDeviceToExcel } from '@/lib/deviceUtils';
+import { indexedDBStorage } from '@/lib/indexeddb-storage';
 import { toast } from 'sonner';
+
+interface ImportProgress {
+    current: number;
+    total: number;
+    successCount: number;
+    failCount: number;
+    isImporting: boolean;
+}
 
 interface DeviceState {
     devices: Device[];
     selectedDevice: Device | null;
     isLoading: boolean;
-    // Global default: danh sách sheet mặc định được import
     defaultVisibleSheets: string[];
+    importProgress: ImportProgress;
 
     // Actions
     setSelectedDevice: (device: Device | null) => void;
@@ -20,16 +30,32 @@ interface DeviceState {
     undoRemoveDevice: (device: Device) => void;
     updateDevice: (deviceId: string, updates: Partial<Device>) => void;
     updateDeviceVisibleSheets: (deviceId: string, visibleSheets: string[]) => void;
+    // Status & Tags
+    setDeviceStatus: (deviceId: string, status: DeviceStatus) => void;
+    addTag: (deviceId: string, tag: string) => void;
+    removeTag: (deviceId: string, tag: string) => void;
+    // Inline editing
+    updateSheetCell: (deviceId: string, sheetName: string, rowIndex: number, column: string, value: any) => void;
     exportDevice: (device: Device) => void;
 }
 
+const INITIAL_PROGRESS: ImportProgress = {
+    current: 0,
+    total: 0,
+    successCount: 0,
+    failCount: 0,
+    isImporting: false,
+};
+
 export const useDeviceStore = create<DeviceState>()(
     persist(
+        temporal(
         (set, get) => ({
             devices: [],
             selectedDevice: null,
             isLoading: false,
             defaultVisibleSheets: [],
+            importProgress: INITIAL_PROGRESS,
 
             setSelectedDevice: (device) => set({ selectedDevice: device }),
 
@@ -55,24 +81,38 @@ export const useDeviceStore = create<DeviceState>()(
             },
 
             addMultipleDevices: async (files: File[], selectedSheets?: string[]) => {
-                set({ isLoading: true });
+                set({
+                    isLoading: true,
+                    importProgress: { current: 0, total: files.length, successCount: 0, failCount: 0, isImporting: true },
+                });
+
+                const newDevices: Device[] = [];
                 let successCount = 0;
                 let failCount = 0;
-                const newDevices: Device[] = [];
 
-                for (const file of files) {
+                for (let i = 0; i < files.length; i++) {
                     try {
-                        const device = await importExcelDevice(file, selectedSheets);
+                        const device = await importExcelDevice(files[i], selectedSheets);
                         newDevices.push(device);
                         successCount++;
                     } catch {
                         failCount++;
                     }
+                    // Cập nhật progress sau mỗi file
+                    set({
+                        importProgress: {
+                            current: i + 1,
+                            total: files.length,
+                            successCount,
+                            failCount,
+                            isImporting: true,
+                        },
+                    });
                 }
 
                 // Batch update — gom 1 lần set thay vì N lần
                 set((state) => ({ devices: [...state.devices, ...newDevices] }));
-                set({ isLoading: false });
+                set({ isLoading: false, importProgress: INITIAL_PROGRESS });
 
                 if (failCount === 0) {
                     toast.success(`Imported ${successCount} device(s) successfully`);
@@ -129,6 +169,53 @@ export const useDeviceStore = create<DeviceState>()(
                 }));
             },
 
+            // Đổi trạng thái thiết bị
+            setDeviceStatus: (deviceId: string, status: DeviceStatus) => {
+                set((state) => ({
+                    devices: state.devices.map((d) =>
+                        d.id === deviceId ? { ...d, status } : d
+                    ),
+                }));
+                toast.success('Status updated', { duration: 1500 });
+            },
+
+            // Thêm custom tag
+            addTag: (deviceId: string, tag: string) => {
+                const trimmed = tag.trim();
+                if (!trimmed) return;
+                set((state) => ({
+                    devices: state.devices.map((d) => {
+                        if (d.id !== deviceId) return d;
+                        // Tránh trùng tag
+                        if (d.metadata.tags.includes(trimmed)) return d;
+                        return { ...d, metadata: { ...d.metadata, tags: [...d.metadata.tags, trimmed] } };
+                    }),
+                }));
+            },
+
+            // Xóa custom tag
+            removeTag: (deviceId: string, tag: string) => {
+                set((state) => ({
+                    devices: state.devices.map((d) =>
+                        d.id === deviceId
+                            ? { ...d, metadata: { ...d.metadata, tags: d.metadata.tags.filter((t) => t !== tag) } }
+                            : d
+                    ),
+                }));
+            },
+
+            // Cập nhật 1 cell trong sheet data
+            updateSheetCell: (deviceId: string, sheetName: string, rowIndex: number, column: string, value: any) => {
+                set((state) => ({
+                    devices: state.devices.map((d) => {
+                        if (d.id !== deviceId) return d;
+                        const sheetData = [...d.sheets[sheetName]];
+                        sheetData[rowIndex] = { ...sheetData[rowIndex], [column]: value };
+                        return { ...d, sheets: { ...d.sheets, [sheetName]: sheetData } };
+                    }),
+                }));
+            },
+
             exportDevice: (device: Device) => {
                 try {
                     exportDeviceToExcel(device);
@@ -139,8 +226,18 @@ export const useDeviceStore = create<DeviceState>()(
             },
         }),
         {
+            // Chỉ track thay đổi devices — không track transient state
+            partialize: (state) => ({
+                devices: state.devices,
+                defaultVisibleSheets: state.defaultVisibleSheets,
+            }),
+            limit: 30, // Giữ tối đa 30 bước undo
+        }),
+        {
             name: 'device-storage',
-            // Không persist selectedDevice và isLoading (transient state)
+            // Sử dụng IndexedDB thay localStorage — hỗ trợ hàng trăm MB
+            storage: indexedDBStorage,
+            // Không persist selectedDevice, isLoading, importProgress (transient state)
             partialize: (state) => ({
                 devices: state.devices,
                 defaultVisibleSheets: state.defaultVisibleSheets,

@@ -27,8 +27,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Download, Trash2, Calendar, HardDrive, Cpu, Network, Laptop, Search, SlidersHorizontal } from 'lucide-react';
-import { Device, SHEET_NAMES } from '@/types/device';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import { Download, Trash2, Calendar, HardDrive, Cpu, Network, Laptop, Search, SlidersHorizontal, Tag, X, Plus } from 'lucide-react';
+import { Device, DeviceStatus, DEVICE_STATUS_CONFIG, SHEET_NAMES } from '@/types/device';
 import { SheetTable } from './SheetTable';
 import { Input } from '@/components/ui/input';
 import { useState, useMemo } from 'react';
@@ -57,7 +64,12 @@ export function DeviceDetail({
     onDelete,
 }: DeviceDetailProps) {
     const [searchTerm, setSearchTerm] = useState('');
+    const [newTag, setNewTag] = useState('');
     const updateDeviceVisibleSheets = useDeviceStore((s) => s.updateDeviceVisibleSheets);
+    const setDeviceStatus = useDeviceStore((s) => s.setDeviceStatus);
+    const addTag = useDeviceStore((s) => s.addTag);
+    const removeTag = useDeviceStore((s) => s.removeTag);
+    const updateSheetCell = useDeviceStore((s) => s.updateSheetCell);
 
     if (!device) return null;
 
@@ -84,7 +96,7 @@ export function DeviceDetail({
                 <div className="p-6 border-b bg-muted/10">
                     <DialogHeader className="p-0 space-y-0">
                         <div className="flex items-start justify-between gap-4">
-                            <div className="space-y-4">
+                            <div className="space-y-3">
                                 <div className="flex items-center gap-3">
                                     <DialogTitle className="text-2xl font-bold">
                                         {device.deviceInfo.name}
@@ -92,6 +104,59 @@ export function DeviceDetail({
                                     <Badge variant="secondary" className="px-2.5 py-0.5 text-sm font-medium">
                                         {device.deviceInfo.os}
                                     </Badge>
+                                    {/* Status selector */}
+                                    <Select
+                                        value={device.status ?? 'active'}
+                                        onValueChange={(val) => setDeviceStatus(device.id, val as DeviceStatus)}
+                                    >
+                                        <SelectTrigger className="w-[160px] h-8 text-xs">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {Object.entries(DEVICE_STATUS_CONFIG).map(([key, config]) => (
+                                                <SelectItem key={key} value={key}>
+                                                    <span className={`mr-1.5 h-2 w-2 rounded-full ${config.color} inline-block`} />
+                                                    {config.label}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
+                                {/* Tags editor */}
+                                <div className="flex items-center gap-2 flex-wrap">
+                                    <Tag className="h-3.5 w-3.5 text-muted-foreground" />
+                                    {(device.metadata.tags ?? []).map((tag) => (
+                                        <Badge key={tag} variant="outline" className="text-xs gap-1 pr-1">
+                                            {tag}
+                                            <button
+                                                onClick={() => removeTag(device.id, tag)}
+                                                className="ml-0.5 hover:text-destructive"
+                                            >
+                                                <X className="h-3 w-3" />
+                                            </button>
+                                        </Badge>
+                                    ))}
+                                    <form
+                                        className="flex items-center gap-1"
+                                        onSubmit={(e) => {
+                                            e.preventDefault();
+                                            if (newTag.trim()) {
+                                                addTag(device.id, newTag);
+                                                setNewTag('');
+                                            }
+                                        }}
+                                    >
+                                        <Input
+                                            value={newTag}
+                                            onChange={(e) => setNewTag(e.target.value)}
+                                            placeholder="Add tag..."
+                                            className="h-6 w-24 text-xs px-2"
+                                        />
+                                        <Button type="submit" variant="ghost" size="icon" className="h-6 w-6">
+                                            <Plus className="h-3 w-3" />
+                                        </Button>
+                                    </form>
                                 </div>
                                 <div className="flex items-center gap-6 text-sm text-muted-foreground">
 
@@ -242,6 +307,10 @@ export function DeviceDetail({
                                                 JSON.stringify(item).toLowerCase().includes(searchTerm.toLowerCase())
                                             )}
                                             sheetName={sheetName}
+                                            deviceId={device.id}
+                                            onCellUpdate={(rowIndex, column, value) =>
+                                                updateSheetCell(device.id, sheetName, rowIndex, column, value)
+                                            }
                                         />
                                     </div>
                                 </div>

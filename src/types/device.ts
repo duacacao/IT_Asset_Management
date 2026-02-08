@@ -1,5 +1,14 @@
 
 
+// Trạng thái thiết bị
+export type DeviceStatus = 'active' | 'broken' | 'inactive';
+
+export const DEVICE_STATUS_CONFIG = {
+  active: { label: 'Đang sử dụng', color: 'bg-green-500', variant: 'default' as const },
+  broken: { label: 'Hư hỏng', color: 'bg-red-500', variant: 'destructive' as const },
+  inactive: { label: 'Không sử dụng', color: 'bg-gray-400', variant: 'secondary' as const },
+} as const;
+
 // Device data structure
 export interface DeviceInfo {
   name: string;
@@ -24,6 +33,7 @@ export interface DeviceMetadata {
 
 export interface Device {
   id: string;
+  status: DeviceStatus;
   deviceInfo: DeviceInfo;
   fileName: string;
   sheets: {

@@ -65,6 +65,7 @@ export const importExcelDevice = async (
 
                 const device: Device = {
                     id: `device_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                    status: 'active',
                     deviceInfo: {
                         name: firstRow["Ten may"] || firstRow["Tên máy"] || extractDeviceNameFromFile(file.name),
                         os: firstRow["He dieu hanh"] || firstRow["Hệ điều hành"] || "Unknown OS",
