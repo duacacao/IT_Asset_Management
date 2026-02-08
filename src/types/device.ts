@@ -18,6 +18,8 @@ export interface DeviceMetadata {
   fileSize: string;
   importedAt: string;
   tags: string[];
+  // Sheet nào được hiển thị (override per device, null = dùng global default)
+  visibleSheets?: string[];
 }
 
 export interface Device {

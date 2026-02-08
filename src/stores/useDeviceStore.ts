@@ -8,14 +8,18 @@ interface DeviceState {
     devices: Device[];
     selectedDevice: Device | null;
     isLoading: boolean;
+    // Global default: danh sách sheet mặc định được import
+    defaultVisibleSheets: string[];
 
     // Actions
     setSelectedDevice: (device: Device | null) => void;
-    addDevice: (file: File) => Promise<Device>;
-    addMultipleDevices: (files: File[]) => Promise<void>;
+    setDefaultVisibleSheets: (sheets: string[]) => void;
+    addDevice: (file: File, selectedSheets?: string[]) => Promise<Device>;
+    addMultipleDevices: (files: File[], selectedSheets?: string[]) => Promise<void>;
     removeDevice: (deviceId: string) => void;
     undoRemoveDevice: (device: Device) => void;
     updateDevice: (deviceId: string, updates: Partial<Device>) => void;
+    updateDeviceVisibleSheets: (deviceId: string, visibleSheets: string[]) => void;
     exportDevice: (device: Device) => void;
 }
 
@@ -25,13 +29,16 @@ export const useDeviceStore = create<DeviceState>()(
             devices: [],
             selectedDevice: null,
             isLoading: false,
+            defaultVisibleSheets: [],
 
             setSelectedDevice: (device) => set({ selectedDevice: device }),
 
-            addDevice: async (file: File) => {
+            setDefaultVisibleSheets: (sheets) => set({ defaultVisibleSheets: sheets }),
+
+            addDevice: async (file: File, selectedSheets?: string[]) => {
                 set({ isLoading: true });
                 try {
-                    const device = await importExcelDevice(file);
+                    const device = await importExcelDevice(file, selectedSheets);
                     set((state) => ({ devices: [...state.devices, device] }));
                     toast.success(`Imported ${device.deviceInfo.name}`, {
                         description: `${device.metadata.totalSheets} sheets, ${device.metadata.totalRows} rows`,
@@ -47,21 +54,24 @@ export const useDeviceStore = create<DeviceState>()(
                 }
             },
 
-            addMultipleDevices: async (files: File[]) => {
+            addMultipleDevices: async (files: File[], selectedSheets?: string[]) => {
                 set({ isLoading: true });
                 let successCount = 0;
                 let failCount = 0;
+                const newDevices: Device[] = [];
 
                 for (const file of files) {
                     try {
-                        const device = await importExcelDevice(file);
-                        set((state) => ({ devices: [...state.devices, device] }));
+                        const device = await importExcelDevice(file, selectedSheets);
+                        newDevices.push(device);
                         successCount++;
                     } catch {
                         failCount++;
                     }
                 }
 
+                // Batch update — gom 1 lần set thay vì N lần
+                set((state) => ({ devices: [...state.devices, ...newDevices] }));
                 set({ isLoading: false });
 
                 if (failCount === 0) {
@@ -108,6 +118,17 @@ export const useDeviceStore = create<DeviceState>()(
                 toast.success('Saved', { duration: 1500 });
             },
 
+            // Toggle ẩn/hiện sheet per device
+            updateDeviceVisibleSheets: (deviceId: string, visibleSheets: string[]) => {
+                set((state) => ({
+                    devices: state.devices.map((d) =>
+                        d.id === deviceId
+                            ? { ...d, metadata: { ...d.metadata, visibleSheets } }
+                            : d
+                    ),
+                }));
+            },
+
             exportDevice: (device: Device) => {
                 try {
                     exportDeviceToExcel(device);
@@ -120,7 +141,10 @@ export const useDeviceStore = create<DeviceState>()(
         {
             name: 'device-storage',
             // Không persist selectedDevice và isLoading (transient state)
-            partialize: (state) => ({ devices: state.devices }),
+            partialize: (state) => ({
+                devices: state.devices,
+                defaultVisibleSheets: state.defaultVisibleSheets,
+            }),
         }
     )
 );

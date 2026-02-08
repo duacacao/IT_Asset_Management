@@ -5,9 +5,10 @@ import { StatsCards } from '@/components/dashboard/StatsCards';
 import { ImportDevice } from '@/components/dashboard/ImportDevice';
 import { DeviceList } from '@/components/dashboard/DeviceList';
 import { DeviceDetail } from '@/components/dashboard/DeviceDetail';
+import { SheetSelectionDialog } from '@/components/dashboard/SheetSelectionDialog';
 import { Button } from '@/components/ui/button';
 import { Upload } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import {
     Dialog,
     DialogContent,
@@ -16,6 +17,7 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog"
 import { Device } from '@/types/device';
+import { useDeviceStore } from '@/stores/useDeviceStore';
 
 export default function DevicesPage() {
     const {
@@ -29,8 +31,14 @@ export default function DevicesPage() {
         exportDevice,
     } = useDevices();
 
+    const defaultVisibleSheets = useDeviceStore((s) => s.defaultVisibleSheets);
+    const setDefaultVisibleSheets = useDeviceStore((s) => s.setDefaultVisibleSheets);
+
     const [isDetailOpen, setIsDetailOpen] = useState(false);
     const [isImportOpen, setIsImportOpen] = useState(false);
+    // Files chờ chọn sheet
+    const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+    const [isSheetSelectOpen, setIsSheetSelectOpen] = useState(false);
 
     const handleViewDevice = (device: Device) => {
         setSelectedDevice(device);
@@ -41,6 +49,27 @@ export default function DevicesPage() {
         setIsDetailOpen(false);
         setSelectedDevice(null);
     };
+
+    // Khi user drop/chọn files → mở Sheet Selection Dialog
+    const handleFilesSelected = useCallback((files: File[]) => {
+        setPendingFiles(files);
+        setIsImportOpen(false);
+        setIsSheetSelectOpen(true);
+    }, []);
+
+    // Sau khi chọn sheets → thực hiện import
+    const handleSheetConfirm = useCallback(async (selectedSheets: string[]) => {
+        setIsSheetSelectOpen(false);
+        // Lưu lại làm global default
+        setDefaultVisibleSheets(selectedSheets);
+
+        if (pendingFiles.length === 1) {
+            await addDevice(pendingFiles[0], selectedSheets);
+        } else {
+            await addMultipleDevices(pendingFiles, selectedSheets);
+        }
+        setPendingFiles([]);
+    }, [pendingFiles, addDevice, addMultipleDevices, setDefaultVisibleSheets]);
 
     return (
         <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
@@ -63,7 +92,7 @@ export default function DevicesPage() {
                 />
             </div>
 
-            {/* Import Dialog */}
+            {/* Import Dialog — chỉ chọn files */}
             <Dialog open={isImportOpen} onOpenChange={setIsImportOpen}>
                 <DialogContent className="sm:max-w-[600px]">
                     <DialogHeader>
@@ -73,16 +102,26 @@ export default function DevicesPage() {
                         </DialogDescription>
                     </DialogHeader>
                     <div className="py-4">
-                        <ImportDevice onImport={async (d) => {
-                            await addDevice(d);
-                            setIsImportOpen(false);
-                        }} onImportMultiple={async (files) => {
-                            await addMultipleDevices(files);
-                            setIsImportOpen(false);
-                        }} isLoading={isLoading} />
+                        <ImportDevice
+                            onImport={async (file) => handleFilesSelected([file])}
+                            onImportMultiple={async (files) => handleFilesSelected(files)}
+                            isLoading={isLoading}
+                        />
                     </div>
                 </DialogContent>
             </Dialog>
+
+            {/* Sheet Selection Dialog — chọn sheet trước khi import */}
+            <SheetSelectionDialog
+                isOpen={isSheetSelectOpen}
+                onClose={() => {
+                    setIsSheetSelectOpen(false);
+                    setPendingFiles([]);
+                }}
+                files={pendingFiles}
+                defaultSelected={defaultVisibleSheets}
+                onConfirm={handleSheetConfirm}
+            />
 
             <DeviceDetail
                 device={selectedDevice}

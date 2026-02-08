@@ -15,15 +15,24 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuCheckboxItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Download, Trash2, Calendar, HardDrive, Cpu, Network, Laptop, Search } from 'lucide-react';
-import { Device } from '@/types/device';
+import { Download, Trash2, Calendar, HardDrive, Cpu, Network, Laptop, Search, SlidersHorizontal } from 'lucide-react';
+import { Device, SHEET_NAMES } from '@/types/device';
 import { SheetTable } from './SheetTable';
 import { Input } from '@/components/ui/input';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
+import { useDeviceStore } from '@/stores/useDeviceStore';
 
 interface DeviceDetailProps {
     device: Device | null;
@@ -33,6 +42,13 @@ interface DeviceDetailProps {
     onDelete: (deviceId: string) => void;
 }
 
+// Tên hiển thị đẹp cho sheet
+const getDisplayName = (sheetKey: string): string => {
+    const mapped = SHEET_NAMES[sheetKey as keyof typeof SHEET_NAMES];
+    if (mapped) return mapped;
+    return sheetKey.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+};
+
 export function DeviceDetail({
     device,
     isOpen,
@@ -41,8 +57,25 @@ export function DeviceDetail({
     onDelete,
 }: DeviceDetailProps) {
     const [searchTerm, setSearchTerm] = useState('');
+    const updateDeviceVisibleSheets = useDeviceStore((s) => s.updateDeviceVisibleSheets);
 
     if (!device) return null;
+
+    // Sheets hiện tại của device (tất cả sheet đã lưu)
+    const allSheetKeys = Object.keys(device.sheets);
+    // Sheets được hiển thị (per-device override hoặc tất cả)
+    const visibleSheets = device.metadata.visibleSheets ?? allSheetKeys;
+    const displayedSheets = allSheetKeys.filter((s) => visibleSheets.includes(s));
+
+    const toggleSheetVisibility = (sheet: string) => {
+        const current = device.metadata.visibleSheets ?? allSheetKeys;
+        const updated = current.includes(sheet)
+            ? current.filter((s) => s !== sheet)
+            : [...current, sheet];
+        // Không cho ẩn hết
+        if (updated.length === 0) return;
+        updateDeviceVisibleSheets(device.id, updated);
+    };
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
@@ -130,7 +163,7 @@ export function DeviceDetail({
                             value={device.deviceInfo.architecture}
                         />
                         <StatCard
-                            icon={<Network className="h-4 w-4 text-primary" />} // Reusing network for MAC, or distinct icon
+                            icon={<Network className="h-4 w-4 text-primary" />}
                             label="MAC Address"
                             value={device.deviceInfo.mac || 'N/A'}
                         />
@@ -139,18 +172,18 @@ export function DeviceDetail({
 
                 {/* Tabs & Content Section */}
                 <div className="flex-1 flex flex-col min-h-0 bg-background">
-                    <Tabs defaultValue={Object.keys(device.sheets)[0]} className="flex-1 flex flex-col">
+                    <Tabs defaultValue={displayedSheets[0]} className="flex-1 flex flex-col">
                         <div className="flex items-center justify-between px-6 py-2 border-b">
                             <TabsList className="h-auto bg-transparent p-0 gap-2">
-                                <ScrollArea orientation="horizontal" className="w-[600px] whitespace-nowrap">
-                                    <div className="flex gap-2 pb-3"> {/* Added padding for scrollbar space if needed */}
-                                        {Object.keys(device.sheets).map((sheetName) => (
+                                <ScrollArea orientation="horizontal" className="w-[550px] whitespace-nowrap">
+                                    <div className="flex gap-2 pb-3">
+                                        {displayedSheets.map((sheetName) => (
                                             <TabsTrigger
                                                 key={sheetName}
                                                 value={sheetName}
                                                 className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary rounded-full px-4 h-8 border border-transparent data-[state=active]:border-primary/20 capitalize"
                                             >
-                                                {sheetName.replace(/_/g, ' ')}
+                                                {getDisplayName(sheetName)}
                                                 <span className="ml-2 text-xs opacity-60">
                                                     {device.sheets[sheetName].length}
                                                 </span>
@@ -160,25 +193,52 @@ export function DeviceDetail({
                                 </ScrollArea>
                             </TabsList>
 
-                            {/* Search within tab (placeholder logic for now) */}
-                            <div className="relative w-64">
-                                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                                <Input
-                                    placeholder="Filter current view..."
-                                    className="pl-8 h-9"
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                />
+                            <div className="flex items-center gap-2">
+                                {/* Toggle sheet visibility */}
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="outline" size="sm" className="h-9">
+                                            <SlidersHorizontal className="mr-2 h-4 w-4" />
+                                            Sheets
+                                            <Badge variant="secondary" className="ml-2 px-1.5 text-xs">
+                                                {displayedSheets.length}/{allSheetKeys.length}
+                                            </Badge>
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end" className="w-48">
+                                        <DropdownMenuLabel>Hiển thị sheet</DropdownMenuLabel>
+                                        <DropdownMenuSeparator />
+                                        {allSheetKeys.map((sheet) => (
+                                            <DropdownMenuCheckboxItem
+                                                key={sheet}
+                                                checked={visibleSheets.includes(sheet)}
+                                                onCheckedChange={() => toggleSheetVisibility(sheet)}
+                                            >
+                                                {getDisplayName(sheet)}
+                                            </DropdownMenuCheckboxItem>
+                                        ))}
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+
+                                {/* Search within tab */}
+                                <div className="relative w-52">
+                                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                                    <Input
+                                        placeholder="Filter current view..."
+                                        className="pl-8 h-9"
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                    />
+                                </div>
                             </div>
                         </div>
 
-                        {Object.keys(device.sheets).map((sheetName) => (
+                        {displayedSheets.map((sheetName) => (
                             <TabsContent key={sheetName} value={sheetName} className="flex-1 p-0 m-0 min-h-0 data-[state=active]:flex flex-col relative">
                                 <div className="absolute inset-0 p-6">
                                     <div className="h-full w-full rounded-md border bg-card shadow-sm overflow-hidden">
                                         <SheetTable
                                             data={device.sheets[sheetName].filter(item =>
-                                                // Simple search implementation
                                                 JSON.stringify(item).toLowerCase().includes(searchTerm.toLowerCase())
                                             )}
                                             sheetName={sheetName}

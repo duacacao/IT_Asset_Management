@@ -8,7 +8,31 @@ import { Device, DeviceInfo } from '@/types/device';
  * - Handle multiple sheets
  */
 
-export const importExcelDevice = async (file: File): Promise<Device> => {
+// Scan tên sheet từ file Excel (không parse data) — dùng cho Sheet Selection Dialog
+export const scanSheetNames = async (file: File): Promise<string[]> => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const data = new Uint8Array(e.target?.result as ArrayBuffer);
+                const workbook = XLSX.read(data, { type: 'array', bookSheets: true });
+                const normalized = workbook.SheetNames.map((name) =>
+                    name.toLowerCase().replace(/\s+/g, '_')
+                );
+                resolve(normalized);
+            } catch (error) {
+                reject(error);
+            }
+        };
+        reader.onerror = () => reject(new Error('Failed to read file'));
+        reader.readAsArrayBuffer(file);
+    });
+};
+
+export const importExcelDevice = async (
+    file: File,
+    selectedSheets?: string[]
+): Promise<Device> => {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
 
@@ -22,10 +46,14 @@ export const importExcelDevice = async (file: File): Promise<Device> => {
                 let totalRows = 0;
 
                 workbook.SheetNames.forEach((sheetName) => {
+                    const normalizedName = sheetName.toLowerCase().replace(/\s+/g, '_');
+
+                    // Chỉ parse sheet được chọn (nếu có filter)
+                    if (selectedSheets && !selectedSheets.includes(normalizedName)) return;
+
                     const sheet = workbook.Sheets[sheetName];
                     const jsonData = XLSX.utils.sheet_to_json(sheet);
 
-                    const normalizedName = sheetName.toLowerCase().replace(/\s+/g, '_');
                     sheets[normalizedName] = jsonData;
                     totalRows += jsonData.length;
                 });
