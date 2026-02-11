@@ -138,12 +138,12 @@ export function DeviceList({
                 ),
                 cell: ({ row }) => (
                     <div data-no-row-click>
-                    <Checkbox
-                        checked={row.getIsSelected()}
-                        onCheckedChange={(value) => row.toggleSelected(!!value)}
-                        aria-label="Select row"
-                        className="translate-y-[2px]"
-                    />
+                        <Checkbox
+                            checked={row.getIsSelected()}
+                            onCheckedChange={(value) => row.toggleSelected(!!value)}
+                            aria-label="Select row"
+                            className="translate-y-[2px]"
+                        />
                     </div>
                 ),
                 enableSorting: false,
@@ -198,34 +198,34 @@ export function DeviceList({
                 header: '',
                 cell: ({ row }) => (
                     <div data-no-row-click>
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" aria-label="Hành động">
-                                <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => onViewDevice(row.original)}>
-                                <Eye className="mr-2 h-4 w-4" />
-                                Xem chi tiết
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => onUpdateDevice(row.original)}>
-                                <Pencil className="mr-2 h-4 w-4" />
-                                Chỉnh sửa
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => onExportDevice(row.original)}>
-                                <Download className="mr-2 h-4 w-4" />
-                                Xuất file
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                                onClick={() => setDeleteId(row.original.id)}
-                                className="text-destructive focus:text-destructive"
-                            >
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Xóa
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" aria-label="Hành động">
+                                    <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onViewDevice(row.original); }}>
+                                    <Eye className="mr-2 h-4 w-4" />
+                                    Xem chi tiết
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onUpdateDevice(row.original); }}>
+                                    <Pencil className="mr-2 h-4 w-4" />
+                                    Chỉnh sửa
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onExportDevice(row.original); }}>
+                                    <Download className="mr-2 h-4 w-4" />
+                                    Xuất file
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                    onClick={(e) => { e.stopPropagation(); setDeleteId(row.original.id); }}
+                                    className="text-destructive focus:text-destructive"
+                                >
+                                    <Trash2 className="mr-2 h-4 w-4" />
+                                    Xóa
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                     </div>
                 ),
             },
@@ -338,53 +338,53 @@ export function DeviceList({
             {/* Table — chiều cao cố định, scroll nếu nhiều thiết bị */}
             <div className="rounded-md border">
                 <div className="h-[480px] overflow-auto">
-                <Table>
-                    <TableHeader className="sticky top-0 z-10 bg-background">
-                        {table.getHeaderGroups().map((headerGroup) => (
-                            <TableRow key={headerGroup.id}>
-                                {headerGroup.headers.map((header) => (
-                                    <TableHead key={header.id}>
-                                        {flexRender(
-                                            header.column.columnDef.header,
-                                            header.getContext()
-                                        )}
-                                    </TableHead>
-                                ))}
-                            </TableRow>
-                        ))}
-                    </TableHeader>
-                    <TableBody>
-                        {table.getRowModel().rows?.length ? (
-                            table.getRowModel().rows.map((row) => (
-                                <TableRow
-                                    key={row.id}
-                                    className="cursor-pointer hover:bg-muted/50"
-                                    onClick={(e) => {
-                                        // Không mở view modal khi click vào actions column hoặc checkbox
-                                        const target = e.target as HTMLElement;
-                                        if (target.closest('[data-no-row-click]')) return;
-                                        onViewDevice(row.original);
-                                    }}
-                                >
-                                    {row.getVisibleCells().map((cell) => (
-                                        <TableCell key={cell.id}>
+                    <Table>
+                        <TableHeader className="sticky top-0 z-10 bg-background">
+                            {table.getHeaderGroups().map((headerGroup) => (
+                                <TableRow key={headerGroup.id}>
+                                    {headerGroup.headers.map((header) => (
+                                        <TableHead key={header.id}>
                                             {flexRender(
-                                                cell.column.columnDef.cell,
-                                                cell.getContext()
+                                                header.column.columnDef.header,
+                                                header.getContext()
                                             )}
-                                        </TableCell>
+                                        </TableHead>
                                     ))}
                                 </TableRow>
-                            ))
-                        ) : (
-                            <TableRow>
-                                <TableCell colSpan={columns.length} className="h-24 text-center">
-                                    Không tìm thấy thiết bị
-                                </TableCell>
-                            </TableRow>
-                        )}
-                    </TableBody>
-                </Table>
+                            ))}
+                        </TableHeader>
+                        <TableBody>
+                            {table.getRowModel().rows?.length ? (
+                                table.getRowModel().rows.map((row) => (
+                                    <TableRow
+                                        key={row.id}
+                                        className="cursor-pointer hover:bg-muted/50"
+                                        onClick={(e) => {
+                                            // Không mở view modal khi click vào actions column hoặc checkbox
+                                            const target = e.target as HTMLElement;
+                                            if (target.closest('[data-no-row-click]')) return;
+                                            onViewDevice(row.original);
+                                        }}
+                                    >
+                                        {row.getVisibleCells().map((cell) => (
+                                            <TableCell key={cell.id}>
+                                                {flexRender(
+                                                    cell.column.columnDef.cell,
+                                                    cell.getContext()
+                                                )}
+                                            </TableCell>
+                                        ))}
+                                    </TableRow>
+                                ))
+                            ) : (
+                                <TableRow>
+                                    <TableCell colSpan={columns.length} className="h-24 text-center">
+                                        Không tìm thấy thiết bị
+                                    </TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
                 </div>
             </div>
 

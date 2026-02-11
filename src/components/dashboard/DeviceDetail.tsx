@@ -17,15 +17,11 @@ import {
 import {
     DropdownMenu,
     DropdownMenuContent,
-    DropdownMenuCheckboxItem,
     DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import {
     Select,
@@ -34,7 +30,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { Download, Trash2, Calendar, HardDrive, Cpu, Network, Laptop, Search, SlidersHorizontal, Monitor, Pencil, Check, X, Plus, Copy, MoreVertical, Eye, CheckCircle2 } from 'lucide-react';
+import { Download, Trash2, Calendar, HardDrive, Cpu, Network, Laptop, SlidersHorizontal, Monitor, Pencil, Check, X, Plus, Copy, MoreVertical, Eye, CheckCircle2 } from 'lucide-react';
 import { Device, DeviceInfo, DeviceStatus, DEVICE_STATUS_CONFIG, SHEET_NAMES } from '@/types/device';
 import { SheetTable } from './SheetTable';
 import { Input } from '@/components/ui/input';
@@ -88,7 +84,7 @@ export function DeviceDetail({
 }: DeviceDetailProps) {
     const [currentMode, setCurrentMode] = useState<'view' | 'edit'>(initialMode);
     const isEditMode = currentMode === 'edit';
-    const [searchTerm, setSearchTerm] = useState('');
+
     const [activeSheet, setActiveSheet] = useState<string | null>(null);
     const [isEditing, setIsEditing] = useState(false);
     const [editForm, setEditForm] = useState<Partial<DeviceInfo>>({});
@@ -211,6 +207,7 @@ export function DeviceDetail({
                             onClick={() => {
                                 if (isEditing) saveEditing();
                                 setCurrentMode('view');
+                                onClose();
                             }}
                         >
                             <CheckCircle2 className="mr-1.5 h-3.5 w-3.5" />
@@ -481,45 +478,7 @@ export function DeviceDetail({
                             {/* Spacer */}
                             <div className="flex-1" />
 
-                            {/* Controls — Sheets dropdown + Filter (chi hien thi o View mode) */}
-                            {!isEditMode && (
-                                <div className="flex items-center gap-2 flex-shrink-0">
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                            <Button variant="outline" size="sm" className="h-8">
-                                                <SlidersHorizontal className="mr-2 h-3.5 w-3.5" />
-                                                Sheets
-                                                <Badge variant="secondary" className="ml-2 px-1.5 text-xs">
-                                                    {displayedSheets.length}/{allSheetKeys.length}
-                                                </Badge>
-                                            </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="end" className="w-48">
-                                            <DropdownMenuLabel>Hiển thị sheet</DropdownMenuLabel>
-                                            <DropdownMenuSeparator />
-                                            {allSheetKeys.map((sheet) => (
-                                                <DropdownMenuCheckboxItem
-                                                    key={sheet}
-                                                    checked={visibleSheets.includes(sheet)}
-                                                    onCheckedChange={() => toggleSheetVisibility(sheet)}
-                                                >
-                                                    {getDisplayName(sheet)}
-                                                </DropdownMenuCheckboxItem>
-                                            ))}
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
 
-                                    <div className="relative w-44">
-                                        <Search className="absolute left-2 top-2 h-3.5 w-3.5 text-muted-foreground" />
-                                        <Input
-                                            placeholder="Lọc…"
-                                            className="pl-7 h-8 text-sm"
-                                            value={searchTerm}
-                                            onChange={(e) => setSearchTerm(e.target.value)}
-                                        />
-                                    </div>
-                                </div>
-                            )}
                         </div>
 
                         {/* Sheet content — hoặc empty state */}
@@ -546,9 +505,7 @@ export function DeviceDetail({
                                         <div className="flex-1 rounded-md border bg-card shadow-sm overflow-hidden">
                                             {device.sheets[sheetName]?.length > 0 ? (
                                                 <SheetTable
-                                                    data={device.sheets[sheetName].filter(item =>
-                                                        JSON.stringify(item).toLowerCase().includes(searchTerm.toLowerCase())
-                                                    )}
+                                                    data={device.sheets[sheetName]}
                                                     sheetName={sheetName}
                                                     deviceId={device.id}
                                                     readOnly={!isEditMode}
@@ -701,11 +658,10 @@ function SortableTab({ id, label, count, isActive, onRename, onDelete }: {
             style={style}
             {...attributes}
             {...listeners}
-            className={`flex items-center flex-shrink-0 group rounded-full border transition-colors ${
-                isActive
-                    ? 'bg-primary/10 text-primary border-primary/20'
-                    : 'border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/50'
-            }`}
+            className={`flex items-center flex-shrink-0 group rounded-full border transition-colors ${isActive
+                ? 'bg-primary/10 text-primary border-primary/20'
+                : 'border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                }`}
         >
             {/* Tab content — click để chọn sheet */}
             <TabsTrigger
