@@ -10,9 +10,6 @@ import { Toaster } from "@/components/ui/sonner";
 export const metadata: Metadata = {
   title: "IT Asset Management",
   description: "Quản lý tài sản IT - Device Dashboard",
-  icons: {
-    icon: "/favicon.svg",
-  },
 };
 
 import { AuthProvider } from "@/contexts/AuthContext";

@@ -60,6 +60,8 @@ import {
 import { Device, DeviceStatus, DEVICE_STATUS_CONFIG } from '@/types/device';
 import { useDeviceStore } from '@/stores/useDeviceStore';
 import { SoftLabel } from '@/components/ui/soft-label';
+import { FilterBar, DeviceFilters } from './FilterBar';
+import { isWithinInterval, parseISO } from 'date-fns';
 
 interface DeviceListProps {
     devices: Device[];
@@ -110,19 +112,51 @@ export function DeviceList({
     const [sorting, setSorting] = useState<SortingState>([]);
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
-    const [globalFilter, setGlobalFilter] = useState('');
-    const [statusFilter, setStatusFilter] = useState<string>('all');
     const [deleteId, setDeleteId] = useState<string | null>(null);
     const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
     const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+    const [filters, setFilters] = useState<DeviceFilters>({});
 
     const setDeviceStatus = useDeviceStore((s) => s.setDeviceStatus);
 
-    // Lọc theo status trước khi đưa vào table
+    // Comprehensive filter logic
     const filteredDevices = useMemo(() => {
-        if (statusFilter === 'all') return devices;
-        return devices.filter((d) => d.status === statusFilter);
-    }, [devices, statusFilter]);
+        return devices.filter((device) => {
+            // Search filter - tìm trong deviceInfo.name, id, fileName
+            if (filters.search) {
+                const searchLower = filters.search.toLowerCase();
+                const matchesSearch =
+                    device.deviceInfo.name.toLowerCase().includes(searchLower) ||
+                    device.id.toLowerCase().includes(searchLower) ||
+                    device.fileName.toLowerCase().includes(searchLower) ||
+                    device.deviceInfo.ip.toLowerCase().includes(searchLower);
+
+                if (!matchesSearch) return false;
+            }
+
+            // Status filter
+            if (filters.status && filters.status.length > 0) {
+                if (!filters.status.includes(device.status)) return false;
+            }
+
+            // Date range filter - filter theo metadata.importedAt
+            if (filters.dateRange?.from && filters.dateRange?.to) {
+                try {
+                    const deviceDate = parseISO(device.metadata.importedAt);
+                    const isInRange = isWithinInterval(deviceDate, {
+                        start: filters.dateRange.from,
+                        end: filters.dateRange.to,
+                    });
+                    if (!isInRange) return false;
+                } catch (error) {
+                    // Nếu parse date lỗi, skip device này
+                    return false;
+                }
+            }
+
+            return true;
+        });
+    }, [devices, filters]);
 
     const columns: ColumnDef<Device>[] = useMemo(
         () => [
@@ -240,13 +274,11 @@ export function DeviceList({
             sorting,
             columnFilters,
             columnVisibility,
-            globalFilter,
             rowSelection,
         },
         onSortingChange: setSorting,
         onColumnFiltersChange: setColumnFilters,
         onColumnVisibilityChange: setColumnVisibility,
-        onGlobalFilterChange: setGlobalFilter,
         onRowSelectionChange: setRowSelection,
         enableRowSelection: true,
         getCoreRowModel: getCoreRowModel(),
@@ -257,37 +289,11 @@ export function DeviceList({
 
     return (
         <div className="space-y-4">
-            {/* Search + Filter bar */}
-            <div className="flex items-center gap-3">
-                <div className="relative flex-1 max-w-sm">
-                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" aria-hidden="true" />
-                    <Input
-                        placeholder="Tìm kiếm thiết bị…"
-                        value={globalFilter ?? ''}
-                        onChange={(e) => setGlobalFilter(e.target.value)}
-                        className="pl-8 h-9"
-                    />
-                </div>
-                {/* Status filter */}
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger className="w-[180px] h-9">
-                        <Filter className="mr-2 h-3.5 w-3.5" aria-hidden="true" />
-                        <SelectValue placeholder="Filter status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="all">Tất cả ({devices.length})</SelectItem>
-                        <SelectItem value="active">
-                            🟢 Đang sử dụng ({devices.filter(d => (d.status ?? 'active') === 'active').length})
-                        </SelectItem>
-                        <SelectItem value="broken">
-                            🔴 Hư hỏng ({devices.filter(d => d.status === 'broken').length})
-                        </SelectItem>
-                        <SelectItem value="inactive">
-                            ⚫ Không sử dụng ({devices.filter(d => d.status === 'inactive').length})
-                        </SelectItem>
-                    </SelectContent>
-                </Select>
-            </div>
+            {/* FilterBar */}
+            <FilterBar
+                onFilterChange={setFilters}
+                onReset={() => setFilters({})}
+            />
 
             {/* Bulk Actions toolbar */}
             {Object.keys(rowSelection).length > 0 && (
