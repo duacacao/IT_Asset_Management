@@ -5,31 +5,32 @@ import {
     BarChart,
     Bar,
     XAxis,
-    YAxis,
     CartesianGrid,
-    Tooltip,
-    ResponsiveContainer,
     Cell,
+    Rectangle,
 } from "recharts"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import {
+    ChartContainer,
+    ChartTooltip,
+    ChartTooltipContent,
+    type ChartConfig,
+} from "@/components/ui/chart"
 import { Device } from "@/types/device"
 
 interface HardwareOverviewProps {
     devices: Device[]
 }
 
-// RAM color palette — tông xanh gradient
-const RAM_COLORS: Record<string, string> = {
-    '≤ 4 GB': '#93c5fd',
-    '8 GB': '#60a5fa',
-    '16 GB': '#3b82f6',
-    '32 GB': '#2563eb',
-    '64+ GB': '#1d4ed8',
-}
-
-// CPU color palette — tông tím gradient
-const CPU_COLORS = ['#c4b5fd', '#a78bfa', '#8b5cf6', '#7c3aed', '#6d28d9', '#5b21b6', '#4c1d95']
+// Map chart colors to theme variables
+const CHART_COLORS = [
+    "var(--chart-1)",
+    "var(--chart-2)",
+    "var(--chart-3)",
+    "var(--chart-4)",
+    "var(--chart-5)",
+]
 
 // Parse "16 GB" → 16, trả về -1 nếu rỗng
 function parseRAM(ram: string): number {
@@ -47,13 +48,13 @@ function groupRAM(devices: Device[]) {
         { label: '32 GB', min: 24, max: 48 },
         { label: '64+ GB', min: 48, max: Infinity },
     ]
-    return ranges.map(r => ({
+    return ranges.map((r, index) => ({
         label: r.label,
         count: devices.filter(d => {
             const v = parseRAM(d.deviceInfo.ram)
             return v >= 0 && v >= r.min && v < r.max
         }).length,
-        fill: RAM_COLORS[r.label] || '#3b82f6',
+        fill: CHART_COLORS[index % CHART_COLORS.length],
     })).filter(d => d.count > 0)
 }
 
@@ -73,62 +74,65 @@ function groupCPU(devices: Device[]) {
         else if (cpu.includes('ryzen 7')) brand = 'Ryzen 7'
         else if (cpu.includes('ryzen 9')) brand = 'Ryzen 9'
         else if (cpu.includes('xeon')) brand = 'Xeon'
-        else if (cpu.includes('intel')) brand = 'Intel Other'
-        else if (cpu.includes('amd')) brand = 'AMD Other'
         else if (cpu.includes('apple') || cpu.includes('m1') || cpu.includes('m2') || cpu.includes('m3')) brand = 'Apple Silicon'
         brands[brand] = (brands[brand] || 0) + 1
     })
     return Object.entries(brands)
-        .map(([label, count], i) => ({ label, count, fill: CPU_COLORS[i % CPU_COLORS.length] }))
+        .map(([label, count], i) => ({
+            label,
+            count,
+            fill: CHART_COLORS[i % CHART_COLORS.length]
+        }))
         .sort((a, b) => b.count - a.count)
 }
 
-// Recharts BarChart với Cell colors — Minimal.cc column style
-function ColumnChart({ data }: { data: { label: string; count: number; fill: string }[] }) {
+const chartConfig = {
+    count: {
+        label: "Số lượng",
+        color: "hsl(var(--primary))",
+    },
+} satisfies ChartConfig
+
+// Component Chart chung
+function OverviewChart({ data }: { data: { label: string; count: number; fill: string }[] }) {
+    if (data.length === 0) {
+        return <div className="flex h-[200px] items-center justify-center text-sm text-muted-foreground">Chưa có dữ liệu</div>
+    }
+
     return (
-        <ResponsiveContainer width="100%" height={220}>
+        <ChartContainer config={chartConfig} className="h-[200px] w-full">
             <BarChart
                 data={data}
-                margin={{ top: 5, right: 5, left: -20, bottom: 0 }}
-                barCategoryGap="20%"
+                margin={{ top: 20, right: 0, left: 0, bottom: 0 }}
             >
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" strokeOpacity={0.5} />
+                <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="hsl(var(--border))" />
                 <XAxis
                     dataKey="label"
-                    fontSize={11}
                     tickLine={false}
                     axisLine={false}
-                    stroke="hsl(var(--muted-foreground))"
-                    interval={0}
-                    angle={-20}
+                    tickMargin={10}
+                    fontSize={11}
+                    angle={-15}
                     textAnchor="end"
-                    height={50}
+                    height={60}
+                    interval={0}
                 />
-                <YAxis
-                    fontSize={11}
-                    tickLine={false}
-                    axisLine={false}
-                    stroke="hsl(var(--muted-foreground))"
-                    allowDecimals={false}
+                <ChartTooltip
+                    cursor={false}
+                    content={<ChartTooltipContent hideLabel />}
                 />
-                <Tooltip
-                    contentStyle={{
-                        borderRadius: '10px',
-                        border: 'none',
-                        boxShadow: '0 4px 14px rgb(0 0 0 / 0.1)',
-                        fontSize: '12px',
-                        backgroundColor: 'hsl(var(--card))',
-                        color: 'hsl(var(--foreground))',
-                    }}
-                    formatter={(value) => [`${value} thiết bị`, 'Số lượng']}
-                />
-                <Bar dataKey="count" radius={[4, 4, 0, 0]} maxBarSize={40}>
-                    {data.map((entry) => (
-                        <Cell key={entry.label} fill={entry.fill} />
+                <Bar
+                    dataKey="count"
+                    radius={[4, 4, 0, 0]}
+                    maxBarSize={50}
+                    activeBar={<Rectangle fillOpacity={0.8} strokeWidth={1} stroke="var(--color-border)" />}
+                >
+                    {data.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.fill} />
                     ))}
                 </Bar>
             </BarChart>
-        </ResponsiveContainer>
+        </ChartContainer>
     )
 }
 
@@ -137,21 +141,23 @@ export function HardwareOverview({ devices }: HardwareOverviewProps) {
     const cpuData = React.useMemo(() => groupCPU(devices), [devices])
 
     return (
-        <Card className="h-full">
+        <Card className="h-full flex flex-col">
             <CardHeader className="pb-2">
-                <CardTitle className="text-base font-semibold">Tổng quan phần cứng</CardTitle>
+                <div className="flex items-center justify-between">
+                    <CardTitle className="text-base font-semibold">Tổng quan phần cứng</CardTitle>
+                </div>
             </CardHeader>
-            <CardContent>
-                <Tabs defaultValue="ram">
-                    <TabsList className="h-8 mb-3">
-                        <TabsTrigger value="ram" className="text-xs px-3 h-7">RAM</TabsTrigger>
-                        <TabsTrigger value="cpu" className="text-xs px-3 h-7">CPU</TabsTrigger>
+            <CardContent className="flex-1">
+                <Tabs defaultValue="ram" className="w-full">
+                    <TabsList className="grid w-full grid-cols-2 mb-4">
+                        <TabsTrigger value="ram">RAM</TabsTrigger>
+                        <TabsTrigger value="cpu">CPU</TabsTrigger>
                     </TabsList>
-                    <TabsContent value="ram" className="mt-0">
-                        <ColumnChart data={ramData} />
+                    <TabsContent value="ram">
+                        <OverviewChart data={ramData} />
                     </TabsContent>
-                    <TabsContent value="cpu" className="mt-0">
-                        <ColumnChart data={cpuData} />
+                    <TabsContent value="cpu">
+                        <OverviewChart data={cpuData} />
                     </TabsContent>
                 </Tabs>
             </CardContent>
