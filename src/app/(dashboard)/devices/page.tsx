@@ -63,6 +63,17 @@ export default function DevicesPage() {
     const [pendingFiles, setPendingFiles] = useState<File[]>([]);
     const [isSheetSelectOpen, setIsSheetSelectOpen] = useState(false);
 
+    // Highlight newly created device
+    const [highlightId, setHighlightId] = useState<string | null>(null);
+
+    // Auto-clear highlight after 3 seconds
+    useEffect(() => {
+        if (highlightId) {
+            const timer = setTimeout(() => setHighlightId(null), 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [highlightId]);
+
     const handleViewDevice = (device: Device) => {
         setSelectedDevice(device);
         setDetailMode('view');
@@ -126,7 +137,7 @@ export default function DevicesPage() {
                 <div className="rounded-lg border bg-card p-4 space-y-3">
                     <div className="flex items-center justify-between text-sm">
                         <span className="font-medium">
-                        Đang import… {importProgress.current}/{importProgress.total}
+                            Đang import… {importProgress.current}/{importProgress.total}
                         </span>
                         <div className="flex items-center gap-3 text-xs text-muted-foreground">
                             {importProgress.successCount > 0 && (
@@ -172,6 +183,7 @@ export default function DevicesPage() {
                         onUpdateDevice={handleUpdateDevice}
                         onExportDevice={exportDevice}
                         onDeleteDevice={removeDevice}
+                        highlightId={highlightId}
                     />
                 </div>
             )}
@@ -222,7 +234,13 @@ export default function DevicesPage() {
                 onCreated={(deviceId) => {
                     const device = devices.find((d) => d.id === deviceId) ||
                         useDeviceStore.getState().devices.find((d) => d.id === deviceId);
-                    if (device) handleUpdateDevice(device);
+
+                    if (device) {
+                        // Don't open update dialog immediately, instead highlight and scroll
+                        // handleUpdateDevice(device); 
+                        // UX Change: Scroll to new device instead of opening it
+                        setHighlightId(deviceId);
+                    }
                 }}
             />
         </div>

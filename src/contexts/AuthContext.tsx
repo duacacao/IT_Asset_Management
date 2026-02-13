@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import type { User, Session, LoginCredentials } from '@/lib/auth'
+import type { User, LoginCredentials } from '@/lib/auth'
 import * as authLib from '@/lib/auth'
 
 interface AuthContextType {
@@ -22,26 +22,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Check session on mount
     useEffect(() => {
-        const session = authLib.getSession()
-        if (session) {
-            setUser(session.user)
+        async function initAuth() {
+            try {
+                const userData = await authLib.checkSession()
+                setUser(userData)
+            } finally {
+                setIsLoading(false)
+            }
         }
-        setIsLoading(false)
+        initAuth()
     }, [])
 
     const login = async (credentials: LoginCredentials) => {
-        try {
-            const session = await authLib.login(credentials)
-            setUser(session.user)
-            router.push('/dashboard')
-        } catch (error) {
-            throw error
-        }
+        await authLib.login(credentials)
+        const userData = await authLib.checkSession()
+        setUser(userData)
+        router.push('/devices')
     }
 
-    const logout = () => {
-        authLib.logout()
+    const logout = async () => {
+        await authLib.logout()
         setUser(null)
+        // Router push is handled in authLib or we can do it here
         router.push('/sign-in')
     }
 

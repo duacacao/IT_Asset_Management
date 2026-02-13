@@ -1,4 +1,4 @@
-import { useMemo, useState, useCallback } from 'react';
+import { useMemo, useState, useCallback, useEffect } from 'react';
 import {
     useReactTable,
     getCoreRowModel,
@@ -40,6 +40,7 @@ interface DeviceListProps {
     onUpdateDevice: (device: Device) => void;
     onExportDevice: (device: Device) => void;
     onDeleteDevice: (deviceId: string) => void;
+    highlightId?: string | null;
 }
 
 
@@ -49,6 +50,7 @@ export function DeviceList({
     onUpdateDevice,
     onExportDevice,
     onDeleteDevice,
+    highlightId,
 }: DeviceListProps) {
     const [sorting, setSorting] = useState<SortingState>([]);
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -58,6 +60,18 @@ export function DeviceList({
     const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const [filters, setFilters] = useState<DeviceFilters>({});
+
+    // Effect: Scroll to highlighted row
+    useEffect(() => {
+        if (highlightId) {
+            const rowElement = document.getElementById(`device-row-${highlightId}`);
+            if (rowElement) {
+                rowElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                // Optional: add a flash effect via CSS or className logic if needed
+                // Currently relying on scrollIntoView
+            }
+        }
+    }, [highlightId]);
 
     const setDeviceStatus = useDeviceStore((s) => s.setDeviceStatus);
 
@@ -213,9 +227,11 @@ export function DeviceList({
                                 table.getRowModel().rows.map((row) => (
                                     <TableRow
                                         key={row.id}
+                                        id={`device-row-${row.original.id}`}
                                         role="row"
+                                        data-highlighted={highlightId === row.original.id}
                                         aria-label={`Device ${row.original.deviceInfo.name}, Status ${row.original.status}, IP ${row.original.deviceInfo.ip || 'Not set'}, OS ${row.original.deviceInfo.os}`}
-                                        className="cursor-pointer hover:bg-muted/50"
+                                        className={`cursor-pointer hover:bg-muted/50 ${highlightId === row.original.id ? 'bg-primary/10 transition-colors duration-1000' : ''}`}
                                         tabIndex={0}
                                         onClick={(e) => {
                                             // Không mở view modal khi click vào actions column hoặc checkbox

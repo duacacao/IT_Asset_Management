@@ -1,16 +1,9 @@
-// Authentication utilities
-// Hardcoded credentials: admin/admin
-// Session expiry: 7 days
+// Authentication utilities via API
+// Server-side JWT implementation
 
 export interface User {
     username: string
     role: 'admin' | 'user'
-}
-
-export interface Session {
-    user: User
-    token: string
-    expiresAt: number // timestamp
 }
 
 export interface LoginCredentials {
@@ -18,108 +11,47 @@ export interface LoginCredentials {
     password: string
 }
 
-const STORAGE_KEY = 'auth_session'
-const SESSION_DURATION = 7 * 24 * 60 * 60 * 1000 // 7 days in milliseconds
-
-// Hardcoded credentials
-const VALID_CREDENTIALS = {
-    email: 'admin',
-    password: 'admin',
-}
-
 /**
- * Mock API login - validates credentials
+ * Login via API
  */
-export async function login(credentials: LoginCredentials): Promise<Session> {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 500))
+export async function login(credentials: LoginCredentials): Promise<void> {
+    const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(credentials),
+    });
 
-    // Validate credentials
-    if (
-        credentials.email === VALID_CREDENTIALS.email &&
-        credentials.password === VALID_CREDENTIALS.password
-    ) {
-        const user: User = {
-            username: 'admin',
-            role: 'admin',
-        }
-
-        const session: Session = {
-            user,
-            token: generateToken(),
-            expiresAt: Date.now() + SESSION_DURATION,
-        }
-
-        // Save to localStorage
-        saveSession(session)
-
-        return session
+    if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || 'Login failed');
     }
 
-    throw new Error('Invalid credentials')
+    // Cookie is set automatically by the server response
 }
 
 /**
- * Generate a simple token (not cryptographically secure - for demo only)
+ * Verify session via API (check /api/auth/me)
  */
-function generateToken(): string {
-    return `token_${Date.now()}_${Math.random().toString(36).substring(7)}`
-}
-
-/**
- * Save session to localStorage
- */
-export function saveSession(session: Session): void {
-    if (typeof window !== 'undefined') {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(session))
-    }
-}
-
-/**
- * Get session from localStorage
- */
-export function getSession(): Session | null {
-    if (typeof window === 'undefined') return null
-
+export async function checkSession(): Promise<User | null> {
     try {
-        const stored = localStorage.getItem(STORAGE_KEY)
-        if (!stored) return null
-
-        const session: Session = JSON.parse(stored)
-
-        // Check if session is expired
-        if (Date.now() > session.expiresAt) {
-            clearSession()
-            return null
+        const res = await fetch('/api/auth/me');
+        if (res.ok) {
+            const data = await res.json();
+            return data.user;
         }
-
-        return session
-    } catch (error) {
-        console.error('Failed to parse session:', error)
-        clearSession()
-        return null
+        return null;
+    } catch {
+        return null;
     }
 }
 
 /**
- * Clear session from localStorage
+ * Logout via API
  */
-export function clearSession(): void {
+export async function logout(): Promise<void> {
+    await fetch('/api/auth/logout', { method: 'POST' });
+    // Redirect handled by caller or router
     if (typeof window !== 'undefined') {
-        localStorage.removeItem(STORAGE_KEY)
+        window.location.href = '/sign-in';
     }
-}
-
-/**
- * Check if user is authenticated
- */
-export function isAuthenticated(): boolean {
-    return getSession() !== null
-}
-
-/**
- * Logout - clear session
- */
-export function logout(): void {
-    clearSession()
 }
