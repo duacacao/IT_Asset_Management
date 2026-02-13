@@ -73,7 +73,7 @@ export function LoginForm1({
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)}>
+            <form onSubmit={form.handleSubmit(onSubmit)} autoComplete="off">
               <div className="grid gap-6">
                 <div className="grid gap-4">
                   <FormField
@@ -85,7 +85,8 @@ export function LoginForm1({
                         <FormControl>
                           <Input
                             type="text"
-                            placeholder="admin"
+                            placeholder="Nhập tên đăng nhập"
+                            autoComplete="off"
                             disabled={isLoading}
                             {...field}
                           />
@@ -103,6 +104,8 @@ export function LoginForm1({
                         <FormControl>
                           <Input
                             type="password"
+                            placeholder="Nhập mật khẩu"
+                            autoComplete="new-password"
                             disabled={isLoading}
                             {...field}
                           />

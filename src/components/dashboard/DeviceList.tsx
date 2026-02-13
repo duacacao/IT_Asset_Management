@@ -6,67 +6,32 @@ import {
     getFilteredRowModel,
     getPaginationRowModel,
     flexRender,
-    ColumnDef,
     SortingState,
     VisibilityState,
     ColumnFiltersState,
     RowSelectionState,
 } from '@tanstack/react-table';
 import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
+    Table, TableBody, TableCell,
+    TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Checkbox } from '@/components/ui/checkbox';
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+    Select, SelectContent, SelectItem,
+    SelectTrigger, SelectValue,
 } from '@/components/ui/select';
+import { CheckCircle2, SearchX, Loader2, FileDown, Download, Trash2 } from 'lucide-react';
 import {
-    Eye,
-    MoreHorizontal,
-    Download,
-    Trash2,
-    Search,
-    ArrowUpDown,
-    Filter,
-    CheckCircle2,
-    Pencil,
-    SearchX,
-    Loader2,
-    FileDown,
-} from 'lucide-react';
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
+    AlertDialog, AlertDialogAction, AlertDialogCancel,
+    AlertDialogContent, AlertDialogDescription,
+    AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Device, DeviceStatus, DEVICE_STATUS_CONFIG } from '@/types/device';
 import { useDeviceStore } from '@/stores/useDeviceStore';
-import { SoftLabel } from '@/components/ui/soft-label';
 import { FilterBar, DeviceFilters } from './FilterBar';
+import { createDeviceColumns, STATUS_DOT_COLORS } from './device-columns';
 import { isWithinInterval, parseISO } from 'date-fns';
 import { EmptyState } from '@/components/EmptyState';
-import { timeAgo } from '@/lib/time';
 import { exportDevicesToCSV } from '@/lib/export-utils';
 
 interface DeviceListProps {
@@ -77,21 +42,6 @@ interface DeviceListProps {
     onDeleteDevice: (deviceId: string) => void;
 }
 
-// Dot colors cho status dropdown items
-const STATUS_DOT_COLORS: Record<DeviceStatus, string> = {
-    active: 'bg-emerald-500',
-    broken: 'bg-red-500',
-    inactive: 'bg-amber-500',
-};
-
-function StatusLabel({ status }: { status: DeviceStatus }) {
-    const config = DEVICE_STATUS_CONFIG[status];
-    return (
-        <SoftLabel color={config.softColor} size="sm">
-            {config.label}
-        </SoftLabel>
-    );
-}
 
 export function DeviceList({
     devices,
@@ -111,10 +61,9 @@ export function DeviceList({
 
     const setDeviceStatus = useDeviceStore((s) => s.setDeviceStatus);
 
-    // Comprehensive filter logic
+    // Comprehensive filter logic — tìm theo tên, id, fileName, IP + status + date range
     const filteredDevices = useMemo(() => {
         return devices.filter((device) => {
-            // Search filter - tìm trong deviceInfo.name, id, fileName
             if (filters.search) {
                 const searchLower = filters.search.toLowerCase();
                 const matchesSearch =
@@ -122,16 +71,11 @@ export function DeviceList({
                     device.id.toLowerCase().includes(searchLower) ||
                     device.fileName.toLowerCase().includes(searchLower) ||
                     device.deviceInfo.ip.toLowerCase().includes(searchLower);
-
                 if (!matchesSearch) return false;
             }
-
-            // Status filter
             if (filters.status && filters.status.length > 0) {
                 if (!filters.status.includes(device.status)) return false;
             }
-
-            // Date range filter - filter theo metadata.importedAt
             if (filters.dateRange?.from && filters.dateRange?.to) {
                 try {
                     const deviceDate = parseISO(device.metadata.importedAt);
@@ -140,122 +84,17 @@ export function DeviceList({
                         end: filters.dateRange.to,
                     });
                     if (!isInRange) return false;
-                } catch (error) {
-                    // Nếu parse date lỗi, skip device này
+                } catch {
                     return false;
                 }
             }
-
             return true;
         });
     }, [devices, filters]);
 
-    const columns: ColumnDef<Device>[] = useMemo(
-        () => [
-            {
-                id: 'select',
-                header: ({ table }) => (
-                    <Checkbox
-                        checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
-                        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-                        aria-label="Select all"
-                        className="translate-y-[2px]"
-                    />
-                ),
-                cell: ({ row }) => (
-                    <div data-no-row-click>
-                        <Checkbox
-                            checked={row.getIsSelected()}
-                            onCheckedChange={(value) => row.toggleSelected(!!value)}
-                            aria-label="Select row"
-                            className="translate-y-[2px]"
-                        />
-                    </div>
-                ),
-                enableSorting: false,
-                enableHiding: false,
-            },
-            {
-                accessorKey: 'deviceInfo.name',
-                header: ({ column }) => (
-                    <Button
-                        variant="ghost"
-                        onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-                    >
-                        Tên thiết bị
-                        <ArrowUpDown className="ml-2 h-4 w-4" aria-hidden="true" />
-                    </Button>
-                ),
-                cell: ({ row }) => (
-                    <p className="font-medium">{row.original.deviceInfo.name}</p>
-                ),
-            },
-            {
-                accessorKey: 'deviceInfo.os',
-                header: 'OS',
-                cell: ({ row }) => (
-                    <span className="text-sm">{row.original.deviceInfo.os}</span>
-                ),
-            },
-            {
-                accessorKey: 'status',
-                header: 'Trạng thái',
-                cell: ({ row }) => <StatusLabel status={row.original.status ?? 'active'} />,
-            },
-            {
-                accessorKey: 'metadata.importedAt',
-                header: ({ column }) => (
-                    <Button
-                        variant="ghost"
-                        onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-                    >
-                        Ngày import
-                        <ArrowUpDown className="ml-2 h-4 w-4" aria-hidden="true" />
-                    </Button>
-                ),
-                cell: ({ row }) => (
-                    <span className="text-sm text-muted-foreground">
-                        {timeAgo(row.original.metadata.importedAt)}
-                    </span>
-                ),
-            },
-            {
-                id: 'actions',
-                header: '',
-                cell: ({ row }) => (
-                    <div data-no-row-click>
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" aria-label="Hành động">
-                                    <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onViewDevice(row.original); }}>
-                                    <Eye className="mr-2 h-4 w-4" />
-                                    Xem chi tiết
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onUpdateDevice(row.original); }}>
-                                    <Pencil className="mr-2 h-4 w-4" />
-                                    Chỉnh sửa
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onExportDevice(row.original); }}>
-                                    <Download className="mr-2 h-4 w-4" />
-                                    Xuất file
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                    onClick={(e) => { e.stopPropagation(); setDeleteId(row.original.id); }}
-                                    className="text-destructive focus:text-destructive"
-                                >
-                                    <Trash2 className="mr-2 h-4 w-4" />
-                                    Xóa
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                    </div>
-                ),
-            },
-        ],
+    // Columns — lấy từ device-columns.tsx để giữ file gọn
+    const columns = useMemo(
+        () => createDeviceColumns({ onViewDevice, onUpdateDevice, onExportDevice, setDeleteId }),
         [onViewDevice, onUpdateDevice, onExportDevice, setDeleteId]
     );
 
