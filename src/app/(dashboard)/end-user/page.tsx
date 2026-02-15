@@ -421,14 +421,14 @@ export default function EndUsersPage() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Thiết bị</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={(val) => field.onChange(val === "__none__" ? undefined : val)} value={field.value || ""}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Chọn thiết bị..." />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="">Chưa assign</SelectItem>
+                        <SelectItem value="__none__">Chưa assign</SelectItem>
                         {availableDevices.map((device) => (
                           <SelectItem key={device.id} value={device.id}>
                             {device.name} ({device.type})
