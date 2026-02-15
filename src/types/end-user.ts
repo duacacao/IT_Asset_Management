@@ -1,5 +1,6 @@
 export interface EndUser {
     id: string;
+    user_id: string;
     device_id: string | null;
     full_name: string;
     email: string | null;
@@ -17,6 +18,7 @@ export interface EndUserWithDevice extends EndUser {
 }
 
 export interface EndUserInsert {
+    user_id?: string;
     full_name: string;
     email?: string;
     phone?: string;

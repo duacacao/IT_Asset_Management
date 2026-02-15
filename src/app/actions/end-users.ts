@@ -10,6 +10,11 @@ export async function getEndUsers(): Promise<{
 }> {
     const supabase = await createClient()
 
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+        return { data: [], error: null }
+    }
+
     const { data, error } = await supabase
         .from("end_users")
         .select(`
@@ -19,11 +24,12 @@ export async function getEndUsers(): Promise<{
                 type
             )
         `)
+        .eq("user_id", user.id)
         .order("created_at", { ascending: false })
 
     if (error) {
         console.error("Lỗi lấy end_users:", error.message)
-        return { data: null, error: error.message }
+        return { data: [], error: null }
     }
 
     const formattedData: EndUserWithDevice[] = (data || []).map((item: any) => ({
@@ -41,10 +47,16 @@ export async function getEndUser(id: string): Promise<{
 }> {
     const supabase = await createClient()
 
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+        return { data: null, error: "Người dùng chưa đăng nhập" }
+    }
+
     const { data, error } = await supabase
         .from("end_users")
         .select("*")
         .eq("id", id)
+        .eq("user_id", user.id)
         .single()
 
     if (error) {
@@ -61,9 +73,17 @@ export async function createEndUser(endUser: EndUserInsert): Promise<{
 }> {
     const supabase = await createClient()
 
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+        return { data: null, error: "Người dùng chưa đăng nhập" }
+    }
+
     const { data, error } = await supabase
         .from("end_users")
-        .insert(endUser)
+        .insert({
+            ...endUser,
+            user_id: user.id,
+        })
         .select()
         .single()
 
@@ -89,14 +109,20 @@ export async function updateEndUser(id: string, updates: EndUserUpdate): Promise
 }> {
     const supabase = await createClient()
 
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+        return { data: null, error: "Người dùng chưa đăng nhập" }
+    }
+
     const { data: current, error: fetchError } = await supabase
         .from("end_users")
-        .select("device_id")
+        .select("device_id, user_id")
         .eq("id", id)
+        .eq("user_id", user.id)
         .single()
 
     if (fetchError) {
-        return { data: null, error: fetchError.message }
+        return { data: null, error: "Không tìm thấy end-user hoặc bạn không có quyền sửa" }
     }
 
     const { data, error } = await supabase
@@ -106,6 +132,7 @@ export async function updateEndUser(id: string, updates: EndUserUpdate): Promise
             updated_at: new Date().toISOString(),
         })
         .eq("id", id)
+        .eq("user_id", user.id)
         .select()
         .single()
 
@@ -140,13 +167,23 @@ export async function deleteEndUser(id: string): Promise<{
 }> {
     const supabase = await createClient()
 
-    const { error: fetchError } = await supabase
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+        return { success: false, error: "Người dùng chưa đăng nhập" }
+    }
+
+    const { data: current, error: fetchError } = await supabase
         .from("end_users")
         .select("device_id")
         .eq("id", id)
+        .eq("user_id", user.id)
         .single()
 
-    if (!fetchError) {
+    if (fetchError) {
+        return { success: false, error: "Không tìm thấy end-user hoặc bạn không có quyền xóa" }
+    }
+
+    if (current) {
         await supabase
             .from("devices")
             .update({ end_user_id: null })
@@ -157,6 +194,7 @@ export async function deleteEndUser(id: string): Promise<{
         .from("end_users")
         .delete()
         .eq("id", id)
+        .eq("user_id", user.id)
 
     if (error) {
         console.error("Lỗi xóa end_user:", error.message)
@@ -173,32 +211,40 @@ export async function getAvailableDevices(): Promise<{
 }> {
     const supabase = await createClient()
 
-    const { data: endUserDevices, error: euError } = await supabase
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+        return { data: [], error: null }
+    }
+
+    // Lấy devices đã assign cho end_users của user này
+    const { data: endUserDevices } = await supabase
         .from("end_users")
         .select("device_id")
+        .eq("user_id", user.id)
         .not("device_id", "is", null)
 
-    if (euError) {
-        console.error("Lỗi lấy devices đã assign:", euError.message)
-    }
+    const assignedIds = (endUserDevices || [])
+        .map(eu => eu.device_id)
+        .filter(Boolean)
 
-    const assignedIds = (endUserDevices || []).map(eu => eu.device_id).filter(Boolean)
-
-    let query = supabase
+    // Query devices - filter theo owner_id (devices dùng owner_id, không phải user_id)
+    const { data, error } = await supabase
         .from("devices")
         .select("id, name, type")
+        .eq("owner_id", user.id)
         .order("name")
 
-    if (assignedIds.length > 0) {
-        query = query.not("id", "in", `(${assignedIds.join(",")})`)
-    }
-
-    const { data, error } = await query
-
+    // Graceful fallback - không return error, chỉ return empty array
     if (error) {
         console.error("Lỗi lấy devices:", error.message)
-        return { data: null, error: error.message }
+        return { data: [], error: null }
     }
 
-    return { data, error: null }
+    // Lọc bỏ devices đã được assign cho end_users khác
+    let availableDevices = data || []
+    if (assignedIds.length > 0) {
+        availableDevices = availableDevices.filter(d => !assignedIds.includes(d.id))
+    }
+
+    return { data: availableDevices, error: null }
 }
