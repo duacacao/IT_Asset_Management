@@ -7,7 +7,9 @@ import { Input } from '@/components/ui/input';
 import { useRef, useState, useCallback, useEffect } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { SHEET_TABLE_COLUMNS } from '@/constants/device';
+import { SingleRowView } from './SheetTableSingleRow';
+import { SheetTableEmptyState } from './SheetTableEmptyState';
 
 interface SheetTableProps {
     data: any[];
@@ -23,21 +25,14 @@ interface EditingCell {
     column: string;
 }
 
-// Chiều rộng tối thiểu của cột (px)
-const MIN_COL_WIDTH = 80;
-// Chiều rộng mặc định của cột (px)
-const DEFAULT_COL_WIDTH = 150;
+const { MIN_WIDTH, DEFAULT_WIDTH } = SHEET_TABLE_COLUMNS;
 
 export function SheetTable({ data, sheetName, deviceId, readOnly, onCellUpdate }: SheetTableProps) {
     const parentRef = useRef<HTMLDivElement>(null);
 
     // Xử lý trường hợp data rỗng hoặc null
     if (!data || data.length === 0) {
-        return (
-            <div className="h-full flex flex-col items-center justify-center p-4 text-center text-muted-foreground">
-                <p>Không có dữ liệu trong sheet này</p>
-            </div>
-        );
+        return <SheetTableEmptyState />;
     }
 
     const headers = Object.keys(data[0]);
@@ -45,25 +40,7 @@ export function SheetTable({ data, sheetName, deviceId, readOnly, onCellUpdate }
     // --- CASE 1: Single-row card view (Cấu hình) ---
     // Tối ưu cho mobile: Grid 1 cột trên mobile, 2-3 cột trên tablet/desktop
     if (data.length === 1) {
-        const row = data[0];
-        return (
-            <ScrollArea className="h-full w-full">
-                <div className="p-4 md:p-6">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-                        {headers.map((header) => (
-                            <div key={header} className="group relative space-y-1.5 p-3 md:p-4 rounded-lg border bg-card/50 hover:bg-card transition-all hover:shadow-sm">
-                                <h4 className="text-[10px] md:text-xs font-semibold text-muted-foreground uppercase tracking-wider select-none">
-                                    {header}
-                                </h4>
-                                <p className="text-sm md:text-base font-medium text-foreground break-words leading-relaxed">
-                                    {row[header]?.toString() || '-'}
-                                </p>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </ScrollArea>
-        );
+        return <SingleRowView data={data} headers={headers} />;
     }
 
     // --- CASE 2: Multi-row view ---
@@ -245,7 +222,7 @@ function VirtualTable({
     // Khởi tạo width mặc định cho mỗi cột
     const [colWidths, setColWidths] = useState<Record<string, number>>(() => {
         const widths: Record<string, number> = {};
-        headers.forEach(h => { widths[h] = DEFAULT_COL_WIDTH; });
+        headers.forEach(h => { widths[h] = DEFAULT_WIDTH; });
         return widths;
     });
 
@@ -254,7 +231,7 @@ function VirtualTable({
         setColWidths(prev => {
             const next = { ...prev };
             headers.forEach(h => {
-                if (!(h in next)) next[h] = DEFAULT_COL_WIDTH;
+                if (!(h in next)) next[h] = DEFAULT_WIDTH;
             });
             return next;
         });
@@ -271,7 +248,7 @@ function VirtualTable({
     const handleMouseMove = useCallback((e: MouseEvent) => {
         if (!resizing) return;
         const delta = e.clientX - resizing.startX;
-        const newWidth = Math.max(MIN_COL_WIDTH, resizing.startWidth + delta);
+        const newWidth = Math.max(MIN_WIDTH, resizing.startWidth + delta);
         setColWidths(prev => ({ ...prev, [resizing.column]: newWidth }));
     }, [resizing]);
 
@@ -302,12 +279,12 @@ function VirtualTable({
         setResizing({
             column,
             startX: e.clientX,
-            startWidth: colWidths[column] || DEFAULT_COL_WIDTH,
+            startWidth: colWidths[column] || DEFAULT_WIDTH,
         });
     }, [colWidths]);
     // ----------------
 
-    const totalWidth = headers.reduce((sum, h) => sum + (colWidths[h] || DEFAULT_COL_WIDTH), 0);
+    const totalWidth = headers.reduce((sum, h) => sum + (colWidths[h] || DEFAULT_WIDTH), 0);
 
     const rowVirtualizer = useVirtualizer({
         count: data.length,
@@ -353,7 +330,7 @@ function VirtualTable({
                 {/* Header Row */}
                 <div className="flex sticky top-0 bg-muted/90 z-10 border-b shadow-sm backdrop-blur-sm">
                     {headers.map((header, idx) => {
-                        const w = colWidths[header] || DEFAULT_COL_WIDTH;
+                        const w = colWidths[header] || DEFAULT_WIDTH;
                         const isLast = idx === headers.length - 1;
                         return (
                             <div
@@ -402,7 +379,7 @@ function VirtualTable({
                                             editingCell?.column === header
                                         }
                                         isLastColumn={idx === headers.length - 1}
-                                        width={colWidths[header] || DEFAULT_COL_WIDTH}
+                                        width={colWidths[header] || DEFAULT_WIDTH}
                                         onStartEdit={!readOnly && onCellUpdate
                                             ? () => setEditingCell({ rowIndex: virtualRow.index, column: header })
                                             : null}

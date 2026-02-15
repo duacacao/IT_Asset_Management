@@ -32,6 +32,7 @@ import {
 } from '@/components/ui/select';
 import { Download, Trash2, Calendar, HardDrive, Cpu, Network, Laptop, SlidersHorizontal, Monitor, Pencil, Check, X, Plus, Copy, Eye, CheckCircle2 } from 'lucide-react';
 import { Device, DeviceInfo, DeviceStatus, DEVICE_STATUS_CONFIG, SHEET_NAMES } from '@/types/device';
+import { STATUS_DOT_COLORS } from '@/constants/device';
 import { SheetTable } from './SheetTable';
 import { Input } from '@/components/ui/input';
 import { useState, useCallback, useEffect } from 'react';
@@ -60,13 +61,6 @@ import {
     arrayMove, SortableContext,
     horizontalListSortingStrategy,
 } from '@dnd-kit/sortable';
-
-// Dot colors cho status selector
-const STATUS_DOT_COLORS: Record<DeviceStatus, string> = {
-    active: 'bg-emerald-500',
-    broken: 'bg-red-500',
-    inactive: 'bg-amber-500',
-};
 
 interface DeviceDetailProps {
     device: Device | null;
