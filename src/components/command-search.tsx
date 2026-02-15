@@ -129,7 +129,7 @@ export function CommandSearch({ open, onOpenChange }: CommandSearchProps) {
     { title: "Under Maintenance", url: "/errors/under-maintenance", group: "Lỗi", icon: AlertTriangle },
 
     // Cài đặt
-    { title: "Người dùng", url: "/settings/user", group: "Cài đặt", icon: User },
+    { title: "End-Users", url: "/end-user", group: "Quản lý", icon: User },
     { title: "Tài khoản", url: "/settings/account", group: "Cài đặt", icon: Settings },
     { title: "Giao diện", url: "/settings/appearance", group: "Cài đặt", icon: Palette },
   ]

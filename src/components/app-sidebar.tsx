@@ -90,8 +90,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           badge: <DeviceCountBadge />,
         },
         {
-          title: "Người dùng",
-          url: "/users",
+          title: "End-Users",
+          url: "/end-user",
           icon: Users,
         },
       ],
@@ -109,10 +109,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           url: "#",
           icon: Settings,
           items: [
-            {
-              title: "Người dùng",
-              url: "/settings/user",
-            },
             {
               title: "Tài khoản",
               url: "/settings/account",

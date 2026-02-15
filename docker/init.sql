@@ -17,7 +17,8 @@ CREATE TABLE IF NOT EXISTS public.profiles (
 -- Create devices table
 CREATE TABLE IF NOT EXISTS public.devices (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE, -- Optional for standalone, essential for multi-user
+    user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
+    end_user_id UUID UNIQUE, -- 1-1 relationship with end_users
     code TEXT,
     name TEXT NOT NULL,
     type TEXT NOT NULL,
@@ -25,7 +26,21 @@ CREATE TABLE IF NOT EXISTS public.devices (
     device_info JSONB DEFAULT '{}',
     file_name TEXT,
     metadata JSONB DEFAULT '{}',
-    specs JSONB DEFAULT '{}', -- Consolidated specs
+    specs JSONB DEFAULT '{}',
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Create end_users table (người dùng cuối sử dụng thiết bị)
+CREATE TABLE IF NOT EXISTS public.end_users (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    device_id UUID UNIQUE REFERENCES public.devices(id) ON DELETE SET NULL,
+    full_name TEXT NOT NULL,
+    email TEXT,
+    phone TEXT,
+    department TEXT,
+    position TEXT,
+    notes TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -50,6 +65,13 @@ CREATE TABLE IF NOT EXISTS public.activity_logs (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Add foreign key for end_user_id in devices (after end_users table exists)
+ALTER TABLE public.devices 
+ADD CONSTRAINT fk_devices_end_user 
+FOREIGN KEY (end_user_id) REFERENCES public.end_users(id) ON DELETE SET NULL;
+
 -- Add default indexes
 CREATE INDEX IF NOT EXISTS idx_devices_user_id ON public.devices(user_id);
+CREATE INDEX IF NOT EXISTS idx_devices_end_user_id ON public.devices(end_user_id);
 CREATE INDEX IF NOT EXISTS idx_device_sheets_device_id ON public.device_sheets(device_id);
+CREATE INDEX IF NOT EXISTS idx_end_users_device_id ON public.end_users(device_id);
