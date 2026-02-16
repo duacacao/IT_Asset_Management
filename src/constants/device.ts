@@ -42,7 +42,7 @@ export const STATUS_DOT_COLORS: Record<DeviceStatus, string> = {
 
 export const SHEET_TABLE_COLUMNS = {
   MIN_WIDTH: 80,
-  DEFAULT_WIDTH: 150,
+  DEFAULT_WIDTH: 200,
 } as const
 
 export const DEVICE_DETAIL_CONFIG = {
