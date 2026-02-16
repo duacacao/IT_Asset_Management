@@ -27,7 +27,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { CheckCircle2, SearchX, Loader2, FileDown, Download, Trash2 } from 'lucide-react'
+import { CheckCircle2, SearchX, Loader2, Download, Trash2 } from 'lucide-react'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -45,7 +45,6 @@ import { FilterBar, DeviceFilters } from './FilterBar'
 import { createDeviceColumns, STATUS_DOT_COLORS } from './device-columns'
 
 import { EmptyState } from '@/components/EmptyState'
-import { exportDevicesToCSV } from '@/lib/export-utils'
 
 interface DeviceListProps {
   devices: Device[]
@@ -53,6 +52,7 @@ interface DeviceListProps {
   onUpdateDevice: (device: Device) => void
   onExportDevice: (device: Device) => void
   onDeleteDevice: (deviceId: string) => void
+  onSelectionChange?: (selectedDevices: Device[]) => void
   highlightId?: string | null
 }
 
@@ -62,6 +62,7 @@ export function DeviceList({
   onUpdateDevice,
   onExportDevice,
   onDeleteDevice,
+  onSelectionChange,
   highlightId,
 }: DeviceListProps) {
   const [sorting, setSorting] = useState<SortingState>([])
@@ -135,27 +136,19 @@ export function DeviceList({
     getPaginationRowModel: getPaginationRowModel(),
   })
 
+  // Effect: Notify parent of selection changes
+  useEffect(() => {
+    if (onSelectionChange) {
+      const selectedRows = table.getFilteredSelectedRowModel().rows
+      const selectedDevices = selectedRows.map((row) => row.original)
+      onSelectionChange(selectedDevices)
+    }
+  }, [rowSelection, table, onSelectionChange])
+
   return (
     <div className="space-y-4">
       {/* FilterBar */}
       <FilterBar onFilterChange={setFilters} onReset={() => setFilters({})} />
-      {/* Export CSV — luôn hiển thị, export thiết bị đang filter */}
-      <div className="flex justify-end">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => {
-            // Export selected rows nếu có, ngược lại export tất cả thiết bị đang filter
-            const selectedRows = table.getFilteredSelectedRowModel().rows
-            const dataToExport =
-              selectedRows.length > 0 ? selectedRows.map((r) => r.original) : filteredDevices
-            exportDevicesToCSV(dataToExport)
-          }}
-        >
-          <FileDown className="mr-1 h-3.5 w-3.5" aria-hidden="true" />
-          Export CSV
-        </Button>
-      </div>
 
       {/* Bulk Actions toolbar */}
       {Object.keys(rowSelection).length > 0 && (

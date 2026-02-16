@@ -6,7 +6,13 @@ import { DeviceDetailModal } from '@/components/dashboard/detail/DeviceDetailMod
 import { SheetSelectionDialog } from '@/components/dashboard/SheetSelectionDialog'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
-import { Upload, Plus, Loader2 } from 'lucide-react'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { Upload, Plus, Loader2, MoreHorizontal, FileDown } from 'lucide-react'
 import { useState, useCallback, useEffect } from 'react'
 import {
   Dialog,
@@ -27,6 +33,7 @@ import {
 } from '@/hooks/useDevicesQuery'
 import { useUIStore } from '@/stores/useUIStore'
 import { parseExcelForImport, exportDeviceToExcel } from '@/lib/excel-import'
+import { exportDevicesToCSV } from '@/lib/export-utils'
 
 export default function DevicesPage() {
   // Data từ Supabase qua React Query
@@ -43,6 +50,7 @@ export default function DevicesPage() {
   const [selectedDevice, setSelectedDevice] = useState<Device | null>(null)
   const [isImportOpen, setIsImportOpen] = useState(false)
   const [isCreateOpen, setIsCreateOpen] = useState(false)
+  const [selectedDevices, setSelectedDevices] = useState<Device[]>([])
 
   // Files chờ chọn sheet
   const [pendingFiles, setPendingFiles] = useState<File[]>([])
@@ -149,16 +157,38 @@ export default function DevicesPage() {
     <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
       <div className="flex items-center justify-between space-y-2">
         <h2 className="text-3xl font-bold tracking-tight">Thiết bị</h2>
-        <div className="flex items-center space-x-2">
-          <Button variant="outline" onClick={() => setIsCreateOpen(true)} disabled={isImporting}>
-            <Plus className="mr-2 h-4 w-4" />
-            Tạo mới
-          </Button>
-          <Button onClick={() => setIsImportOpen(true)} disabled={isImporting}>
-            <Upload className="mr-2 h-4 w-4" />
-            Import Excel
-          </Button>
-        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="icon" disabled={isImporting}>
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => setIsCreateOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Tạo mới
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setIsImportOpen(true)}>
+              <Upload className="mr-2 h-4 w-4" />
+              Import Excel
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => {
+                const devicesToExport =
+                  selectedDevices.length > 0 ? selectedDevices : devices
+                exportDevicesToCSV(devicesToExport)
+              }}
+            >
+              <FileDown className="mr-2 h-4 w-4" />
+              Export CSV
+              {selectedDevices.length > 0 && (
+                <span className="text-muted-foreground ml-2 text-xs">
+                  ({selectedDevices.length})
+                </span>
+              )}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       {/* Import progress bar */}
@@ -207,6 +237,7 @@ export default function DevicesPage() {
             onUpdateDevice={handleUpdateDevice}
             onExportDevice={handleExportDevice}
             onDeleteDevice={handleDeleteDevice}
+            onSelectionChange={setSelectedDevices}
             highlightId={highlightId}
           />
         </div>
