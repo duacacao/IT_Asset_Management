@@ -41,6 +41,7 @@ import {
 import { Device, DeviceStatus } from '@/types/device'
 import { DEVICE_STATUS_CONFIG } from '@/constants/device'
 import { useUpdateStatusMutation } from '@/hooks/useDevicesQuery'
+import { checkDeviceAssignment } from '@/app/actions/devices'
 import { FilterBar, DeviceFilters } from './FilterBar'
 import { createDeviceColumns, STATUS_DOT_COLORS } from './device-columns'
 
@@ -72,6 +73,12 @@ export function DeviceList({
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  // State cho cảnh báo thiết bị đang bàn giao
+  const [assignmentWarning, setAssignmentWarning] = useState<{
+    endUserName: string | null
+  } | null>(null)
+  const [bulkAssignmentCount, setBulkAssignmentCount] = useState(0)
+  const [isCheckingAssignment, setIsCheckingAssignment] = useState(false)
   const [filters, setFilters] = useState<DeviceFilters>({})
 
   // Effect: Scroll to highlighted row
@@ -80,11 +87,35 @@ export function DeviceList({
       const rowElement = document.getElementById(`device-row-${highlightId}`)
       if (rowElement) {
         rowElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
-        // Optional: add a flash effect via CSS or className logic if needed
-        // Currently relying on scrollIntoView
       }
     }
   }, [highlightId])
+
+  // Effect: Kiểm tra assignment khi user click xóa device
+  useEffect(() => {
+    if (!deleteId) return
+    let cancelled = false
+
+    async function check() {
+      setIsCheckingAssignment(true)
+      try {
+        const result = await checkDeviceAssignment(deleteId!)
+        if (!cancelled) {
+          setAssignmentWarning(
+            result.hasAssignment ? { endUserName: result.endUserName } : null
+          )
+        }
+      } catch {
+        // Nếu lỗi check → fallback về dialog thường (an toàn)
+        if (!cancelled) setAssignmentWarning(null)
+      } finally {
+        if (!cancelled) setIsCheckingAssignment(false)
+      }
+    }
+
+    check()
+    return () => { cancelled = true }
+  }, [deleteId])
 
   const updateStatusMutation = useUpdateStatusMutation()
 
@@ -204,7 +235,21 @@ export function DeviceList({
               variant="destructive"
               size="sm"
               className="h-8"
-              onClick={() => setBulkDeleteOpen(true)}
+              onClick={async () => {
+                // Kiểm tra số thiết bị đang bàn giao trong batch
+                const selectedRows = table.getFilteredSelectedRowModel().rows
+                let assignedCount = 0
+                for (const row of selectedRows) {
+                  try {
+                    const result = await checkDeviceAssignment(row.original.id)
+                    if (result.hasAssignment) assignedCount++
+                  } catch {
+                    // Bỏ qua lỗi check, tiếp tục
+                  }
+                }
+                setBulkAssignmentCount(assignedCount)
+                setBulkDeleteOpen(true)
+              }}
             >
               <Trash2 className="mr-1 h-3.5 w-3.5" aria-hidden="true" />
               Xóa
@@ -215,66 +260,64 @@ export function DeviceList({
 
       {/* Table — chiều cao cố định, scroll nếu nhiều thiết bị */}
       <div className="rounded-md border">
-        <div className="h-[480px] overflow-auto">
-          <Table>
-            <TableHeader className="bg-background sticky top-0 z-10">
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
-                    <TableHead key={header.id}>
-                      {flexRender(header.column.columnDef.header, header.getContext())}
-                    </TableHead>
+        <Table containerClassName="h-[480px] overflow-auto">
+          <TableHeader className="bg-background sticky top-0 z-10">
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id}>
+                    {flexRender(header.column.columnDef.header, header.getContext())}
+                  </TableHead>
+                ))}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows?.length ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow
+                  key={row.id}
+                  id={`device-row-${row.original.id}`}
+                  role="row"
+                  data-highlighted={highlightId === row.original.id}
+                  aria-label={`Device ${row.original.deviceInfo.name}, Status ${row.original.status}, IP ${row.original.deviceInfo.ip || 'Not set'}, OS ${row.original.deviceInfo.os}`}
+                  className={`hover:bg-muted/50 cursor-pointer ${highlightId === row.original.id ? 'bg-primary/10 transition-colors duration-1000' : ''}`}
+                  tabIndex={0}
+                  onClick={(e) => {
+                    // Không mở view modal khi click vào actions column hoặc checkbox
+                    const target = e.target as HTMLElement
+                    if (target.closest('[data-no-row-click]')) return
+                    onViewDevice(row.original)
+                  }}
+                  onKeyDown={(e) => {
+                    // B1: Hỗ trợ keyboard navigation — Enter mở detail
+                    if (e.key === 'Enter') {
+                      e.preventDefault()
+                      onViewDevice(row.original)
+                    }
+                  }}
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </TableCell>
                   ))}
                 </TableRow>
-              ))}
-            </TableHeader>
-            <TableBody>
-              {table.getRowModel().rows?.length ? (
-                table.getRowModel().rows.map((row) => (
-                  <TableRow
-                    key={row.id}
-                    id={`device-row-${row.original.id}`}
-                    role="row"
-                    data-highlighted={highlightId === row.original.id}
-                    aria-label={`Device ${row.original.deviceInfo.name}, Status ${row.original.status}, IP ${row.original.deviceInfo.ip || 'Not set'}, OS ${row.original.deviceInfo.os}`}
-                    className={`hover:bg-muted/50 cursor-pointer ${highlightId === row.original.id ? 'bg-primary/10 transition-colors duration-1000' : ''}`}
-                    tabIndex={0}
-                    onClick={(e) => {
-                      // Không mở view modal khi click vào actions column hoặc checkbox
-                      const target = e.target as HTMLElement
-                      if (target.closest('[data-no-row-click]')) return
-                      onViewDevice(row.original)
-                    }}
-                    onKeyDown={(e) => {
-                      // B1: Hỗ trợ keyboard navigation — Enter mở detail
-                      if (e.key === 'Enter') {
-                        e.preventDefault()
-                        onViewDevice(row.original)
-                      }
-                    }}
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={columns.length} className="h-48">
-                    <EmptyState
-                      icon={SearchX}
-                      iconSize={48}
-                      title="Không tìm thấy thiết bị"
-                      description="Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm"
-                    />
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={columns.length} className="h-48">
+                  <EmptyState
+                    icon={SearchX}
+                    iconSize={48}
+                    title="Không tìm thấy thiết bị"
+                    description="Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm"
+                  />
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
       </div>
 
       {/* Pagination */}
@@ -302,24 +345,51 @@ export function DeviceList({
         </div>
       </div>
 
-      <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
+      <AlertDialog
+        open={!!deleteId}
+        onOpenChange={(open) => {
+          if (!open) {
+            setDeleteId(null)
+            setAssignmentWarning(null)
+          }
+        }}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Bạn có chắc chắn muốn xóa?</AlertDialogTitle>
+            <AlertDialogTitle>
+              {assignmentWarning?.endUserName
+                ? '⚠️ Thiết bị đang được sử dụng'
+                : 'Bạn có chắc chắn muốn xóa?'}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              Hành động này không thể hoàn tác. Thiết bị và toàn bộ dữ liệu sẽ bị xóa vĩnh viễn.
+              {isCheckingAssignment ? (
+                <span className="flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Đang kiểm tra trạng thái bàn giao...
+                </span>
+              ) : assignmentWarning?.endUserName ? (
+                <>
+                  Thiết bị này đang được bàn giao cho{' '}
+                  <strong>{assignmentWarning.endUserName}</strong>.
+                  <br />
+                  Nếu xóa, thiết bị sẽ tự động được thu hồi và end-user sẽ không còn thiết bị.
+                </>
+              ) : (
+                'Hành động này không thể hoàn tác. Thiết bị và toàn bộ dữ liệu sẽ bị xóa vĩnh viễn.'
+              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Hủy</AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              disabled={isDeleting}
+              disabled={isDeleting || isCheckingAssignment}
               onClick={async () => {
                 if (deleteId) {
                   setIsDeleting(true)
                   onDeleteDevice(deleteId)
                   setDeleteId(null)
+                  setAssignmentWarning(null)
                   setIsDeleting(false)
                 }
               }}
@@ -329,6 +399,8 @@ export function DeviceList({
                   <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
                   Đang xóa…
                 </>
+              ) : assignmentWarning?.endUserName ? (
+                'Thu hồi & Xóa'
               ) : (
                 'Xóa'
               )}
@@ -338,12 +410,27 @@ export function DeviceList({
       </AlertDialog>
 
       {/* Bulk delete confirmation */}
-      <AlertDialog open={bulkDeleteOpen} onOpenChange={setBulkDeleteOpen}>
+      <AlertDialog
+        open={bulkDeleteOpen}
+        onOpenChange={(open) => {
+          setBulkDeleteOpen(open)
+          if (!open) setBulkAssignmentCount(0)
+        }}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Xóa {Object.keys(rowSelection).length} thiết bị?</AlertDialogTitle>
             <AlertDialogDescription>
-              Tất cả thiết bị đã chọn và dữ liệu sẽ bị xóa vĩnh viễn.
+              {bulkAssignmentCount > 0 ? (
+                <>
+                  ⚠️ <strong>{bulkAssignmentCount}</strong> trong{' '}
+                  {Object.keys(rowSelection).length} thiết bị đang được bàn giao cho end-user.
+                  <br />
+                  Tất cả sẽ tự động được thu hồi nếu bạn xóa.
+                </>
+              ) : (
+                'Tất cả thiết bị đã chọn và dữ liệu sẽ bị xóa vĩnh viễn.'
+              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -357,6 +444,7 @@ export function DeviceList({
                 selectedRows.forEach((row) => onDeleteDevice(row.original.id))
                 setRowSelection({})
                 setBulkDeleteOpen(false)
+                setBulkAssignmentCount(0)
                 setIsDeleting(false)
               }}
             >

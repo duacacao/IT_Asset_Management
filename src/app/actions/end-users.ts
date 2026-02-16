@@ -226,13 +226,14 @@ export async function updateEndUser(
   }
 
   // Xử lý device assignment nếu device_id thay đổi
+  // Logic: device_id từ form = thiết bị user MUỐN gán
+  //        assignment_id = assignment đang active (nếu có)
   if (data && updates.device_id !== undefined) {
-    const currentDeviceId = updates.device_id
+    const newDeviceId = updates.device_id
     const assignmentId = updates.assignment_id
 
-    // Nếu có assignment hiện tại và đổi sang device khác hoặc bỏ gán
-    if (assignmentId && currentDeviceId !== data.device_id) {
-      // Return thiết bị cũ
+    // Nếu có assignment hiện tại → trả thiết bị cũ trước
+    if (assignmentId) {
       const returnResult = await returnDevice(assignmentId)
       if (returnResult.error) {
         console.error('Lỗi trả thiết bị cũ:', returnResult.error)
@@ -240,9 +241,9 @@ export async function updateEndUser(
       }
     }
 
-    // Nếu có device_id mới và khác với cũ (hoặc chưa có assignment)
-    if (currentDeviceId && currentDeviceId !== data.device_id) {
-      const assignResult = await assignDevice(currentDeviceId, id)
+    // Nếu có device_id mới → gán thiết bị mới
+    if (newDeviceId) {
+      const assignResult = await assignDevice(newDeviceId, id)
       if (assignResult.error) {
         console.error('Lỗi gán thiết bị mới:', assignResult.error)
         return { data: null, error: `Không thể gán thiết bị mới: ${assignResult.error}` }
@@ -271,6 +272,24 @@ export async function deleteEndUser(id: string): Promise<{
     return { success: false, error: 'Người dùng chưa đăng nhập' }
   }
 
+  // B1: Trả thiết bị đang được gán (nếu có)
+  const { data: activeAssignment } = await supabase
+    .from('device_assignments')
+    .select('id')
+    .eq('end_user_id', id)
+    .eq('user_id', user.id)
+    .is('returned_at', null)
+    .maybeSingle()
+
+  if (activeAssignment) {
+    const returnResult = await returnDevice(activeAssignment.id)
+    // Nếu lỗi trả thiết bị, ta vẫn tiếp tục xóa user nhưng log lại
+    if (!returnResult.success) {
+      console.error('Lỗi tự động trả thiết bị khi xóa user:', returnResult.error)
+    }
+  }
+
+  // B2: Soft delete end-user
   const { error } = await supabase
     .from('end_users')
     .update({ deleted_at: new Date().toISOString() })

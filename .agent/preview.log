@@ -1,15 +1,15 @@
 
-> shadcn-dashboard-nextjs@1.0.0 dev
+> device-dashboard@1.0.0 dev
 > next dev
 
-▲ Next.js 16.1.1 (Turbopack)
-- Local:         http://localhost:3000
-- Network:       http://192.168.229.1:3000
-- Environments: .env.local
-- Experiments (use with caution):
-  · optimizePackageImports
-
-✓ Starting...
-⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
-✓ Ready in 974ms
-Terminate batch job (Y/N)? [?25h
+⨯ Failed to start server
+Error: listen EADDRINUSE: address already in use :::3000
+    at <unknown> (Error: listen EADDRINUSE: address already in use :::3000)
+    at new Promise (<anonymous>) {
+  code: 'EADDRINUSE',
+  errno: -4091,
+  syscall: 'listen',
+  address: '::',
+  port: 3000
+}
+[?25h

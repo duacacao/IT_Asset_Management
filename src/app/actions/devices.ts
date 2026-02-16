@@ -4,6 +4,7 @@ import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 import type { DeviceInsert, DeviceUpdate } from '@/types/supabase'
 import { ACTIVITY_LOG_ACTIONS } from '@/constants/activity-log'
+import { returnDevice } from './device-assignments'
 
 // ============================================
 // Lấy danh sách devices của user hiện tại
@@ -58,12 +59,12 @@ export async function getDevices() {
       ...device,
       assignment: assignment
         ? {
-            id: assignment.id,
-            end_user_id: assignment.end_user_id,
-            assignee_name: user?.full_name,
-            assignee_email: user?.email,
-            assigned_at: assignment.assigned_at,
-          }
+          id: assignment.id,
+          end_user_id: assignment.end_user_id,
+          assignee_name: user?.full_name,
+          assignee_email: user?.email,
+          assigned_at: assignment.assigned_at,
+        }
         : undefined,
     }
   })
@@ -127,12 +128,12 @@ export async function getDeviceWithSheets(deviceId: string) {
     ...data,
     assignment: assignment
       ? {
-          id: assignment.id,
-          end_user_id: assignment.end_user_id,
-          assignee_name: user?.full_name,
-          assignee_email: user?.email,
-          assigned_at: assignment.assigned_at,
-        }
+        id: assignment.id,
+        end_user_id: assignment.end_user_id,
+        assignee_name: user?.full_name,
+        assignee_email: user?.email,
+        assigned_at: assignment.assigned_at,
+      }
       : undefined,
   }
 
@@ -197,13 +198,70 @@ export async function updateDevice(deviceId: string, updates: DeviceUpdate) {
 }
 
 // ============================================
-// Xóa device — CASCADE sẽ xóa luôn sheets + logs
+// Kiểm tra device có đang bàn giao cho end-user không
+// Dùng cho confirm dialog trước khi xóa
+// ============================================
+export async function checkDeviceAssignment(deviceId: string): Promise<{
+  hasAssignment: boolean
+  endUserName: string | null
+  assignmentId: string | null
+}> {
+  const supabase = await createClient()
+
+  const { data } = await supabase
+    .from('device_assignments')
+    .select(`
+      id,
+      end_users:end_user_id (
+        full_name
+      )
+    `)
+    .eq('device_id', deviceId)
+    .is('returned_at', null)
+    .maybeSingle()
+
+  if (!data) {
+    return { hasAssignment: false, endUserName: null, assignmentId: null }
+  }
+
+  return {
+    hasAssignment: true,
+    endUserName: (data as any).end_users?.full_name || null,
+    assignmentId: data.id,
+  }
+}
+
+// ============================================
+// Xóa device — tự động thu hồi assignment trước khi soft delete
+// Pattern nhất quán với deleteEndUser()
 // ============================================
 export async function deleteDevice(deviceId: string) {
   const supabase = await createClient()
 
-  // Database đã có constraint ON DELETE SET NULL cho activity_logs
-  // và ON DELETE CASCADE cho device_sheets
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) {
+    return { success: false, error: 'Người dùng chưa đăng nhập' }
+  }
+
+  // B1: Thu hồi thiết bị đang bàn giao (nếu có)
+  const { data: activeAssignment } = await supabase
+    .from('device_assignments')
+    .select('id')
+    .eq('device_id', deviceId)
+    .is('returned_at', null)
+    .maybeSingle()
+
+  if (activeAssignment) {
+    const returnResult = await returnDevice(activeAssignment.id)
+    // Nếu lỗi thu hồi, vẫn tiếp tục xóa device nhưng log warning
+    if (!returnResult.success) {
+      console.error('Lỗi tự động thu hồi thiết bị khi xóa device:', returnResult.error)
+    }
+  }
+
+  // B2: Soft delete device
   const { error } = await supabase
     .from('devices')
     .update({ deleted_at: new Date().toISOString() })
@@ -215,6 +273,7 @@ export async function deleteDevice(deviceId: string) {
   }
 
   revalidatePath('/devices')
+  revalidatePath('/end-user')
   return { success: true, error: null }
 }
 

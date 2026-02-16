@@ -1,5 +1,5 @@
 import { ColumnDef } from '@tanstack/react-table'
-import { ArrowUpDown, Eye, Pencil, Download, Trash2, MoreHorizontal } from 'lucide-react'
+import { ArrowUpDown, Eye, Pencil, Download, Trash2, MoreHorizontal, User } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
@@ -11,6 +11,7 @@ import {
 import { SoftLabel } from '@/components/ui/soft-label'
 import { Device, DeviceStatus } from '@/types/device'
 import { DEVICE_STATUS_CONFIG } from '@/constants/device'
+import { Badge } from '@/components/ui/badge'
 
 // Dot colors cho status dropdown items
 export const STATUS_DOT_COLORS: Record<DeviceStatus, string> = {
@@ -93,11 +94,14 @@ export function createDeviceColumns({
     },
     {
       accessorKey: 'assignment.assignee_name',
-      header: 'Ngườ sử dụng',
+      header: 'Người sử dụng',
       cell: ({ row }) => {
         const assignment = row.original.assignment
         return assignment ? (
-          <span className="text-sm font-medium">{assignment.assignee_name}</span>
+          <Badge variant="outline" className="font-bold gap-1.5">
+            <User className="h-3.5 w-3.5" />
+            {assignment.assignee_name}
+          </Badge>
         ) : (
           <span className="text-muted-foreground text-sm italic">Chưa bàn giao</span>
         )
@@ -105,7 +109,7 @@ export function createDeviceColumns({
     },
     {
       id: 'actions',
-      header: '',
+      header: 'Thao tác',
       cell: ({ row }) => (
         <div data-no-row-click>
           <DropdownMenu>

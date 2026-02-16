@@ -75,6 +75,9 @@ build.log
 # Tool temp files
 /.opencode/
 
+# Test files (local only - do not push to remote)
+/test/
+
 
 
 /plans/

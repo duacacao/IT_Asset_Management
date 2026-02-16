@@ -153,6 +153,9 @@ export function useDeleteDeviceMutation() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: deviceKeys.list() })
       queryClient.invalidateQueries({ queryKey: deviceKeys.stats() })
+      // Xóa device có thể thu hồi assignment → cập nhật lại end-user list
+      queryClient.invalidateQueries({ queryKey: ['end-users'] })
+      queryClient.invalidateQueries({ queryKey: ['available-devices'] })
       toast.success('Đã xóa thiết bị')
     },
     onError: (err) => {

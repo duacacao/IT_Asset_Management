@@ -432,8 +432,8 @@ export default function EndUsersPage() {
         </div>
       ) : (
         <div className="rounded-lg border">
-          <Table>
-            <TableHeader>
+          <Table containerClassName="max-h-[600px] overflow-auto">
+            <TableHeader className="bg-background sticky top-0 z-10">
               <TableRow>
                 <TableHead className="w-[50px]">
                   <Checkbox
