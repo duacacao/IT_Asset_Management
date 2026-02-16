@@ -75,3 +75,9 @@ build.log
 # Tool temp files
 /.opencode/
 
+# Deployment docs (local only)
+/docs/PLAN-database-safe-fix.md
+/docs/PLAN-evaluation.md
+/docs/DEPLOYMENT-GUIDE.md
+
+
