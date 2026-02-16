@@ -18,6 +18,8 @@ export interface EndUserWithDevice extends EndUser {
   position: string | null
   device_name: string | null
   device_type: string | null
+  assignment_id: string | null // ID của assignment hiện tại
+  device_id: string | null // ID của device đang được gán
 }
 
 export interface EndUserInsert {
@@ -28,6 +30,7 @@ export interface EndUserInsert {
   department_id: string // Bắt buộc — NOT NULL trong DB
   position_id: string // Bắt buộc — NOT NULL trong DB
   notes?: string
+  device_id?: string | null // Thiết bị muốn gán (optional)
 }
 
 export interface EndUserUpdate {
@@ -37,4 +40,6 @@ export interface EndUserUpdate {
   department_id?: string
   position_id?: string
   notes?: string
+  device_id?: string | null // Thiết bị muốn gán (null = bỏ gán)
+  assignment_id?: string | null // Assignment hiện tại để return nếu đổi device
 }

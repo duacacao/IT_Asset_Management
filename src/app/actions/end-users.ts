@@ -3,6 +3,7 @@
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 import type { EndUser, EndUserInsert, EndUserUpdate, EndUserWithDevice } from '@/types/end-user'
+import { assignDevice, returnDevice } from './device-assignments'
 
 // ============================================
 // Lấy danh sách end-users + thông tin phòng ban, chức vụ, thiết bị đang assign
@@ -49,8 +50,11 @@ export async function getEndUsers(): Promise<{
     .from('device_assignments')
     .select(
       `
+            id,
             end_user_id,
+            device_id,
             devices:device_id (
+                id,
                 name,
                 type
             )
@@ -72,13 +76,20 @@ export async function getEndUsers(): Promise<{
 
   // Format data với tên phòng ban/chức vụ + thiết bị
   const formattedData: EndUserWithDevice[] = (data || []).map((item: any) => {
-    const device = assignmentMap.get(item.id)
+    const assignment = (assignments || []).find((a: any) => a.end_user_id === item.id)
+
+    // Handle devices being array or object
+    const deviceData = assignment?.devices
+    const device = Array.isArray(deviceData) ? deviceData[0] : deviceData
+
     return {
       ...item,
       department: item.departments?.name || null,
       position: item.positions?.name || null,
       device_name: device?.name || null,
       device_type: device?.type || null,
+      assignment_id: assignment?.id || null,
+      device_id: device?.id || null,
     }
   })
 
@@ -161,13 +172,22 @@ export async function createEndUser(endUser: EndUserInsert): Promise<{
     return { data: null, error: error.message }
   }
 
+  // Nếu có device_id, gán thiết bị cho user vừa tạo
+  if (data && endUser.device_id) {
+    const assignResult = await assignDevice(endUser.device_id, data.id)
+    if (assignResult.error) {
+      console.error('Lỗi gán thiết bị:', assignResult.error)
+      // Không throw error, vẫn trả về user đã tạo
+    }
+  }
+
   revalidatePath('/end-user')
   return { data, error: null }
 }
 
 // ============================================
 // Cập nhật end-user
-// Không xử lý device assignment ở đây — dùng device-assignments.ts
+// Xử lý device assignment nếu device_id thay đổi
 // ============================================
 export async function updateEndUser(
   id: string,
@@ -182,7 +202,7 @@ export async function updateEndUser(
     data: { user },
   } = await supabase.auth.getUser()
   if (!user) {
-    return { data: null, error: 'Người dùng chưa đăng nhập' }
+    return { data: null, error: 'Ngườ dùng chưa đăng nhập' }
   }
 
   const { data, error } = await supabase
@@ -203,6 +223,31 @@ export async function updateEndUser(
   if (error) {
     console.error('Lỗi cập nhật end_user:', error.message)
     return { data: null, error: error.message }
+  }
+
+  // Xử lý device assignment nếu device_id thay đổi
+  if (data && updates.device_id !== undefined) {
+    const currentDeviceId = updates.device_id
+    const assignmentId = updates.assignment_id
+
+    // Nếu có assignment hiện tại và đổi sang device khác hoặc bỏ gán
+    if (assignmentId && currentDeviceId !== data.device_id) {
+      // Return thiết bị cũ
+      const returnResult = await returnDevice(assignmentId)
+      if (returnResult.error) {
+        console.error('Lỗi trả thiết bị cũ:', returnResult.error)
+        return { data: null, error: `Không thể trả thiết bị cũ: ${returnResult.error}` }
+      }
+    }
+
+    // Nếu có device_id mới và khác với cũ (hoặc chưa có assignment)
+    if (currentDeviceId && currentDeviceId !== data.device_id) {
+      const assignResult = await assignDevice(currentDeviceId, id)
+      if (assignResult.error) {
+        console.error('Lỗi gán thiết bị mới:', assignResult.error)
+        return { data: null, error: `Không thể gán thiết bị mới: ${assignResult.error}` }
+      }
+    }
   }
 
   revalidatePath('/end-user')

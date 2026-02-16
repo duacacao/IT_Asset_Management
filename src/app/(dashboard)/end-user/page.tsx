@@ -81,6 +81,7 @@ import {
   useEndUsersQuery,
   useDepartmentsQuery,
   usePositionsQuery,
+  useAvailableDevicesQuery,
   useCreateEndUserMutation,
   useUpdateEndUserMutation,
   useDeleteEndUserMutation,
@@ -98,6 +99,7 @@ const endUserFormSchema = z.object({
   phone: z.string().optional(),
   department_id: z.string().min(1, 'Phòng ban là bắt buộc'),
   position_id: z.string().min(1, 'Chức vụ là bắt buộc'),
+  device_id: z.string().optional().nullable(),
   notes: z.string().optional(),
 })
 
@@ -140,6 +142,7 @@ export default function EndUsersPage() {
   const { data: endUsers = [], isLoading: isLoadingUsers } = useEndUsersQuery()
   const { data: departments = [] } = useDepartmentsQuery()
   const { data: positions = [] } = usePositionsQuery()
+  const { data: availableDevices = [] } = useAvailableDevicesQuery()
 
   // Mutations
   const createMutation = useCreateEndUserMutation()
@@ -173,29 +176,39 @@ export default function EndUsersPage() {
       phone: '',
       department_id: '',
       position_id: '',
+      device_id: null,
       notes: '',
     },
   })
 
+  // State cho thông tin user đang edit (để xử lý device assignment)
+  const [editingUser, setEditingUser] = useState<EndUserWithDevice | null>(null)
+  const [showDeviceConfirm, setShowDeviceConfirm] = useState(false)
+  const [pendingFormData, setPendingFormData] = useState<EndUserFormValues | null>(null)
+
   const handleOpenDialog = (user?: EndUserWithDevice) => {
     if (user) {
       setEditingId(user.id)
+      setEditingUser(user)
       form.reset({
         full_name: user.full_name,
         email: user.email || '',
         phone: user.phone || '',
         department_id: user.department_id || '',
         position_id: user.position_id || '',
+        device_id: user.device_id || null,
         notes: user.notes || '',
       })
     } else {
       setEditingId(null)
+      setEditingUser(null)
       form.reset({
         full_name: '',
         email: '',
         phone: '',
         department_id: '',
         position_id: '',
+        device_id: null,
         notes: '',
       })
     }
@@ -205,24 +218,51 @@ export default function EndUsersPage() {
   const handleCloseDialog = () => {
     setIsDialogOpen(false)
     setEditingId(null)
+    setEditingUser(null)
+    setShowDeviceConfirm(false)
+    setPendingFormData(null)
     form.reset()
   }
 
   async function onSubmit(data: EndUserFormValues) {
+    // Kiểm tra nếu đang edit và thay đổi thiết bị
+    if (editingId && editingUser && editingUser.device_id !== data.device_id) {
+      if (editingUser.device_id && data.device_id) {
+        // Đổi từ thiết bị A sang thiết bị B - cần xác nhận
+        setPendingFormData(data)
+        setShowDeviceConfirm(true)
+        return
+      }
+    }
+
+    await submitForm(data)
+  }
+
+  async function submitForm(data: EndUserFormValues) {
     setIsSaving(true)
     try {
-      const payload = {
-        full_name: data.full_name,
-        email: data.email || undefined,
-        phone: data.phone || undefined,
-        department_id: data.department_id,
-        position_id: data.position_id,
-        notes: data.notes || undefined,
-      }
-
       if (editingId) {
+        const payload: EndUserUpdate = {
+          full_name: data.full_name,
+          email: data.email || undefined,
+          phone: data.phone || undefined,
+          department_id: data.department_id,
+          position_id: data.position_id,
+          notes: data.notes || undefined,
+          device_id: data.device_id,
+          assignment_id: editingUser?.assignment_id,
+        }
         await updateMutation.mutateAsync({ id: editingId, data: payload })
       } else {
+        const payload: EndUserInsert = {
+          full_name: data.full_name,
+          email: data.email || undefined,
+          phone: data.phone || undefined,
+          department_id: data.department_id,
+          position_id: data.position_id,
+          notes: data.notes || undefined,
+          device_id: data.device_id,
+        }
         await createMutation.mutateAsync(payload)
       }
 
@@ -232,6 +272,13 @@ export default function EndUsersPage() {
       toast.error('Không thể lưu')
     } finally {
       setIsSaving(false)
+    }
+  }
+
+  async function handleConfirmDeviceChange() {
+    if (pendingFormData) {
+      setShowDeviceConfirm(false)
+      await submitForm(pendingFormData)
     }
   }
 
@@ -647,6 +694,31 @@ export default function EndUsersPage() {
         </AlertDialogContent>
       </AlertDialog>
 
+      {/* Dialog xác nhận đổi thiết bị */}
+      <AlertDialog open={showDeviceConfirm} onOpenChange={(open) => !open && setShowDeviceConfirm(false)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Xác nhận đổi thiết bị?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Bạn đang thay đổi thiết bị cho nhân viên này.
+              <br />
+              Thiết bị cũ sẽ được tự động trả lại kho.
+              <br />
+              Bạn có chắc muốn tiếp tục?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setPendingFormData(null)}>Hủy</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDeviceChange}
+              className="bg-primary text-primary-foreground"
+            >
+              Xác nhận
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
@@ -786,7 +858,41 @@ export default function EndUsersPage() {
                 />
               </div>
 
-              {/* Thiết bị được gán qua device_assignments — quản lý riêng */}
+              <FormField
+                control={form.control}
+                name="device_id"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel>Thiết bị được gán</FormLabel>
+                    <Select
+                      value={field.value || '__none__'}
+                      onValueChange={(v) => field.onChange(v === '__none__' ? null : v)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Chọn thiết bị..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="__none__">Không gán thiết bị</SelectItem>
+                        {/* Hiển thị thiết bị hiện tại nếu đang edit */}
+                        {editingUser?.device_id && editingUser?.device_name && (
+                          <SelectItem value={editingUser.device_id}>
+                            {editingUser.device_name} {editingUser.device_type && `(${editingUser.device_type})`} - Đang gán
+                          </SelectItem>
+                        )}
+                        {/* Các thiết bị khả dụng — lọc bỏ device đang gán để tránh duplicate key */}
+                        {availableDevices
+                          .filter((device) => device.id !== editingUser?.device_id)
+                          .map((device) => (
+                            <SelectItem key={device.id} value={device.id}>
+                              {device.name} ({device.type})
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <FormField
                 control={form.control}
