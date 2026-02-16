@@ -1,24 +1,24 @@
-"use client"
+'use client'
 
-import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import {
   createEndUser as createEndUserAction,
   updateEndUser as updateEndUserAction,
   deleteEndUser as deleteEndUserAction,
-} from "@/app/actions/end-users"
+} from '@/app/actions/end-users'
 import {
   createDepartment as createDepartmentAction,
   updateDepartment as updateDepartmentAction,
   deleteDepartment as deleteDepartmentAction,
-} from "@/app/actions/departments"
+} from '@/app/actions/departments'
 import {
   createPosition as createPositionAction,
   updatePosition as updatePositionAction,
   deletePosition as deletePositionAction,
-} from "@/app/actions/positions"
-import { queryKeys } from "../queries/queryKeys"
-import type { EndUserInsert, EndUserUpdate } from "@/types/end-user"
+} from '@/app/actions/positions'
+import { queryKeys } from '../queries/queryKeys'
+import type { EndUserInsert, EndUserUpdate } from '@/types/end-user'
 
 // ============================================
 // END USERS MUTATIONS
@@ -35,10 +35,10 @@ export function useCreateEndUserMutation() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.endUsers.list() })
-      toast.success("Tạo ngườ dùng thành công!")
+      toast.success('Tạo ngườ dùng thành công!')
     },
     onError: (err) => {
-      toast.error("Lỗi tạo ngườ dùng", { description: err.message })
+      toast.error('Lỗi tạo ngườ dùng', { description: err.message })
     },
   })
 }
@@ -55,10 +55,10 @@ export function useUpdateEndUserMutation() {
     onSuccess: (_data, vars) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.endUsers.list() })
       queryClient.invalidateQueries({ queryKey: queryKeys.endUsers.detail(vars.id) })
-      toast.success("Cập nhật ngườ dùng thành công!")
+      toast.success('Cập nhật ngườ dùng thành công!')
     },
     onError: (err) => {
-      toast.error("Lỗi cập nhật ngườ dùng", { description: err.message })
+      toast.error('Lỗi cập nhật ngườ dùng', { description: err.message })
     },
   })
 }
@@ -69,15 +69,15 @@ export function useDeleteEndUserMutation() {
   return useMutation({
     mutationFn: async (id: string) => {
       const result = await deleteEndUserAction(id)
-      if (!result.success) throw new Error(result.error || "Lỗi xóa ngườ dùng")
+      if (!result.success) throw new Error(result.error || 'Lỗi xóa ngườ dùng')
       return id
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.endUsers.list() })
-      toast.success("Xóa ngườ dùng thành công!")
+      toast.success('Xóa ngườ dùng thành công!')
     },
     onError: (err) => {
-      toast.error("Lỗi xóa ngườ dùng", { description: err.message })
+      toast.error('Lỗi xóa ngườ dùng', { description: err.message })
     },
   })
 }
@@ -97,10 +97,10 @@ export function useCreateDepartmentMutation() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.departments.list() })
-      toast.success("Tạo phòng ban thành công!")
+      toast.success('Tạo phòng ban thành công!')
     },
     onError: (err) => {
-      toast.error("Lỗi tạo phòng ban", { description: err.message })
+      toast.error('Lỗi tạo phòng ban', { description: err.message })
     },
   })
 }
@@ -117,10 +117,10 @@ export function useUpdateDepartmentMutation() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.departments.list() })
       queryClient.invalidateQueries({ queryKey: queryKeys.endUsers.list() })
-      toast.success("Cập nhật phòng ban thành công!")
+      toast.success('Cập nhật phòng ban thành công!')
     },
     onError: (err) => {
-      toast.error("Lỗi cập nhật phòng ban", { description: err.message })
+      toast.error('Lỗi cập nhật phòng ban', { description: err.message })
     },
   })
 }
@@ -131,16 +131,16 @@ export function useDeleteDepartmentMutation() {
   return useMutation({
     mutationFn: async (id: string) => {
       const result = await deleteDepartmentAction(id)
-      if (!result.success) throw new Error(result.error || "Lỗi xóa phòng ban")
+      if (!result.success) throw new Error(result.error || 'Lỗi xóa phòng ban')
       return id
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.departments.list() })
       queryClient.invalidateQueries({ queryKey: queryKeys.endUsers.list() })
-      toast.success("Xóa phòng ban thành công!")
+      toast.success('Xóa phòng ban thành công!')
     },
     onError: (err) => {
-      toast.error("Lỗi xóa phòng ban", { description: err.message })
+      toast.error('Lỗi xóa phòng ban', { description: err.message })
     },
   })
 }
@@ -160,10 +160,10 @@ export function useCreatePositionMutation() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.positions.list() })
-      toast.success("Tạo chức vụ thành công!")
+      toast.success('Tạo chức vụ thành công!')
     },
     onError: (err) => {
-      toast.error("Lỗi tạo chức vụ", { description: err.message })
+      toast.error('Lỗi tạo chức vụ', { description: err.message })
     },
   })
 }
@@ -180,10 +180,10 @@ export function useUpdatePositionMutation() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.positions.list() })
       queryClient.invalidateQueries({ queryKey: queryKeys.endUsers.list() })
-      toast.success("Cập nhật chức vụ thành công!")
+      toast.success('Cập nhật chức vụ thành công!')
     },
     onError: (err) => {
-      toast.error("Lỗi cập nhật chức vụ", { description: err.message })
+      toast.error('Lỗi cập nhật chức vụ', { description: err.message })
     },
   })
 }
@@ -194,16 +194,16 @@ export function useDeletePositionMutation() {
   return useMutation({
     mutationFn: async (id: string) => {
       const result = await deletePositionAction(id)
-      if (!result.success) throw new Error(result.error || "Lỗi xóa chức vụ")
+      if (!result.success) throw new Error(result.error || 'Lỗi xóa chức vụ')
       return id
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.positions.list() })
       queryClient.invalidateQueries({ queryKey: queryKeys.endUsers.list() })
-      toast.success("Xóa chức vụ thành công!")
+      toast.success('Xóa chức vụ thành công!')
     },
     onError: (err) => {
-      toast.error("Lỗi xóa chức vụ", { description: err.message })
+      toast.error('Lỗi xóa chức vụ', { description: err.message })
     },
   })
 }

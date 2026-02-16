@@ -2,7 +2,7 @@
 // END USERS REACT QUERY HOOKS - Export Index
 // ============================================
 
-export { queryKeys } from "./queries/queryKeys"
+export { queryKeys } from './queries/queryKeys'
 
 // Queries
 export {
@@ -11,7 +11,7 @@ export {
   useDepartmentsQuery,
   usePositionsQuery,
   useAvailableDevicesQuery,
-} from "./queries/endUserQueries"
+} from './queries/endUserQueries'
 
 // Mutations
 export {
@@ -27,4 +27,4 @@ export {
   useCreatePositionMutation,
   useUpdatePositionMutation,
   useDeletePositionMutation,
-} from "./mutations/endUserMutations"
+} from './mutations/endUserMutations'

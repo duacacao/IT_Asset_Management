@@ -1,8 +1,8 @@
-"use client"
+'use client'
 
-import * as React from "react"
-import { useRouter } from "next/navigation"
-import { Command as CommandPrimitive } from "cmdk"
+import * as React from 'react'
+import { useRouter } from 'next/navigation'
+import { Command as CommandPrimitive } from 'cmdk'
 import {
   Search,
   LayoutDashboard,
@@ -11,10 +11,10 @@ import {
   User,
   Palette,
   type LucideIcon,
-} from "lucide-react"
+} from 'lucide-react'
 
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
-import { cn } from "@/lib/utils"
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
+import { cn } from '@/lib/utils'
 
 const Command = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive>,
@@ -23,7 +23,7 @@ const Command = React.forwardRef<
   <CommandPrimitive
     ref={ref}
     className={cn(
-      "flex h-full w-full flex-col overflow-hidden rounded-xl bg-white dark:bg-zinc-950 text-zinc-950 dark:text-zinc-50",
+      'flex h-full w-full flex-col overflow-hidden rounded-xl bg-white text-zinc-950 dark:bg-zinc-950 dark:text-zinc-50',
       className
     )}
     {...props}
@@ -38,7 +38,7 @@ const CommandInput = React.forwardRef<
   <CommandPrimitive.Input
     ref={ref}
     className={cn(
-      "flex h-12 w-full border-none bg-transparent px-4 py-3 text-[17px] outline-none placeholder:text-zinc-500 dark:placeholder:text-zinc-400 border-b border-zinc-200 dark:border-zinc-800 mb-4",
+      'mb-4 flex h-12 w-full border-b border-none border-zinc-200 bg-transparent px-4 py-3 text-[17px] outline-none placeholder:text-zinc-500 dark:border-zinc-800 dark:placeholder:text-zinc-400',
       className
     )}
     {...props}
@@ -52,7 +52,7 @@ const CommandList = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <CommandPrimitive.List
     ref={ref}
-    className={cn("max-h-[400px] overflow-y-auto overflow-x-hidden pb-2", className)}
+    className={cn('max-h-[400px] overflow-x-hidden overflow-y-auto pb-2', className)}
     {...props}
   />
 ))
@@ -77,7 +77,7 @@ const CommandGroup = React.forwardRef<
   <CommandPrimitive.Group
     ref={ref}
     className={cn(
-      "overflow-hidden px-2 [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-2 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-zinc-500 dark:[&_[cmdk-group-heading]]:text-zinc-400 [&:not(:first-child)]:mt-2",
+      'overflow-hidden px-2 [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-2 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-zinc-500 dark:[&_[cmdk-group-heading]]:text-zinc-400 [&:not(:first-child)]:mt-2',
       className
     )}
     {...props}
@@ -92,7 +92,7 @@ const CommandItem = React.forwardRef<
   <CommandPrimitive.Item
     ref={ref}
     className={cn(
-      "relative flex h-12 cursor-pointer select-none items-center gap-2 rounded-lg px-4 text-sm text-zinc-700 dark:text-zinc-300 outline-none transition-colors data-[disabled=true]:pointer-events-none data-[selected=true]:bg-zinc-100 dark:data-[selected=true]:bg-zinc-800 data-[selected=true]:text-zinc-900 dark:data-[selected=true]:text-zinc-100 data-[disabled=true]:opacity-50 [&+[cmdk-item]]:mt-1",
+      'relative flex h-12 cursor-pointer items-center gap-2 rounded-lg px-4 text-sm text-zinc-700 transition-colors outline-none select-none data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-50 data-[selected=true]:bg-zinc-100 data-[selected=true]:text-zinc-900 dark:text-zinc-300 dark:data-[selected=true]:bg-zinc-800 dark:data-[selected=true]:text-zinc-100 [&+[cmdk-item]]:mt-1',
       className
     )}
     {...props}
@@ -118,29 +118,42 @@ export function CommandSearch({ open, onOpenChange }: CommandSearchProps) {
 
   const searchItems: SearchItem[] = [
     // Tổng quan
-    { title: "Bảng điều khiển", url: "/dashboard", group: "Tổng quan", icon: LayoutDashboard },
-    { title: "Thiết bị", url: "/devices", group: "Tổng quan", icon: LayoutDashboard },
+    { title: 'Bảng điều khiển', url: '/dashboard', group: 'Tổng quan', icon: LayoutDashboard },
+    { title: 'Thiết bị', url: '/devices', group: 'Tổng quan', icon: LayoutDashboard },
 
     // Lỗi
-    { title: "Unauthorized", url: "/errors/unauthorized", group: "Lỗi", icon: AlertTriangle },
-    { title: "Forbidden", url: "/errors/forbidden", group: "Lỗi", icon: AlertTriangle },
-    { title: "Not Found", url: "/errors/not-found", group: "Lỗi", icon: AlertTriangle },
-    { title: "Internal Server Error", url: "/errors/internal-server-error", group: "Lỗi", icon: AlertTriangle },
-    { title: "Under Maintenance", url: "/errors/under-maintenance", group: "Lỗi", icon: AlertTriangle },
+    { title: 'Unauthorized', url: '/errors/unauthorized', group: 'Lỗi', icon: AlertTriangle },
+    { title: 'Forbidden', url: '/errors/forbidden', group: 'Lỗi', icon: AlertTriangle },
+    { title: 'Not Found', url: '/errors/not-found', group: 'Lỗi', icon: AlertTriangle },
+    {
+      title: 'Internal Server Error',
+      url: '/errors/internal-server-error',
+      group: 'Lỗi',
+      icon: AlertTriangle,
+    },
+    {
+      title: 'Under Maintenance',
+      url: '/errors/under-maintenance',
+      group: 'Lỗi',
+      icon: AlertTriangle,
+    },
 
     // Cài đặt
-    { title: "End-Users", url: "/end-user", group: "Quản lý", icon: User },
-    { title: "Tài khoản", url: "/settings/account", group: "Cài đặt", icon: Settings },
-    { title: "Giao diện", url: "/settings/appearance", group: "Cài đặt", icon: Palette },
+    { title: 'End-Users', url: '/end-user', group: 'Quản lý', icon: User },
+    { title: 'Tài khoản', url: '/settings/account', group: 'Cài đặt', icon: Settings },
+    { title: 'Giao diện', url: '/settings/appearance', group: 'Cài đặt', icon: Palette },
   ]
 
-  const groupedItems = searchItems.reduce((acc, item) => {
-    if (!acc[item.group]) {
-      acc[item.group] = []
-    }
-    acc[item.group].push(item)
-    return acc
-  }, {} as Record<string, SearchItem[]>)
+  const groupedItems = searchItems.reduce(
+    (acc, item) => {
+      if (!acc[item.group]) {
+        acc[item.group] = []
+      }
+      acc[item.group].push(item)
+      return acc
+    },
+    {} as Record<string, SearchItem[]>
+  )
 
   const handleSelect = (url: string) => {
     router.push(url)
@@ -158,12 +171,9 @@ export function CommandSearch({ open, onOpenChange }: CommandSearchProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="overflow-hidden p-0 shadow-2xl border border-zinc-200 dark:border-zinc-800 max-w-[640px]">
+      <DialogContent className="max-w-[640px] overflow-hidden border border-zinc-200 p-0 shadow-2xl dark:border-zinc-800">
         <DialogTitle className="sr-only">Tìm kiếm</DialogTitle>
-        <Command
-          ref={commandRef}
-          className="transition-transform duration-100 ease-out"
-        >
+        <Command ref={commandRef} className="transition-transform duration-100 ease-out">
           <CommandInput placeholder="Bạn cần tìm gì?" autoFocus />
           <CommandList>
             <CommandEmpty>Không tìm thấy kết quả.</CommandEmpty>
@@ -195,12 +205,12 @@ export function SearchTrigger({ onClick }: { onClick: () => void }) {
   return (
     <button
       onClick={onClick}
-      className="inline-flex items-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-8 px-3 py-1 relative w-full justify-start text-muted-foreground sm:pr-12 md:w-36 lg:w-56"
+      className="focus-visible:ring-ring border-input bg-background hover:bg-accent hover:text-accent-foreground text-muted-foreground relative inline-flex h-8 w-full items-center justify-start gap-2 rounded-md border px-3 py-1 text-sm font-medium whitespace-nowrap shadow-sm transition-colors focus-visible:ring-1 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 sm:pr-12 md:w-36 lg:w-56"
     >
       <Search className="mr-2 h-3.5 w-3.5" />
       <span className="hidden lg:inline-flex">Tìm kiếm…</span>
       <span className="inline-flex lg:hidden">Tìm…</span>
-      <kbd className="pointer-events-none absolute right-1.5 top-1.5 hidden h-4 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 sm:flex">
+      <kbd className="bg-muted pointer-events-none absolute top-1.5 right-1.5 hidden h-4 items-center gap-1 rounded border px-1.5 font-mono text-[10px] font-medium opacity-100 select-none sm:flex">
         <span className="text-xs">⌘</span>K
       </kbd>
     </button>

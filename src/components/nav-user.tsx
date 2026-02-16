@@ -1,11 +1,7 @@
-"use client"
+'use client'
 
-import {
-  EllipsisVertical,
-  LogOut,
-  CircleUser,
-} from "lucide-react"
-import Link from "next/link"
+import { EllipsisVertical, LogOut, CircleUser } from 'lucide-react'
+import Link from 'next/link'
 
 import {
   DropdownMenu,
@@ -15,20 +11,20 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from '@/components/ui/dropdown-menu'
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from "@/components/ui/sidebar"
-import { useAuth } from "@/contexts/AuthContext"
+} from '@/components/ui/sidebar'
+import { useAuth } from '@/contexts/AuthContext'
 
 // Parse display name từ email — capitalize chữ cái đầu
 function getDisplayName(email: string | undefined): string {
-  if (!email) return "User"
+  if (!email) return 'User'
   // Lấy phần trước @ và capitalize
-  const username = email.split("@")[0]
+  const username = email.split('@')[0]
   return username.charAt(0).toUpperCase() + username.slice(1)
 }
 
@@ -38,7 +34,7 @@ export function NavUser() {
 
   // Lấy thông tin từ Supabase Auth user object
   const displayName = user?.user_metadata?.full_name || getDisplayName(user?.email)
-  const displayEmail = user?.email || ""
+  const displayEmail = user?.email || ''
 
   // Hiện skeleton cho đến khi có user data thực sự — tránh flash "User" sau redirect
   if (isLoading || !user) {
@@ -46,10 +42,10 @@ export function NavUser() {
       <SidebarMenu>
         <SidebarMenuItem>
           <SidebarMenuButton size="lg" className="animate-pulse">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted" />
+            <div className="bg-muted flex h-8 w-8 shrink-0 items-center justify-center rounded-lg" />
             <div className="grid flex-1 gap-1">
-              <div className="h-3 w-20 rounded bg-muted" />
-              <div className="h-2 w-28 rounded bg-muted" />
+              <div className="bg-muted h-3 w-20 rounded" />
+              <div className="bg-muted h-2 w-28 rounded" />
             </div>
           </SidebarMenuButton>
         </SidebarMenuItem>
@@ -66,34 +62,30 @@ export function NavUser() {
               size="lg"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground cursor-pointer"
             >
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <div className="bg-primary/10 text-primary flex h-8 w-8 shrink-0 items-center justify-center rounded-lg">
                 <CircleUser className="size-5" />
               </div>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-medium">{displayName}</span>
-                <span className="text-muted-foreground truncate text-xs">
-                  {displayEmail}
-                </span>
+                <span className="text-muted-foreground truncate text-xs">{displayEmail}</span>
               </div>
               <EllipsisVertical className="ml-auto size-4" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
             className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
-            side={isMobile ? "bottom" : "right"}
+            side={isMobile ? 'bottom' : 'right'}
             align="end"
             sideOffset={4}
           >
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <div className="bg-primary/10 text-primary flex h-8 w-8 shrink-0 items-center justify-center rounded-lg">
                   <CircleUser className="size-5" />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-medium">{displayName}</span>
-                  <span className="text-muted-foreground truncate text-xs">
-                    {displayEmail}
-                  </span>
+                  <span className="text-muted-foreground truncate text-xs">{displayEmail}</span>
                 </div>
               </div>
             </DropdownMenuLabel>
@@ -107,10 +99,7 @@ export function NavUser() {
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem
-              className="cursor-pointer"
-              onClick={logout}
-            >
+            <DropdownMenuItem className="cursor-pointer" onClick={logout}>
               <LogOut />
               Đăng xuất
             </DropdownMenuItem>
@@ -120,4 +109,3 @@ export function NavUser() {
     </SidebarMenu>
   )
 }
-

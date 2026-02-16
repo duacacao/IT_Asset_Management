@@ -1,14 +1,10 @@
-"use client"
+'use client'
 
-import { useQuery } from "@tanstack/react-query"
-import {
-  getEndUsers,
-  getEndUser,
-  getAvailableDevices,
-} from "@/app/actions/end-users"
-import { getDepartments } from "@/app/actions/departments"
-import { getPositions } from "@/app/actions/positions"
-import { queryKeys } from "./queryKeys"
+import { useQuery } from '@tanstack/react-query'
+import { getEndUsers, getEndUser, getAvailableDevices } from '@/app/actions/end-users'
+import { getDepartments } from '@/app/actions/departments'
+import { getPositions } from '@/app/actions/positions'
+import { queryKeys } from './queryKeys'
 
 // ============================================
 // END USERS QUERIES
@@ -27,7 +23,7 @@ export function useEndUsersQuery() {
 
 export function useEndUserQuery(id: string | null) {
   return useQuery({
-    queryKey: queryKeys.endUsers.detail(id || ""),
+    queryKey: queryKeys.endUsers.detail(id || ''),
     enabled: !!id,
     queryFn: async () => {
       if (!id) return null

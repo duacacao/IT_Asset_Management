@@ -1,9 +1,9 @@
-"use client"
+'use client'
 
-import * as React from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import * as React from 'react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 
 interface ColorPickerProps {
   label: string
@@ -56,7 +56,7 @@ export function ColorPicker({ label, cssVar, value, onChange }: ColorPickerProps
           <Button
             type="button"
             variant="outline"
-            className="h-8 w-8 p-0 overflow-hidden cursor-pointer"
+            className="h-8 w-8 cursor-pointer overflow-hidden p-0"
             style={{ backgroundColor: displayColor }}
           >
             <input
@@ -64,7 +64,7 @@ export function ColorPicker({ label, cssVar, value, onChange }: ColorPickerProps
               id={`color-${cssVar}`}
               value={displayColor}
               onChange={handleColorChange}
-              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
             />
           </Button>
         </div>
@@ -73,7 +73,7 @@ export function ColorPicker({ label, cssVar, value, onChange }: ColorPickerProps
           placeholder={`${cssVar} value`}
           value={localValue}
           onChange={handleTextChange}
-          className="h-8 text-xs flex-1"
+          className="h-8 flex-1 text-xs"
         />
       </div>
     </div>

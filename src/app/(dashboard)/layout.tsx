@@ -1,35 +1,32 @@
-"use client";
+'use client'
 
-import React from "react";
-import { AppSidebar } from "@/components/app-sidebar";
-import { SiteHeader } from "@/components/site-header";
+import React from 'react'
+import { AppSidebar } from '@/components/app-sidebar'
+import { SiteHeader } from '@/components/site-header'
 
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
-import { useSidebarConfig } from "@/hooks/use-sidebar-config";
+import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
+import { useSidebarConfig } from '@/hooks/use-sidebar-config'
 
-
-export default function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const { config } = useSidebarConfig();
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const { config } = useSidebarConfig()
 
   return (
     <SidebarProvider
-      style={{
-        "--sidebar-width": "16rem",
-        "--sidebar-width-icon": "3rem",
-        "--header-height": "calc(var(--spacing) * 14)",
-      } as React.CSSProperties}
-      className={config.collapsible === "none" ? "sidebar-none-mode" : ""}
+      style={
+        {
+          '--sidebar-width': '16rem',
+          '--sidebar-width-icon': '3rem',
+          '--header-height': 'calc(var(--spacing) * 14)',
+        } as React.CSSProperties
+      }
+      className={config.collapsible === 'none' ? 'sidebar-none-mode' : ''}
     >
-      {config.side === "left" ? (
+      {config.side === 'left' ? (
         <>
           {/* Skip link for keyboard navigation */}
           <a
             href="#main-content"
-            className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-md focus:shadow-lg"
+            className="focus:bg-primary focus:text-primary-foreground sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:rounded-md focus:px-4 focus:py-2 focus:shadow-lg"
           >
             Skip to main content
           </a>
@@ -48,7 +45,6 @@ export default function DashboardLayout({
                 </div>
               </div>
             </div>
-
           </SidebarInset>
         </>
       ) : (
@@ -56,7 +52,7 @@ export default function DashboardLayout({
           {/* Skip link for keyboard navigation */}
           <a
             href="#main-content"
-            className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-md focus:shadow-lg"
+            className="focus:bg-primary focus:text-primary-foreground sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:rounded-md focus:px-4 focus:py-2 focus:shadow-lg"
           >
             Skip to main content
           </a>
@@ -70,7 +66,6 @@ export default function DashboardLayout({
                 </div>
               </div>
             </div>
-
           </SidebarInset>
           <AppSidebar
             variant={config.variant}
@@ -79,8 +74,6 @@ export default function DashboardLayout({
           />
         </>
       )}
-
-
     </SidebarProvider>
-  );
+  )
 }

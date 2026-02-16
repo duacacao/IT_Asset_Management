@@ -1,15 +1,12 @@
-"use client"
+'use client'
 
-import * as React from "react"
-import { AppSidebar } from "@/components/app-sidebar"
-import { SiteHeader } from "@/components/site-header"
+import * as React from 'react'
+import { AppSidebar } from '@/components/app-sidebar'
+import { SiteHeader } from '@/components/site-header'
 
-import { UpgradeToProButton } from "@/components/upgrade-to-pro-button"
-import { useSidebarConfig } from "@/hooks/use-sidebar-config"
-import {
-  SidebarInset,
-  SidebarProvider,
-} from "@/components/ui/sidebar"
+import { UpgradeToProButton } from '@/components/upgrade-to-pro-button'
+import { useSidebarConfig } from '@/hooks/use-sidebar-config'
+import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 
 interface BaseLayoutProps {
   children: React.ReactNode
@@ -24,14 +21,14 @@ export function BaseLayout({ children, title, description }: BaseLayoutProps) {
     <SidebarProvider
       style={
         {
-          "--sidebar-width": "16rem",
-          "--sidebar-width-icon": "3rem",
-          "--header-height": "calc(var(--spacing) * 14)",
+          '--sidebar-width': '16rem',
+          '--sidebar-width-icon': '3rem',
+          '--header-height': 'calc(var(--spacing) * 14)',
         } as React.CSSProperties
       }
-      className={config.collapsible === "none" ? "sidebar-none-mode" : ""}
+      className={config.collapsible === 'none' ? 'sidebar-none-mode' : ''}
     >
-      {config.side === "left" ? (
+      {config.side === 'left' ? (
         <>
           <AppSidebar
             variant={config.variant}
@@ -47,9 +44,7 @@ export function BaseLayout({ children, title, description }: BaseLayoutProps) {
                     <div className="px-4 lg:px-6">
                       <div className="flex flex-col gap-2">
                         <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
-                        {description && (
-                          <p className="text-muted-foreground">{description}</p>
-                        )}
+                        {description && <p className="text-muted-foreground">{description}</p>}
                       </div>
                     </div>
                   )}
@@ -57,7 +52,6 @@ export function BaseLayout({ children, title, description }: BaseLayoutProps) {
                 </div>
               </div>
             </div>
-
           </SidebarInset>
         </>
       ) : (
@@ -71,9 +65,7 @@ export function BaseLayout({ children, title, description }: BaseLayoutProps) {
                     <div className="px-4 lg:px-6">
                       <div className="flex flex-col gap-2">
                         <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
-                        {description && (
-                          <p className="text-muted-foreground">{description}</p>
-                        )}
+                        {description && <p className="text-muted-foreground">{description}</p>}
                       </div>
                     </div>
                   )}
@@ -81,7 +73,6 @@ export function BaseLayout({ children, title, description }: BaseLayoutProps) {
                 </div>
               </div>
             </div>
-
           </SidebarInset>
           <AppSidebar
             variant={config.variant}
@@ -90,8 +81,6 @@ export function BaseLayout({ children, title, description }: BaseLayoutProps) {
           />
         </>
       )}
-
-
     </SidebarProvider>
   )
 }

@@ -1,49 +1,81 @@
-"use client"
+'use client'
 
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { Plus, Pencil, Trash2, Loader2, User, Eye, Laptop, Building, Briefcase, FileText, MoreHorizontal } from 'lucide-react'
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import {
+  Plus,
+  Pencil,
+  Trash2,
+  Loader2,
+  User,
+  Eye,
+  Laptop,
+  Building,
+  Briefcase,
+  FileText,
+  MoreHorizontal,
+} from 'lucide-react'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { z } from 'zod'
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useForm } from 'react-hook-form'
 import { useRouter } from 'next/navigation'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import {
-  Table, TableBody, TableCell,
-  TableHead, TableHeader, TableRow,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from '@/components/ui/table'
 import {
-  Dialog, DialogContent, DialogDescription,
-  DialogFooter, DialogHeader, DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from '@/components/ui/dialog'
 import {
-  Select, SelectContent, SelectItem,
-  SelectTrigger, SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from '@/components/ui/select'
 import {
-  Form, FormControl, FormField, FormItem,
-  FormLabel, FormMessage,
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
 } from '@/components/ui/form'
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel,
-  AlertDialogContent, AlertDialogDescription,
-  AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
+} from '@/components/ui/alert-dialog'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { SmartCombobox } from "@/components/ui/smart-combobox"
+} from '@/components/ui/dropdown-menu'
+import { SmartCombobox } from '@/components/ui/smart-combobox'
 import { EndUserWithDevice, EndUserInsert, EndUserUpdate } from '@/types/end-user'
 import {
   useEndUsersQuery,
@@ -61,11 +93,11 @@ import {
 } from '@/hooks/useEndUsersQuery'
 
 const endUserFormSchema = z.object({
-  full_name: z.string().min(1, "Họ tên không được để trống").max(100),
-  email: z.string().email("Email không hợp lệ").optional().or(z.literal("")),
+  full_name: z.string().min(1, 'Họ tên không được để trống').max(100),
+  email: z.string().email('Email không hợp lệ').optional().or(z.literal('')),
   phone: z.string().optional(),
-  department_id: z.string().min(1, "Phòng ban là bắt buộc"),
-  position_id: z.string().min(1, "Chức vụ là bắt buộc"),
+  department_id: z.string().min(1, 'Phòng ban là bắt buộc'),
+  position_id: z.string().min(1, 'Chức vụ là bắt buộc'),
   notes: z.string().optional(),
 })
 
@@ -73,11 +105,11 @@ type EndUserFormValues = z.infer<typeof endUserFormSchema>
 
 function getDepartmentColor(department: string): string {
   const colors: Record<string, string> = {
-    'IT': 'bg-purple-100 text-purple-700 border-purple-200',
+    IT: 'bg-purple-100 text-purple-700 border-purple-200',
     'Kế toán': 'bg-green-100 text-green-700 border-green-200',
     'Nhân sự': 'bg-pink-100 text-pink-700 border-pink-200',
     'Kinh doanh': 'bg-orange-100 text-orange-700 border-orange-200',
-    'Marketing': 'bg-blue-100 text-blue-700 border-blue-200',
+    Marketing: 'bg-blue-100 text-blue-700 border-blue-200',
     'Kỹ thuật': 'bg-cyan-100 text-cyan-700 border-cyan-200',
     'Hành chính': 'bg-gray-100 text-gray-700 border-gray-200',
     'Tài chính': 'bg-emerald-100 text-emerald-700 border-emerald-200',
@@ -128,20 +160,20 @@ export default function EndUsersPage() {
   const [viewingId, setViewingId] = useState<string | null>(null)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [filters, setFilters] = useState({
-    search: "",
-    department: "",
-    position: "",
+    search: '',
+    department: '',
+    position: '',
   })
 
   const form = useForm<EndUserFormValues>({
     resolver: zodResolver(endUserFormSchema),
     defaultValues: {
-      full_name: "",
-      email: "",
-      phone: "",
-      department_id: "",
-      position_id: "",
-      notes: "",
+      full_name: '',
+      email: '',
+      phone: '',
+      department_id: '',
+      position_id: '',
+      notes: '',
     },
   })
 
@@ -150,21 +182,21 @@ export default function EndUsersPage() {
       setEditingId(user.id)
       form.reset({
         full_name: user.full_name,
-        email: user.email || "",
-        phone: user.phone || "",
-        department_id: user.department_id || "",
-        position_id: user.position_id || "",
-        notes: user.notes || "",
+        email: user.email || '',
+        phone: user.phone || '',
+        department_id: user.department_id || '',
+        position_id: user.position_id || '',
+        notes: user.notes || '',
       })
     } else {
       setEditingId(null)
       form.reset({
-        full_name: "",
-        email: "",
-        phone: "",
-        department_id: "",
-        position_id: "",
-        notes: "",
+        full_name: '',
+        email: '',
+        phone: '',
+        department_id: '',
+        position_id: '',
+        notes: '',
       })
     }
     setIsDialogOpen(true)
@@ -196,8 +228,8 @@ export default function EndUsersPage() {
 
       handleCloseDialog()
     } catch (error) {
-      console.error("Lỗi save:", error)
-      toast.error("Không thể lưu")
+      console.error('Lỗi save:', error)
+      toast.error('Không thể lưu')
     } finally {
       setIsSaving(false)
     }
@@ -210,7 +242,7 @@ export default function EndUsersPage() {
       await deleteMutation.mutateAsync(deletingId)
       setDeletingId(null)
     } catch (error) {
-      console.error("Lỗi delete:", error)
+      console.error('Lỗi delete:', error)
     }
   }
 
@@ -218,18 +250,17 @@ export default function EndUsersPage() {
     if (selectedIds.size === 0) return
 
     try {
-      const deletePromises = Array.from(selectedIds).map(id => 
-        deleteMutation.mutateAsync(id)
-      )
+      const deletePromises = Array.from(selectedIds).map((id) => deleteMutation.mutateAsync(id))
       await Promise.all(deletePromises)
       setSelectedIds(new Set())
     } catch (error) {
-      console.error("Lỗi bulk delete:", error)
+      console.error('Lỗi bulk delete:', error)
     }
   }
 
-  const filteredUsers = endUsers.filter(user => {
-    const matchSearch = !filters.search ||
+  const filteredUsers = endUsers.filter((user) => {
+    const matchSearch =
+      !filters.search ||
       user.full_name.toLowerCase().includes(filters.search.toLowerCase()) ||
       user.email?.toLowerCase().includes(filters.search.toLowerCase()) ||
       user.phone?.includes(filters.search)
@@ -243,9 +274,7 @@ export default function EndUsersPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">End-Users</h1>
-          <p className="text-muted-foreground">
-            Quản lý người dùng cuối sử dụng thiết bị.
-          </p>
+          <p className="text-muted-foreground">Quản lý người dùng cuối sử dụng thiết bị.</p>
         </div>
         <div className="flex items-center gap-2">
           {selectedIds.size > 0 && (
@@ -260,12 +289,16 @@ export default function EndUsersPage() {
                 <AlertDialogHeader>
                   <AlertDialogTitle>Xóa nhiều End-User?</AlertDialogTitle>
                   <AlertDialogDescription>
-                    Bạn có chắc muốn xóa {selectedIds.size} end-user? Hành động này không thể hoàn tác.
+                    Bạn có chắc muốn xóa {selectedIds.size} end-user? Hành động này không thể hoàn
+                    tác.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel>Hủy</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleBulkDelete} className="bg-destructive text-destructive-foreground">
+                  <AlertDialogAction
+                    onClick={handleBulkDelete}
+                    className="bg-destructive text-destructive-foreground"
+                  >
                     Xóa
                   </AlertDialogAction>
                 </AlertDialogFooter>
@@ -279,41 +312,47 @@ export default function EndUsersPage() {
         </div>
       </div>
 
-      <div className="flex items-center gap-4 p-4 bg-muted/30 rounded-lg">
+      <div className="bg-muted/30 flex items-center gap-4 rounded-lg p-4">
         <Input
           placeholder="Tìm kiếm theo tên, email, số điện thoại..."
           value={filters.search}
-          onChange={(e) => setFilters(f => ({ ...f, search: e.target.value }))}
+          onChange={(e) => setFilters((f) => ({ ...f, search: e.target.value }))}
           className="max-w-[300px]"
         />
         <div className="flex items-center gap-1">
           <Select
-            value={filters.department || "__all__"}
-            onValueChange={(v) => setFilters(f => ({ ...f, department: v === "__all__" ? "" : v }))}
+            value={filters.department || '__all__'}
+            onValueChange={(v) =>
+              setFilters((f) => ({ ...f, department: v === '__all__' ? '' : v }))
+            }
           >
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Tất cả phòng ban" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="__all__">Tất cả phòng ban</SelectItem>
-              {departments.map(d => (
-                <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>
+              {departments.map((d) => (
+                <SelectItem key={d.value} value={d.value}>
+                  {d.label}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
         <div className="flex items-center gap-1">
           <Select
-            value={filters.position || "__all__"}
-            onValueChange={(v) => setFilters(f => ({ ...f, position: v === "__all__" ? "" : v }))}
+            value={filters.position || '__all__'}
+            onValueChange={(v) => setFilters((f) => ({ ...f, position: v === '__all__' ? '' : v }))}
           >
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Tất cả chức vụ" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="__all__">Tất cả chức vụ</SelectItem>
-              {positions.map(p => (
-                <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
+              {positions.map((p) => (
+                <SelectItem key={p.value} value={p.value}>
+                  {p.label}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -322,30 +361,30 @@ export default function EndUsersPage() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setFilters({ search: "", department: "", position: "" })}
+            onClick={() => setFilters({ search: '', department: '', position: '' })}
           >
             Xóa lọc
           </Button>
         )}
-        <span className="text-sm text-muted-foreground ml-auto">
+        <span className="text-muted-foreground ml-auto text-sm">
           {filteredUsers.length} / {endUsers.length} kết quả
         </span>
       </div>
 
       {isLoadingUsers ? (
         <div className="flex items-center justify-center py-10">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          <Loader2 className="text-muted-foreground h-8 w-8 animate-spin" />
         </div>
       ) : endUsers.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-10 text-muted-foreground">
-          <User className="h-12 w-12 mb-4" />
+        <div className="text-muted-foreground flex flex-col items-center justify-center py-10">
+          <User className="mb-4 h-12 w-12" />
           <p>Chưa có end-user nào</p>
           <Button variant="link" onClick={() => handleOpenDialog()}>
             Thêm end-user đầu tiên
           </Button>
         </div>
       ) : (
-        <div className="border rounded-lg">
+        <div className="rounded-lg border">
           <Table>
             <TableHeader>
               <TableRow>
@@ -354,7 +393,7 @@ export default function EndUsersPage() {
                     checked={selectedIds.size > 0 && selectedIds.size === endUsers.length}
                     onCheckedChange={(checked) => {
                       if (checked) {
-                        setSelectedIds(new Set(endUsers.map(u => u.id)))
+                        setSelectedIds(new Set(endUsers.map((u) => u.id)))
                       } else {
                         setSelectedIds(new Set())
                       }
@@ -364,9 +403,17 @@ export default function EndUsersPage() {
                 <TableHead className="w-[180px]">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm" className="-ml-3 h-8 data-[state=open]:bg-accent">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="data-[state=open]:bg-accent -ml-3 h-8"
+                      >
                         Họ tên
-                        {filters.search && <Badge variant="secondary" className="ml-1 h-4 w-4 p-0 text-[10px]">●</Badge>}
+                        {filters.search && (
+                          <Badge variant="secondary" className="ml-1 h-4 w-4 p-0 text-[10px]">
+                            ●
+                          </Badge>
+                        )}
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start" className="w-[200px]">
@@ -374,12 +421,12 @@ export default function EndUsersPage() {
                         <Input
                           placeholder="Tìm kiếm..."
                           value={filters.search}
-                          onChange={(e) => setFilters(f => ({ ...f, search: e.target.value }))}
+                          onChange={(e) => setFilters((f) => ({ ...f, search: e.target.value }))}
                           className="h-8"
                         />
                       </div>
                       {filters.search && (
-                        <DropdownMenuItem onClick={() => setFilters(f => ({ ...f, search: "" }))}>
+                        <DropdownMenuItem onClick={() => setFilters((f) => ({ ...f, search: '' }))}>
                           Xóa filter
                         </DropdownMenuItem>
                       )}
@@ -392,18 +439,31 @@ export default function EndUsersPage() {
                 <TableHead className="w-[110px]">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm" className="-ml-3 h-8 data-[state=open]:bg-accent">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="data-[state=open]:bg-accent -ml-3 h-8"
+                      >
                         Phòng ban
-                        {filters.department && <Badge variant="secondary" className="ml-1 h-4 w-4 p-0 text-[10px]">●</Badge>}
+                        {filters.department && (
+                          <Badge variant="secondary" className="ml-1 h-4 w-4 p-0 text-[10px]">
+                            ●
+                          </Badge>
+                        )}
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start" className="w-[200px]">
-                      <DropdownMenuItem onClick={() => setFilters(f => ({ ...f, department: "" }))}>
+                      <DropdownMenuItem
+                        onClick={() => setFilters((f) => ({ ...f, department: '' }))}
+                      >
                         Tất cả
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
-                      {departments.map(dept => (
-                        <DropdownMenuItem key={dept.value} onClick={() => setFilters(f => ({ ...f, department: dept.value }))}>
+                      {departments.map((dept) => (
+                        <DropdownMenuItem
+                          key={dept.value}
+                          onClick={() => setFilters((f) => ({ ...f, department: dept.value }))}
+                        >
                           {dept.label}
                         </DropdownMenuItem>
                       ))}
@@ -413,18 +473,29 @@ export default function EndUsersPage() {
                 <TableHead className="w-[100px]">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm" className="-ml-3 h-8 data-[state=open]:bg-accent">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="data-[state=open]:bg-accent -ml-3 h-8"
+                      >
                         Chức vụ
-                        {filters.position && <Badge variant="secondary" className="ml-1 h-4 w-4 p-0 text-[10px]">●</Badge>}
+                        {filters.position && (
+                          <Badge variant="secondary" className="ml-1 h-4 w-4 p-0 text-[10px]">
+                            ●
+                          </Badge>
+                        )}
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start" className="w-[200px]">
-                      <DropdownMenuItem onClick={() => setFilters(f => ({ ...f, position: "" }))}>
+                      <DropdownMenuItem onClick={() => setFilters((f) => ({ ...f, position: '' }))}>
                         Tất cả
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
-                      {positions.map(pos => (
-                        <DropdownMenuItem key={pos.value} onClick={() => setFilters(f => ({ ...f, position: pos.value }))}>
+                      {positions.map((pos) => (
+                        <DropdownMenuItem
+                          key={pos.value}
+                          onClick={() => setFilters((f) => ({ ...f, position: pos.value }))}
+                        >
                           {pos.label}
                         </DropdownMenuItem>
                       ))}
@@ -453,10 +524,10 @@ export default function EndUsersPage() {
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
-                      <User className="h-4 w-4 text-muted-foreground" />
+                      <User className="text-muted-foreground h-4 w-4" />
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <span className="font-medium truncate">{user.full_name}</span>
+                          <span className="truncate font-medium">{user.full_name}</span>
                         </TooltipTrigger>
                         <TooltipContent>{user.full_name}</TooltipContent>
                       </Tooltip>
@@ -491,7 +562,9 @@ export default function EndUsersPage() {
                       <Badge variant="outline" className="gap-1">
                         <Laptop className="h-3 w-3 shrink-0" />
                         {user.device_name}
-                        {user.device_type && <span className="text-muted-foreground">({user.device_type})</span>}
+                        {user.device_type && (
+                          <span className="text-muted-foreground">({user.device_type})</span>
+                        )}
                       </Badge>
                     ) : (
                       <span className="text-muted-foreground text-sm">Chưa assign</span>
@@ -558,12 +631,16 @@ export default function EndUsersPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Xóa End-User?</AlertDialogTitle>
             <AlertDialogDescription>
-              Bạn có chắc muốn xóa "{endUsers.find(u => u.id === deletingId)?.full_name}"? Hành động này không thể hoàn tác.
+              Bạn có chắc muốn xóa "{endUsers.find((u) => u.id === deletingId)?.full_name}"? Hành
+              động này không thể hoàn tác.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Hủy</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground">
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-destructive text-destructive-foreground"
+            >
               Xóa
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -573,11 +650,9 @@ export default function EndUsersPage() {
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle>
-              {editingId ? "Sửa End-User" : "Thêm End-User"}
-            </DialogTitle>
+            <DialogTitle>{editingId ? 'Sửa End-User' : 'Thêm End-User'}</DialogTitle>
             <DialogDescription>
-              {editingId ? "Cập nhật thông tin người dùng." : "Thêm người dùng cuối mới."}
+              {editingId ? 'Cập nhật thông tin người dùng.' : 'Thêm người dùng cuối mới.'}
             </DialogDescription>
           </DialogHeader>
 
@@ -651,13 +726,17 @@ export default function EndUsersPage() {
                         }}
                         editable
                         onEdit={async (id, newValue) => {
-                          if (!newValue || newValue === departments.find(d => d.value === id)?.label) return
+                          if (
+                            !newValue ||
+                            newValue === departments.find((d) => d.value === id)?.label
+                          )
+                            return
                           await updateDeptMutation.mutateAsync({ id, name: newValue })
                         }}
                         deletable
                         onDelete={async (id) => {
                           await deleteDeptMutation.mutateAsync(id)
-                          if (field.value === id) field.onChange("")
+                          if (field.value === id) field.onChange('')
                         }}
                       />
                       <FormMessage />
@@ -688,13 +767,17 @@ export default function EndUsersPage() {
                         }}
                         editable
                         onEdit={async (id, newValue) => {
-                          if (!newValue || newValue === positions.find(p => p.value === id)?.label) return
+                          if (
+                            !newValue ||
+                            newValue === positions.find((p) => p.value === id)?.label
+                          )
+                            return
                           await updatePosMutation.mutateAsync({ id, name: newValue })
                         }}
                         deletable
                         onDelete={async (id) => {
                           await deletePosMutation.mutateAsync(id)
-                          if (field.value === id) field.onChange("")
+                          if (field.value === id) field.onChange('')
                         }}
                       />
                       <FormMessage />
@@ -730,7 +813,7 @@ export default function EndUsersPage() {
                       Đang lưu...
                     </>
                   ) : (
-                    "Lưu"
+                    'Lưu'
                   )}
                 </Button>
               </DialogFooter>
@@ -746,7 +829,7 @@ export default function EndUsersPage() {
           </DialogHeader>
 
           {(() => {
-            const user = endUsers.find(u => u.id === viewingId)
+            const user = endUsers.find((u) => u.id === viewingId)
             if (!user) return null
 
             return (
@@ -781,7 +864,11 @@ export default function EndUsersPage() {
                 <div className="grid gap-2">
                   <label className="text-sm font-medium">Thiết bị đang sử dụng</label>
                   <Input
-                    value={user.device_name ? `${user.device_name} (${user.device_type || 'N/A'})` : 'Chưa gán thiết bị'}
+                    value={
+                      user.device_name
+                        ? `${user.device_name} (${user.device_type || 'N/A'})`
+                        : 'Chưa gán thiết bị'
+                    }
                     disabled
                   />
                 </div>
@@ -798,13 +885,17 @@ export default function EndUsersPage() {
             <Button type="button" variant="outline" onClick={() => setViewingId(null)}>
               Đóng
             </Button>
-            <Button type="button" onClick={() => {
-              const user = endUsers.find(u => u.id === viewingId)
-              if (user) {
-                setViewingId(null)
-                handleOpenDialog(user)
-              }
-            }} className="cursor-pointer">
+            <Button
+              type="button"
+              onClick={() => {
+                const user = endUsers.find((u) => u.id === viewingId)
+                if (user) {
+                  setViewingId(null)
+                  handleOpenDialog(user)
+                }
+              }}
+              className="cursor-pointer"
+            >
               <Pencil className="mr-2 h-4 w-4" />
               Sửa
             </Button>

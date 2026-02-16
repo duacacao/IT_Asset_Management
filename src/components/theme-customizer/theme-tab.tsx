@@ -1,9 +1,15 @@
-"use client"
+'use client'
 
 import { Palette, Dices, Sun, Moon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
 import { useThemeManager } from '@/hooks/use-theme-manager'
 import { useCircularTransition } from '@/hooks/use-circular-transition'
@@ -11,21 +17,19 @@ import { colorThemes, tweakcnThemes } from '@/config/theme-data'
 import { radiusOptions } from '@/config/theme-customizer-constants'
 import { useAppearanceStore } from '@/stores/useAppearanceStore'
 import React from 'react'
-import "./circular-transition.css"
+import './circular-transition.css'
 
 export function ThemeTab() {
   const {
-    selectedTheme, setSelectedTheme,
-    selectedTweakcnTheme, setSelectedTweakcnTheme,
-    selectedRadius, setSelectedRadius,
+    selectedTheme,
+    setSelectedTheme,
+    selectedTweakcnTheme,
+    setSelectedTweakcnTheme,
+    selectedRadius,
+    setSelectedRadius,
   } = useAppearanceStore()
 
-  const {
-    isDarkMode,
-    applyTheme,
-    applyTweakcnTheme,
-    applyRadius,
-  } = useThemeManager()
+  const { isDarkMode, applyTheme, applyTweakcnTheme, applyRadius } = useThemeManager()
 
   const { toggleTheme } = useCircularTransition()
 
@@ -63,21 +67,25 @@ export function ThemeTab() {
 
   const handleTweakcnThemeChange = (value: string) => {
     setSelectedTweakcnTheme(value)
-    const selectedPreset = tweakcnThemes.find(t => t.value === value)?.preset
+    const selectedPreset = tweakcnThemes.find((t) => t.value === value)?.preset
     if (selectedPreset) {
       applyTweakcnTheme(selectedPreset, isDarkMode)
     }
   }
 
   return (
-    <div className="p-4 space-y-6">
-
+    <div className="space-y-6 p-4">
       {/* Shadcn UI Theme Presets */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <Label className="text-sm font-medium">Shadcn UI Theme Presets</Label>
-          <Button variant="outline" size="sm" onClick={handleRandomShadcn} className="cursor-pointer">
-            <Dices className="h-3.5 w-3.5 mr-1.5" />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRandomShadcn}
+            className="cursor-pointer"
+          >
+            <Dices className="mr-1.5 h-3.5 w-3.5" />
             Random
           </Button>
         </div>
@@ -93,19 +101,19 @@ export function ThemeTab() {
                   <div className="flex items-center gap-2">
                     <div className="flex gap-1">
                       <div
-                        className="w-3 h-3 rounded-full border border-border/20"
+                        className="border-border/20 h-3 w-3 rounded-full border"
                         style={{ backgroundColor: theme.preset.styles.light.primary }}
                       />
                       <div
-                        className="w-3 h-3 rounded-full border border-border/20"
+                        className="border-border/20 h-3 w-3 rounded-full border"
                         style={{ backgroundColor: theme.preset.styles.light.secondary }}
                       />
                       <div
-                        className="w-3 h-3 rounded-full border border-border/20"
+                        className="border-border/20 h-3 w-3 rounded-full border"
                         style={{ backgroundColor: theme.preset.styles.light.accent }}
                       />
                       <div
-                        className="w-3 h-3 rounded-full border border-border/20"
+                        className="border-border/20 h-3 w-3 rounded-full border"
                         style={{ backgroundColor: theme.preset.styles.light.muted }}
                       />
                     </div>
@@ -124,8 +132,13 @@ export function ThemeTab() {
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <Label className="text-sm font-medium">Tweakcn Theme Presets</Label>
-          <Button variant="outline" size="sm" onClick={handleRandomTweakcn} className="cursor-pointer">
-            <Dices className="h-3.5 w-3.5 mr-1.5" />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRandomTweakcn}
+            className="cursor-pointer"
+          >
+            <Dices className="mr-1.5 h-3.5 w-3.5" />
             Random
           </Button>
         </div>
@@ -141,19 +154,19 @@ export function ThemeTab() {
                   <div className="flex items-center gap-2">
                     <div className="flex gap-1">
                       <div
-                        className="w-3 h-3 rounded-full border border-border/20"
+                        className="border-border/20 h-3 w-3 rounded-full border"
                         style={{ backgroundColor: theme.preset.styles.light.primary }}
                       />
                       <div
-                        className="w-3 h-3 rounded-full border border-border/20"
+                        className="border-border/20 h-3 w-3 rounded-full border"
                         style={{ backgroundColor: theme.preset.styles.light.secondary }}
                       />
                       <div
-                        className="w-3 h-3 rounded-full border border-border/20"
+                        className="border-border/20 h-3 w-3 rounded-full border"
                         style={{ backgroundColor: theme.preset.styles.light.accent }}
                       />
                       <div
-                        className="w-3 h-3 rounded-full border border-border/20"
+                        className="border-border/20 h-3 w-3 rounded-full border"
                         style={{ backgroundColor: theme.preset.styles.light.muted }}
                       />
                     </div>
@@ -175,10 +188,10 @@ export function ThemeTab() {
           {radiusOptions.map((option) => (
             <div
               key={option.value}
-              className={`relative cursor-pointer rounded-md p-3 border transition-colors ${
+              className={`relative cursor-pointer rounded-md border p-3 transition-colors ${
                 selectedRadius === option.value
-                  ? "border-primary"
-                  : "border-border hover:border-border/60"
+                  ? 'border-primary'
+                  : 'border-border hover:border-border/60'
               }`}
               onClick={() => handleRadiusSelect(option.value)}
             >
@@ -197,21 +210,21 @@ export function ThemeTab() {
         <Label className="text-sm font-medium">Mode</Label>
         <div className="grid grid-cols-2 gap-2">
           <Button
-            variant={!isDarkMode ? "secondary" : "outline"}
+            variant={!isDarkMode ? 'secondary' : 'outline'}
             size="sm"
             onClick={handleLightMode}
             className="cursor-pointer"
           >
-            <Sun className="h-4 w-4 mr-1" />
+            <Sun className="mr-1 h-4 w-4" />
             Light
           </Button>
           <Button
-            variant={isDarkMode ? "secondary" : "outline"}
+            variant={isDarkMode ? 'secondary' : 'outline'}
             size="sm"
             onClick={handleDarkMode}
             className="cursor-pointer"
           >
-            <Moon className="h-4 w-4 mr-1" />
+            <Moon className="mr-1 h-4 w-4" />
             Dark
           </Button>
         </div>

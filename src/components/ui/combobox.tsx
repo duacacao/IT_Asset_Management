@@ -1,9 +1,9 @@
-"use client"
+'use client'
 
-import * as React from "react"
-import { Plus } from "lucide-react"
+import * as React from 'react'
+import { Plus } from 'lucide-react'
 
-import { Button } from "@/components/ui/button"
+import { Button } from '@/components/ui/button'
 import {
   Command,
   CommandEmpty,
@@ -11,12 +11,8 @@ import {
   CommandItem,
   CommandList,
   CommandSeparator,
-} from "@/components/ui/command"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
+} from '@/components/ui/command'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import {
   Dialog,
   DialogContent,
@@ -24,8 +20,8 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
+} from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
 
 interface ComboBoxProps {
   value?: string
@@ -42,26 +38,26 @@ export function ComboBox({
   value,
   onValueChange,
   options,
-  placeholder = "Chọn...",
-  emptyText = "Không có kết quả",
+  placeholder = 'Chọn...',
+  emptyText = 'Không có kết quả',
   onCreateNew,
   creatable = false,
-  createLabel = "Thêm mới",
+  createLabel = 'Thêm mới',
 }: ComboBoxProps) {
   const [open, setOpen] = React.useState(false)
   const [createDialogOpen, setCreateDialogOpen] = React.useState(false)
-  const [newValue, setNewValue] = React.useState("")
+  const [newValue, setNewValue] = React.useState('')
 
   const selectedOption = options.find((opt) => opt.value === value)
 
   const handleSelect = (currentValue: string) => {
-    if (currentValue === "__create__") {
+    if (currentValue === '__create__') {
       setOpen(false)
-      setNewValue("")
+      setNewValue('')
       setCreateDialogOpen(true)
       return
     }
-    onValueChange(currentValue === value ? "" : currentValue)
+    onValueChange(currentValue === value ? '' : currentValue)
     setOpen(false)
   }
 
@@ -69,7 +65,7 @@ export function ComboBox({
     if (newValue.trim()) {
       onCreateNew?.(newValue.trim())
       setCreateDialogOpen(false)
-      setNewValue("")
+      setNewValue('')
     }
   }
 
@@ -106,7 +102,7 @@ export function ComboBox({
                   <CommandItem
                     key="__create__"
                     value="__create__"
-                    onSelect={() => handleSelect("__create__")}
+                    onSelect={() => handleSelect('__create__')}
                     className="text-primary"
                   >
                     <Plus className="mr-2 h-4 w-4" />
@@ -123,17 +119,15 @@ export function ComboBox({
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Thêm mới</DialogTitle>
-            <DialogDescription>
-              Nhập tên mới để thêm vào danh sách.
-            </DialogDescription>
+            <DialogDescription>Nhập tên mới để thêm vào danh sách.</DialogDescription>
           </DialogHeader>
           <div className="py-4">
             <Input
-              placeholder={placeholder.replace("Chọn ", "")}
+              placeholder={placeholder.replace('Chọn ', '')}
               value={newValue}
               onChange={(e) => setNewValue(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === "Enter") {
+                if (e.key === 'Enter') {
                   handleCreate()
                 }
               }}

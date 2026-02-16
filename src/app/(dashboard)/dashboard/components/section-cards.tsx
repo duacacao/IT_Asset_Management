@@ -1,14 +1,9 @@
-"use client"
+'use client'
 
-import * as React from "react"
-import {
-  Monitor,
-  CheckCircle2,
-  AlertTriangle,
-  Layers,
-} from "lucide-react"
+import * as React from 'react'
+import { Monitor, CheckCircle2, AlertTriangle, Layers } from 'lucide-react'
 
-import { Badge } from "@/components/ui/badge"
+import { Badge } from '@/components/ui/badge'
 import {
   Card,
   CardAction,
@@ -16,8 +11,8 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-import { Device } from "@/types/device"
+} from '@/components/ui/card'
+import { Device } from '@/types/device'
 
 interface SectionCardsProps {
   devices: Device[]
@@ -26,9 +21,9 @@ interface SectionCardsProps {
 export function SectionCards({ devices }: SectionCardsProps) {
   const stats = React.useMemo(() => {
     const total = devices.length
-    const active = devices.filter(d => (d.status ?? 'active') === 'active').length
-    const broken = devices.filter(d => d.status === 'broken').length
-    const inactive = devices.filter(d => d.status === 'inactive').length
+    const active = devices.filter((d) => (d.status ?? 'active') === 'active').length
+    const broken = devices.filter((d) => d.status === 'broken').length
+    const inactive = devices.filter((d) => d.status === 'inactive').length
     const totalSheets = devices.reduce((sum, d) => sum + Object.keys(d.sheets).length, 0)
     const avgSheets = total > 0 ? (totalSheets / total).toFixed(1) : '0'
     const activePercent = total > 0 ? Math.round((active / total) * 100) : 0
@@ -38,7 +33,7 @@ export function SectionCards({ devices }: SectionCardsProps) {
   }, [devices])
 
   return (
-    <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid gap-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs sm:grid-cols-2 xl:grid-cols-4">
       {/* Tổng số thiết bị */}
       <Card className="@container/card">
         <CardHeader>
@@ -57,9 +52,7 @@ export function SectionCards({ devices }: SectionCardsProps) {
           <div className="line-clamp-1 flex gap-2 font-medium">
             {stats.totalSheets} sheets được quản lý
           </div>
-          <div className="text-muted-foreground">
-            Trung bình {stats.avgSheets} sheet/thiết bị
-          </div>
+          <div className="text-muted-foreground">Trung bình {stats.avgSheets} sheet/thiết bị</div>
         </CardFooter>
       </Card>
 
@@ -71,7 +64,7 @@ export function SectionCards({ devices }: SectionCardsProps) {
             {stats.active}
           </CardTitle>
           <CardAction>
-            <Badge variant="outline" className="text-emerald-600 border-emerald-200">
+            <Badge variant="outline" className="border-emerald-200 text-emerald-600">
               <CheckCircle2 className="size-3" aria-hidden="true" />
               {stats.activePercent}%
             </Badge>
@@ -79,11 +72,10 @@ export function SectionCards({ devices }: SectionCardsProps) {
         </CardHeader>
         <CardFooter className="flex-col items-start gap-1.5 text-sm">
           <div className="line-clamp-1 flex gap-2 font-medium">
-            {stats.activePercent}% thiết bị hoạt động <CheckCircle2 className="size-4 text-emerald-500" aria-hidden="true" />
+            {stats.activePercent}% thiết bị hoạt động{' '}
+            <CheckCircle2 className="size-4 text-emerald-500" aria-hidden="true" />
           </div>
-          <div className="text-muted-foreground">
-            Trên tổng {stats.total} thiết bị
-          </div>
+          <div className="text-muted-foreground">Trên tổng {stats.total} thiết bị</div>
         </CardFooter>
       </Card>
 
@@ -95,7 +87,10 @@ export function SectionCards({ devices }: SectionCardsProps) {
             {stats.issueCount}
           </CardTitle>
           <CardAction>
-            <Badge variant="outline" className={stats.issueCount > 0 ? "text-amber-600 border-amber-200" : ""}>
+            <Badge
+              variant="outline"
+              className={stats.issueCount > 0 ? 'border-amber-200 text-amber-600' : ''}
+            >
               <AlertTriangle className="size-3" aria-hidden="true" />
               {stats.broken} hư hỏng
             </Badge>
@@ -104,12 +99,12 @@ export function SectionCards({ devices }: SectionCardsProps) {
         <CardFooter className="flex-col items-start gap-1.5 text-sm">
           <div className="line-clamp-1 flex gap-2 font-medium">
             {stats.broken > 0 && <>{stats.broken} hư hỏng</>}
-            {stats.broken > 0 && stats.inactive > 0 && " · "}
+            {stats.broken > 0 && stats.inactive > 0 && ' · '}
             {stats.inactive > 0 && <>{stats.inactive} không dùng</>}
-            {stats.issueCount === 0 && "Tất cả hoạt động tốt"}
+            {stats.issueCount === 0 && 'Tất cả hoạt động tốt'}
           </div>
           <div className="text-muted-foreground">
-            {stats.issueCount > 0 ? "Cần kiểm tra bảo trì" : "Không có vấn đề"}
+            {stats.issueCount > 0 ? 'Cần kiểm tra bảo trì' : 'Không có vấn đề'}
           </div>
         </CardFooter>
       </Card>
@@ -132,9 +127,7 @@ export function SectionCards({ devices }: SectionCardsProps) {
           <div className="line-clamp-1 flex gap-2 font-medium">
             {stats.avgSheets} sheets trung bình <Layers className="size-4" aria-hidden="true" />
           </div>
-          <div className="text-muted-foreground">
-            Dữ liệu từ {stats.total} thiết bị
-          </div>
+          <div className="text-muted-foreground">Dữ liệu từ {stats.total} thiết bị</div>
         </CardFooter>
       </Card>
     </div>

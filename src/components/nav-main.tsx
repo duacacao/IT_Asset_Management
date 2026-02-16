@@ -1,15 +1,11 @@
-"use client"
+'use client'
 
-import * as React from "react"
-import { ChevronRight, type LucideIcon } from "lucide-react"
-import Link from "next/link"
-import { usePathname } from "next/navigation"
+import * as React from 'react'
+import { ChevronRight, type LucideIcon } from 'lucide-react'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,7 +13,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from '@/components/ui/dropdown-menu'
 import {
   SidebarGroup,
   SidebarGroupLabel,
@@ -28,7 +24,7 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
   useSidebar,
-} from "@/components/ui/sidebar"
+} from '@/components/ui/sidebar'
 
 export function NavMain({
   label,
@@ -51,12 +47,12 @@ export function NavMain({
   const pathname = usePathname()
   const { state: sidebarState, isMobile } = useSidebar()
   // Khi sidebar collapsed (icon-only mode)
-  const isCollapsed = sidebarState === "collapsed"
+  const isCollapsed = sidebarState === 'collapsed'
 
   // Check if any subitem is active to determine if parent should be open
-  const shouldBeOpen = (item: typeof items[0]) => {
+  const shouldBeOpen = (item: (typeof items)[0]) => {
     if (item.isActive) return true
-    return item.items?.some(subItem => pathname === subItem.url) || false
+    return item.items?.some((subItem) => pathname === subItem.url) || false
   }
 
   return (
@@ -82,7 +78,7 @@ export function NavMain({
                       </SidebarMenuButton>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent
-                      side={isMobile ? "bottom" : "right"}
+                      side={isMobile ? 'bottom' : 'right'}
                       align="start"
                       sideOffset={4}
                       className="min-w-48 rounded-lg"
@@ -90,11 +86,7 @@ export function NavMain({
                       <DropdownMenuLabel>{item.title}</DropdownMenuLabel>
                       <DropdownMenuSeparator />
                       {item.items.map((subItem) => (
-                        <DropdownMenuItem
-                          key={subItem.title}
-                          asChild
-                          className="cursor-pointer"
-                        >
+                        <DropdownMenuItem key={subItem.title} asChild className="cursor-pointer">
                           <Link href={subItem.url}>
                             <span>{subItem.title}</span>
                           </Link>
@@ -105,11 +97,7 @@ export function NavMain({
                 </SidebarMenuItem>
               ) : (
                 // === EXPANDED MODE: Collapsible ===
-                <Collapsible
-                  asChild
-                  defaultOpen={shouldBeOpen(item)}
-                  className="group/collapsible"
-                >
+                <Collapsible asChild defaultOpen={shouldBeOpen(item)} className="group/collapsible">
                   <SidebarMenuItem>
                     <CollapsibleTrigger asChild>
                       <SidebarMenuButton tooltip={item.title} className="cursor-pointer">
@@ -122,11 +110,23 @@ export function NavMain({
                       <SidebarMenuSub>
                         {item.items?.map((subItem) => (
                           <SidebarMenuSubItem key={subItem.title}>
-                            <SidebarMenuSubButton asChild className="cursor-pointer" isActive={pathname === subItem.url}>
+                            <SidebarMenuSubButton
+                              asChild
+                              className="cursor-pointer"
+                              isActive={pathname === subItem.url}
+                            >
                               <Link
                                 href={subItem.url}
-                                target={(item.title === "Auth Pages" || item.title === "Errors") ? "_blank" : undefined}
-                                rel={(item.title === "Auth Pages" || item.title === "Errors") ? "noopener noreferrer" : undefined}
+                                target={
+                                  item.title === 'Auth Pages' || item.title === 'Errors'
+                                    ? '_blank'
+                                    : undefined
+                                }
+                                rel={
+                                  item.title === 'Auth Pages' || item.title === 'Errors'
+                                    ? 'noopener noreferrer'
+                                    : undefined
+                                }
                               >
                                 <span>{subItem.title}</span>
                               </Link>
@@ -141,11 +141,16 @@ export function NavMain({
             ) : (
               // Không có sub-items → link trực tiếp
               <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip={item.title} className="cursor-pointer relative" isActive={pathname === item.url}>
+                <SidebarMenuButton
+                  asChild
+                  tooltip={item.title}
+                  className="relative cursor-pointer"
+                  isActive={pathname === item.url}
+                >
                   <Link href={item.url}>
                     {/* Active indicator — bar bên trái */}
                     {pathname === item.url && (
-                      <span className="absolute left-0 top-1/2 -translate-y-1/2 h-4 w-0.5 rounded-full bg-primary" />
+                      <span className="bg-primary absolute top-1/2 left-0 h-4 w-0.5 -translate-y-1/2 rounded-full" />
                     )}
                     {item.icon && <item.icon />}
                     <span>{item.title}</span>

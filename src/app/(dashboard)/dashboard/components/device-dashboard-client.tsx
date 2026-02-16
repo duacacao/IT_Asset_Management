@@ -1,21 +1,15 @@
-"use client"
+'use client'
 
-import { SectionCards } from "./section-cards"
-import { HardwareOverview } from "@/components/dashboard/HardwareOverview"
-import { RecentActivity } from "@/components/dashboard/RecentActivity"
-import { DeviceStatusChart } from "@/components/dashboard/DeviceStatusChart"
-import { OSDistributionChart } from "@/components/dashboard/OSDistributionChart"
-import { useDevicesQuery } from "@/hooks/useDevicesQuery"
-import { Button } from "@/components/ui/button"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import { Upload, LayoutDashboard } from "lucide-react"
-import { useRouter } from "next/navigation"
+import { SectionCards } from './section-cards'
+import { HardwareOverview } from '@/components/dashboard/HardwareOverview'
+import { RecentActivity } from '@/components/dashboard/RecentActivity'
+import { DeviceStatusChart } from '@/components/dashboard/DeviceStatusChart'
+import { OSDistributionChart } from '@/components/dashboard/OSDistributionChart'
+import { useDevicesQuery } from '@/hooks/useDevicesQuery'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Upload, LayoutDashboard } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 
 export function DeviceDashboardClient() {
   const { data: devices = [] } = useDevicesQuery()
@@ -27,19 +21,16 @@ export function DeviceDashboardClient() {
       <div className="flex flex-1 flex-col items-center justify-center gap-6 p-4 pt-0">
         <Card className="w-full max-w-lg text-center">
           <CardHeader>
-            <div className="mx-auto rounded-full bg-muted p-4 mb-2">
-              <LayoutDashboard className="h-8 w-8 text-muted-foreground" aria-hidden="true" />
+            <div className="bg-muted mx-auto mb-2 rounded-full p-4">
+              <LayoutDashboard className="text-muted-foreground h-8 w-8" aria-hidden="true" />
             </div>
-            <CardTitle className="text-xl">
-              Chào mừng đến IT Asset Management
-            </CardTitle>
+            <CardTitle className="text-xl">Chào mừng đến IT Asset Management</CardTitle>
             <CardDescription>
-              Import file Excel (.xlsx) để bắt đầu theo dõi và quản lý thiết bị
-              IT.
+              Import file Excel (.xlsx) để bắt đầu theo dõi và quản lý thiết bị IT.
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button size="lg" onClick={() => router.push("/devices")}>
+            <Button size="lg" onClick={() => router.push('/devices')}>
               <Upload className="mr-2 h-5 w-5" aria-hidden="true" />
               Import thiết bị
             </Button>
@@ -73,4 +64,3 @@ export function DeviceDashboardClient() {
     </div>
   )
 }
-

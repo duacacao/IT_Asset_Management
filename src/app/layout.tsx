@@ -1,33 +1,26 @@
-import type { Metadata } from "next";
-import "./globals.css";
+import type { Metadata } from 'next'
+import './globals.css'
 
-import { ThemeProvider } from "@/components/theme-provider";
-import { SidebarConfigProvider } from "@/contexts/sidebar-context";
-import { inter } from "@/lib/fonts";
+import { ThemeProvider } from '@/components/theme-provider'
+import { SidebarConfigProvider } from '@/contexts/sidebar-context'
+import { inter } from '@/lib/fonts'
 
-import { Toaster } from "@/components/ui/sonner";
-import { CommandPalette } from "@/components/CommandPalette";
+import { Toaster } from '@/components/ui/sonner'
+import { CommandPalette } from '@/components/CommandPalette'
 
 export const metadata: Metadata = {
-  title: "IT Asset Management",
-  description: "Quản lý tài sản IT - Device Dashboard",
-};
+  title: 'IT Asset Management',
+  description: 'Quản lý tài sản IT - Device Dashboard',
+}
 
-import { AuthProvider } from "@/contexts/AuthContext";
-import { QueryProvider } from "@/providers/QueryProvider";
+import { AuthProvider } from '@/contexts/AuthContext'
+import { QueryProvider } from '@/providers/QueryProvider'
 
-import { ThemeSyncProvider } from "@/components/theme-sync-provider";
+import { ThemeSyncProvider } from '@/components/theme-sync-provider'
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html
-      lang="vi"
-      className={`${inter.variable} antialiased`}
-    >
+    <html lang="vi" className={`${inter.variable} antialiased`}>
       <body className={inter.className} suppressHydrationWarning={true}>
         <ThemeProvider defaultTheme="light" storageKey="nextjs-ui-theme">
           <QueryProvider>
@@ -44,5 +37,5 @@ export default function RootLayout({
         </ThemeProvider>
       </body>
     </html>
-  );
+  )
 }

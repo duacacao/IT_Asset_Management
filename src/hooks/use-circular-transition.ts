@@ -1,7 +1,7 @@
-"use client"
+'use client'
 
-import { useRef, useCallback } from "react"
-import { useTheme } from "@/hooks/use-theme"
+import { useRef, useCallback } from 'react'
+import { useTheme } from '@/hooks/use-theme'
 
 interface CircularTransitionHook {
   startTransition: (coords: { x: number; y: number }, callback: () => void) => void
@@ -28,7 +28,11 @@ export function useCircularTransition(): CircularTransitionHook {
 
     // Check if View Transitions API is supported
     if ('startViewTransition' in document) {
-      const transition = (document as Document & { startViewTransition: (callback: () => void) => { finished: Promise<void> } }).startViewTransition(() => {
+      const transition = (
+        document as Document & {
+          startViewTransition: (callback: () => void) => { finished: Promise<void> }
+        }
+      ).startViewTransition(() => {
         callback()
       })
 
@@ -44,17 +48,20 @@ export function useCircularTransition(): CircularTransitionHook {
     }
   }, [])
 
-  const toggleTheme = useCallback((event: React.MouseEvent) => {
-    // Get precise click coordinates - use clientX/clientY directly like tweakcn
-    const coords = {
-      x: event.clientX,
-      y: event.clientY
-    }
+  const toggleTheme = useCallback(
+    (event: React.MouseEvent) => {
+      // Get precise click coordinates - use clientX/clientY directly like tweakcn
+      const coords = {
+        x: event.clientX,
+        y: event.clientY,
+      }
 
-    startTransition(coords, () => {
-      setTheme(theme === "dark" ? "light" : "dark")
-    })
-  }, [theme, setTheme, startTransition])
+      startTransition(coords, () => {
+        setTheme(theme === 'dark' ? 'light' : 'dark')
+      })
+    },
+    [theme, setTheme, startTransition]
+  )
 
   const isTransitioning = useCallback(() => {
     return isTransitioningRef.current
@@ -63,6 +70,6 @@ export function useCircularTransition(): CircularTransitionHook {
   return {
     startTransition,
     toggleTheme,
-    isTransitioning
+    isTransitioning,
   }
 }
