@@ -2,7 +2,8 @@
 
 import * as React from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Device, DeviceStatus, DEVICE_STATUS_CONFIG } from "@/types/device"
+import { Device, DeviceStatus } from "@/types/device"
+import { DEVICE_STATUS_CONFIG } from "@/constants/device"
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { timeAgo } from '@/lib/time'
@@ -67,7 +68,7 @@ export function RecentActivity({ devices }: RecentActivityProps) {
                                             <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full border bg-background shadow-xs group-hover:border-primary/20 transition-colors">
                                                 <Icon className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
                                                 <span className={`absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full ring-2 ring-background ${status === 'active' ? 'bg-emerald-500' :
-                                                        status === 'broken' ? 'bg-red-500' : 'bg-amber-500'
+                                                    status === 'broken' ? 'bg-red-500' : 'bg-amber-500'
                                                     }`} />
                                             </div>
 
@@ -84,10 +85,10 @@ export function RecentActivity({ devices }: RecentActivityProps) {
                                         <Badge
                                             variant="outline"
                                             className={`shrink-0 rounded-md px-2 py-0.5 text-[10px] font-medium border ${status === 'active'
-                                                    ? 'border-emerald-200 text-emerald-700 bg-emerald-50/50 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-800'
-                                                    : status === 'broken'
-                                                        ? 'border-red-200 text-red-700 bg-red-50/50 dark:bg-red-950/30 dark:text-red-400 dark:border-red-800'
-                                                        : 'border-amber-200 text-amber-700 bg-amber-50/50 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-800'
+                                                ? 'border-emerald-200 text-emerald-700 bg-emerald-50/50 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-800'
+                                                : status === 'broken'
+                                                    ? 'border-red-200 text-red-700 bg-red-50/50 dark:bg-red-950/30 dark:text-red-400 dark:border-red-800'
+                                                    : 'border-amber-200 text-amber-700 bg-amber-50/50 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-800'
                                                 }`}
                                         >
                                             {config.label}

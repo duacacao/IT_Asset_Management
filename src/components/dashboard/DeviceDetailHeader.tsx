@@ -1,6 +1,6 @@
 import { Device, DeviceStatus } from '@/types/device';
 import { STATUS_DOT_COLORS } from '@/constants/device';
-import { DEVICE_STATUS_CONFIG } from '@/types/device';
+import { DEVICE_STATUS_CONFIG } from '@/constants/device';
 import { Button } from '@/components/ui/button';
 import {
     AlertDialog,
@@ -40,7 +40,7 @@ export function DeviceDetailHeader({
     return (
         <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-                <span className={`w-2 h-2 rounded-full ${STATUS_DOT_COLORS[status]}`} />
+                <span className={`w - 2 h - 2 rounded - full ${STATUS_DOT_COLORS[status]} `} />
                 <span className="text-sm font-medium">{statusConfig.label}</span>
             </div>
             <div className="flex items-center gap-2">

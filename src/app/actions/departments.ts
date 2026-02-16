@@ -9,7 +9,7 @@ export async function getDepartments(): Promise<{
     error: string | null
 }> {
     const supabase = await createClient()
-    
+
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
         return { data: null, error: "Not authenticated" }
@@ -19,6 +19,7 @@ export async function getDepartments(): Promise<{
         .from("departments")
         .select("*")
         .eq("user_id", user.id)
+        .is("deleted_at", null)
         .order("name", { ascending: true })
 
     if (error) {
@@ -99,7 +100,7 @@ export async function deleteDepartment(id: string): Promise<{
 
     const { error } = await supabase
         .from("departments")
-        .delete()
+        .update({ deleted_at: new Date().toISOString() })
         .eq("id", id)
         .eq("user_id", user.id)
 

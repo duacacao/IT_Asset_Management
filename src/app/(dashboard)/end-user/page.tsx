@@ -1,8 +1,9 @@
 "use client"
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { toast } from 'sonner'
-import { Plus, Pencil, Trash2, Loader2, User, Laptop, Building, Briefcase, FileText, MoreHorizontal, Eye } from 'lucide-react'
+import { Plus, Pencil, Trash2, Loader2, User, Eye, Laptop, Building, Briefcase, FileText, MoreHorizontal } from 'lucide-react'
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { z } from 'zod'
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
@@ -42,21 +43,30 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { SmartCombobox } from "@/components/ui/smart-combobox"
 import { EndUserWithDevice, EndUserInsert, EndUserUpdate } from '@/types/end-user'
-import { getEndUsers, createEndUser, updateEndUser, deleteEndUser, getAvailableDevices } from '@/app/actions/end-users'
-import { getDepartments, createDepartment, updateDepartment, deleteDepartment } from '@/app/actions/departments'
-import { getPositions, createPosition, updatePosition, deletePosition } from '@/app/actions/positions'
+import {
+  useEndUsersQuery,
+  useDepartmentsQuery,
+  usePositionsQuery,
+  useCreateEndUserMutation,
+  useUpdateEndUserMutation,
+  useDeleteEndUserMutation,
+  useCreateDepartmentMutation,
+  useUpdateDepartmentMutation,
+  useDeleteDepartmentMutation,
+  useCreatePositionMutation,
+  useUpdatePositionMutation,
+  useDeletePositionMutation,
+} from '@/hooks/useEndUsersQuery'
 
 const endUserFormSchema = z.object({
   full_name: z.string().min(1, "Họ tên không được để trống").max(100),
   email: z.string().email("Email không hợp lệ").optional().or(z.literal("")),
   phone: z.string().optional(),
-  department_id: z.string().optional(),
-  position_id: z.string().optional(),
+  department_id: z.string().min(1, "Phòng ban là bắt buộc"),
+  position_id: z.string().min(1, "Chức vụ là bắt buộc"),
   notes: z.string().optional(),
-  device_id: z.string().optional(),
 })
 
 type EndUserFormValues = z.infer<typeof endUserFormSchema>
@@ -93,17 +103,30 @@ function getPositionColor(position: string): string {
 
 export default function EndUsersPage() {
   const router = useRouter()
-  const [endUsers, setEndUsers] = useState<EndUserWithDevice[]>([])
-  const [availableDevices, setAvailableDevices] = useState<{ id: string; name: string; type: string }[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+
+  // React Query Hooks
+  const { data: endUsers = [], isLoading: isLoadingUsers } = useEndUsersQuery()
+  const { data: departments = [] } = useDepartmentsQuery()
+  const { data: positions = [] } = usePositionsQuery()
+
+  // Mutations
+  const createMutation = useCreateEndUserMutation()
+  const updateMutation = useUpdateEndUserMutation()
+  const deleteMutation = useDeleteEndUserMutation()
+  const createDeptMutation = useCreateDepartmentMutation()
+  const updateDeptMutation = useUpdateDepartmentMutation()
+  const deleteDeptMutation = useDeleteDepartmentMutation()
+  const createPosMutation = useCreatePositionMutation()
+  const updatePosMutation = useUpdatePositionMutation()
+  const deletePosMutation = useDeletePositionMutation()
+
+  // Local UI State
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [viewingId, setViewingId] = useState<string | null>(null)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
-  const [departments, setDepartments] = useState<{ label: string; value: string }[]>([])
-  const [positions, setPositions] = useState<{ label: string; value: string }[]>([])
   const [filters, setFilters] = useState({
     search: "",
     department: "",
@@ -119,57 +142,8 @@ export default function EndUsersPage() {
       department_id: "",
       position_id: "",
       notes: "",
-      device_id: "",
     },
   })
-
-  const fetchData = async () => {
-    setIsLoading(true)
-    try {
-      const [usersResult, devicesResult, deptsResult, posResult] = await Promise.all([
-        getEndUsers(),
-        getAvailableDevices(),
-        getDepartments(),
-        getPositions()
-      ])
-
-      if (usersResult.error) {
-        console.log("Lỗi tải end-users:", usersResult.error)
-        setEndUsers([])
-      } else {
-        setEndUsers(usersResult.data || [])
-      }
-
-      if (deptsResult.error) {
-        console.log("Lỗi tải departments:", deptsResult.error)
-        setDepartments([])
-      } else {
-        setDepartments((deptsResult.data || []).map(d => ({ label: d.name, value: d.id })))
-      }
-
-      if (posResult.error) {
-        console.log("Lỗi tải positions:", posResult.error)
-        setPositions([])
-      } else {
-        setPositions((posResult.data || []).map(p => ({ label: p.name, value: p.id })))
-      }
-
-      if (devicesResult.error) {
-        console.log("Lỗi tải thiết bị:", devicesResult.error)
-        setAvailableDevices([])
-      } else {
-        setAvailableDevices(devicesResult.data || [])
-      }
-    } catch (error) {
-      console.error("Lỗi fetch:", error)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    fetchData()
-  }, [])
 
   const handleOpenDialog = (user?: EndUserWithDevice) => {
     if (user) {
@@ -181,7 +155,6 @@ export default function EndUsersPage() {
         department_id: user.department_id || "",
         position_id: user.position_id || "",
         notes: user.notes || "",
-        device_id: user.device_id || "",
       })
     } else {
       setEditingId(null)
@@ -192,7 +165,6 @@ export default function EndUsersPage() {
         department_id: "",
         position_id: "",
         notes: "",
-        device_id: "",
       })
     }
     setIsDialogOpen(true)
@@ -211,29 +183,18 @@ export default function EndUsersPage() {
         full_name: data.full_name,
         email: data.email || undefined,
         phone: data.phone || undefined,
-        department_id: data.department_id || undefined,
-        position_id: data.position_id || undefined,
+        department_id: data.department_id,
+        position_id: data.position_id,
         notes: data.notes || undefined,
-        device_id: data.device_id || undefined,
       }
 
-      let result
       if (editingId) {
-        const updatePayload: EndUserUpdate = { ...payload }
-        result = await updateEndUser(editingId, updatePayload)
+        await updateMutation.mutateAsync({ id: editingId, data: payload })
       } else {
-        const createPayload: EndUserInsert = payload
-        result = await createEndUser(createPayload)
+        await createMutation.mutateAsync(payload)
       }
 
-      if (result.error) {
-        toast.error("Lỗi: " + result.error)
-        return
-      }
-
-      toast.success(editingId ? "Cập nhật thành công!" : "Thêm mới thành công!")
       handleCloseDialog()
-      fetchData()
     } catch (error) {
       console.error("Lỗi save:", error)
       toast.error("Không thể lưu")
@@ -246,17 +207,10 @@ export default function EndUsersPage() {
     if (!deletingId) return
 
     try {
-      const result = await deleteEndUser(deletingId)
-      if (result.error) {
-        toast.error("Lỗi xóa: " + result.error)
-        return
-      }
-      toast.success("Xóa thành công!")
+      await deleteMutation.mutateAsync(deletingId)
       setDeletingId(null)
-      fetchData()
     } catch (error) {
       console.error("Lỗi delete:", error)
-      toast.error("Không thể xóa")
     }
   }
 
@@ -264,25 +218,15 @@ export default function EndUsersPage() {
     if (selectedIds.size === 0) return
 
     try {
-      const deletePromises = Array.from(selectedIds).map(id => deleteEndUser(id))
-      const results = await Promise.all(deletePromises)
-
-      const hasError = results.some(r => r.error)
-      if (hasError) {
-        toast.error("Một số xóa thất bại")
-      } else {
-        toast.success(`Đã xóa ${selectedIds.size} end-user`)
-      }
-
+      const deletePromises = Array.from(selectedIds).map(id => 
+        deleteMutation.mutateAsync(id)
+      )
+      await Promise.all(deletePromises)
       setSelectedIds(new Set())
-      fetchData()
     } catch (error) {
       console.error("Lỗi bulk delete:", error)
-      toast.error("Không thể xóa")
     }
   }
-
-
 
   const filteredUsers = endUsers.filter(user => {
     const matchSearch = !filters.search ||
@@ -388,7 +332,7 @@ export default function EndUsersPage() {
         </span>
       </div>
 
-      {isLoading ? (
+      {isLoadingUsers ? (
         <div className="flex items-center justify-center py-10">
           <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
         </div>
@@ -700,38 +644,20 @@ export default function EndUsersPage() {
                         creatable
                         createLabel="Thêm phòng ban mới"
                         onCreate={async (value) => {
-                          const result = await createDepartment({ name: value })
-                          if (result.error) {
-                            toast.error(result.error)
-                            throw new Error(result.error)
+                          const result = await createDeptMutation.mutateAsync(value)
+                          if (result?.id) {
+                            field.onChange(result.id)
                           }
-                          await fetchData()
-                          if (result.data?.id) {
-                            field.onChange(result.data.id)
-                          }
-                          toast.success("Tạo phòng ban thành công!")
                         }}
                         editable
                         onEdit={async (id, newValue) => {
                           if (!newValue || newValue === departments.find(d => d.value === id)?.label) return
-                          const result = await updateDepartment(id, { name: newValue })
-                          if (result.error) {
-                            toast.error(result.error)
-                            throw new Error(result.error)
-                          }
-                          await fetchData()
-                          toast.success("Cập nhật phòng ban thành công!")
+                          await updateDeptMutation.mutateAsync({ id, name: newValue })
                         }}
                         deletable
                         onDelete={async (id) => {
-                          const result = await deleteDepartment(id)
-                          if (result.error) {
-                            toast.error(result.error)
-                            throw new Error(result.error)
-                          }
-                          await fetchData()
+                          await deleteDeptMutation.mutateAsync(id)
                           if (field.value === id) field.onChange("")
-                          toast.success("Xóa phòng ban thành công!")
                         }}
                       />
                       <FormMessage />
@@ -755,38 +681,20 @@ export default function EndUsersPage() {
                         creatable
                         createLabel="Thêm chức vụ mới"
                         onCreate={async (value) => {
-                          const result = await createPosition({ name: value })
-                          if (result.error) {
-                            toast.error(result.error)
-                            throw new Error(result.error)
+                          const result = await createPosMutation.mutateAsync(value)
+                          if (result?.id) {
+                            field.onChange(result.id)
                           }
-                          await fetchData()
-                          if (result.data?.id) {
-                            field.onChange(result.data.id)
-                          }
-                          toast.success("Tạo chức vụ thành công!")
                         }}
                         editable
                         onEdit={async (id, newValue) => {
                           if (!newValue || newValue === positions.find(p => p.value === id)?.label) return
-                          const result = await updatePosition(id, { name: newValue })
-                          if (result.error) {
-                            toast.error(result.error)
-                            throw new Error(result.error)
-                          }
-                          await fetchData()
-                          toast.success("Cập nhật chức vụ thành công!")
+                          await updatePosMutation.mutateAsync({ id, name: newValue })
                         }}
                         deletable
                         onDelete={async (id) => {
-                          const result = await deletePosition(id)
-                          if (result.error) {
-                            toast.error(result.error)
-                            throw new Error(result.error)
-                          }
-                          await fetchData()
+                          await deletePosMutation.mutateAsync(id)
                           if (field.value === id) field.onChange("")
-                          toast.success("Xóa chức vụ thành công!")
                         }}
                       />
                       <FormMessage />
@@ -795,31 +703,7 @@ export default function EndUsersPage() {
                 />
               </div>
 
-              <FormField
-                control={form.control}
-                name="device_id"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Thiết bị</FormLabel>
-                    <Select onValueChange={(val) => field.onChange(val === "__none__" ? undefined : val)} value={field.value || ""}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Chọn thiết bị..." />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="__none__">Chưa assign</SelectItem>
-                        {availableDevices.map((device) => (
-                          <SelectItem key={device.id} value={device.id}>
-                            {device.name} ({device.type})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {/* Thiết bị được gán qua device_assignments — quản lý riêng */}
 
               <FormField
                 control={form.control}
@@ -895,9 +779,9 @@ export default function EndUsersPage() {
                 </div>
 
                 <div className="grid gap-2">
-                  <label className="text-sm font-medium">Thiết bị</label>
+                  <label className="text-sm font-medium">Thiết bị đang sử dụng</label>
                   <Input
-                    value={user.device_name ? `${user.device_name} (${user.device_type || 'N/A'})` : 'Chưa assign'}
+                    value={user.device_name ? `${user.device_name} (${user.device_type || 'N/A'})` : 'Chưa gán thiết bị'}
                     disabled
                   />
                 </div>

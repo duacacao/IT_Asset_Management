@@ -8,8 +8,8 @@ export const profiles = pgTable("profiles", {
     role: text("role").default("user"), // 'admin' | 'user'
     fullName: text("full_name"),
     avatarUrl: text("avatar_url"),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
 export const devices = pgTable("devices", {
@@ -21,11 +21,23 @@ export const devices = pgTable("devices", {
     specs: jsonb("specs").default({}), // Flexible JSON for varied hardware specs
     ownerId: uuid("owner_id").references(() => profiles.id), // Assigned to user
     location: text("location"),
-    purchaseDate: timestamp("purchase_date"),
-    warrantyExp: timestamp("warranty_exp"),
+    purchaseDate: timestamp("purchase_date", { withTimezone: true }),
+    warrantyExp: timestamp("warranty_exp", { withTimezone: true }),
     notes: text("notes"),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+// Bảng theo dõi lịch sử gán thiết bị cho end-user
+// Quan hệ 1:1 tại bất kỳ thời điểm nào (enforced bởi partial unique index trong DB)
+export const deviceAssignments = pgTable("device_assignments", {
+    id: uuid("id").primaryKey().notNull().defaultRandom(),
+    deviceId: uuid("device_id").notNull().references(() => devices.id, { onDelete: "cascade" }),
+    endUserId: uuid("end_user_id").notNull(), // References end_users.id
+    userId: uuid("user_id").notNull(), // References auth.users.id — dùng cho RLS
+    assignedAt: timestamp("assigned_at", { withTimezone: true }).defaultNow().notNull(),
+    returnedAt: timestamp("returned_at", { withTimezone: true }), // NULL = đang active
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
 export const logs = pgTable("activity_logs", {
@@ -34,5 +46,5 @@ export const logs = pgTable("activity_logs", {
     userId: uuid("user_id").references(() => profiles.id),
     action: text("action").notNull(), // 'create', 'update', 'delete', 'assign'
     details: text("details"),
-    timestamp: timestamp("created_at").defaultNow().notNull(),
+    timestamp: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });

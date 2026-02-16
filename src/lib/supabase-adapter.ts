@@ -1,5 +1,5 @@
 import type { Tables } from "@/types/supabase"
-import type { Device, DeviceInfo, DeviceStatus } from "@/types/device"
+import type { Device, DeviceInfo, DeviceStatus, DeviceType } from "@/types/device"
 
 // ============================================
 // Type alias cho database rows
@@ -27,12 +27,18 @@ interface DeviceSpecs {
 // Supabase Row → Frontend Device (không có sheets)
 // Dùng cho list view — không cần load sheets
 // ============================================
-export function toFrontendDevice(dbDevice: DbDevice): Device {
+// ============================================
+// Supabase Row → Frontend Device (không có sheets)
+// Dùng cho list view — không cần load sheets
+// ============================================
+export function toFrontendDevice(dbDevice: DbDevice & { assignment?: any }): Device {
     const specs = (dbDevice.specs as DeviceSpecs) || {}
 
     return {
         id: dbDevice.id,
+        name: dbDevice.name,
         status: (dbDevice.status as DeviceStatus) || "active",
+        type: (dbDevice.type as DeviceType) || "PC",
         deviceInfo: {
             name: dbDevice.name,
             os: specs.os || "",
@@ -42,6 +48,7 @@ export function toFrontendDevice(dbDevice: DbDevice): Device {
             ip: specs.ip || "",
             mac: specs.mac || "",
             lastUpdate: dbDevice.updated_at,
+            type: (dbDevice.type as DeviceType) || "PC",
         },
         fileName: specs.fileName || "",
         sheets: {},
@@ -53,6 +60,7 @@ export function toFrontendDevice(dbDevice: DbDevice): Device {
             tags: specs.tags || [],
             visibleSheets: specs.visibleSheets,
         },
+        assignment: dbDevice.assignment,
     }
 }
 
@@ -99,7 +107,7 @@ export function toSupabaseDeviceUpdate(
 ) {
     const prevSpecs = currentSpecs || {}
     // Tách name ra khỏi specs (name là column riêng)
-    const { name, lastUpdate, ...specFields } = updates
+    const { name, type, lastUpdate, ...specFields } = updates
 
     const result: Record<string, any> = {
         specs: { ...prevSpecs, ...specFields },
@@ -109,6 +117,9 @@ export function toSupabaseDeviceUpdate(
     // Name là column riêng trong devices table
     if (name !== undefined) {
         result.name = name
+    }
+    if (type !== undefined) {
+        result.type = type
     }
 
     return result
@@ -124,7 +135,7 @@ export function toSupabaseDeviceInsert(
 ): { name: string; type: string; status: string; specs: Record<string, any> } {
     return {
         name: info.name || "Thiết bị mới",
-        type: "PC",
+        type: info.type || "PC",
         status: "active",
         specs: {
             os: info.os || "",

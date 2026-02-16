@@ -1,6 +1,7 @@
 "use server"
 
 import { createClient } from "@/utils/supabase/server"
+import type { ActivityLogAction } from "@/constants/activity-log"
 
 // ============================================
 // Lấy activity logs của user (hoặc theo device)
@@ -41,7 +42,7 @@ export async function getActivityLogs(options?: {
 // ============================================
 export async function createActivityLog(logData: {
     device_id?: string
-    action: string
+    action: ActivityLogAction
     details?: string
 }) {
     const supabase = await createClient()

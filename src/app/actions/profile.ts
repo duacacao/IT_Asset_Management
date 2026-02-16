@@ -48,10 +48,7 @@ export async function updateProfile(updates: {
 
     const { data, error } = await supabase
         .from("profiles")
-        .update({
-            ...updates,
-            updated_at: new Date().toISOString(),
-        })
+        .update(updates)
         .eq("id", user.id)
         .select()
         .single()
@@ -97,7 +94,6 @@ export async function updateProfileSettings(settings: Record<string, any>) {
         .from("profiles")
         .update({
             settings: newSettings,
-            updated_at: new Date().toISOString(),
         })
         .eq("id", user.id)
         .select()

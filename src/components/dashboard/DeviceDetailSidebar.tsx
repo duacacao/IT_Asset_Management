@@ -20,8 +20,8 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { Device, DeviceInfo, DeviceStatus, DEVICE_STATUS_CONFIG } from '@/types/device';
-import { STATUS_DOT_COLORS } from '@/constants/device';
+import { Device, DeviceInfo, DeviceStatus } from '@/types/device';
+import { DEVICE_STATUS_CONFIG, STATUS_DOT_COLORS } from '@/constants/device';
 import { InfoRow, EditField, DatabaseIcon as CustomDatabaseIcon } from './DeviceDetailHelpers';
 import type { DeviceStatusMutation } from './DeviceDetail.types';
 

@@ -23,7 +23,7 @@ import {
     toSupabaseDeviceInsert,
     toSupabaseDeviceUpdate,
 } from "@/lib/supabase-adapter"
-import type { DeviceInfo, DeviceStatus } from "@/types/device"
+import type { DeviceInfo, DeviceStatus, DeviceType } from "@/types/device"
 import { deviceKeys } from "../queries/deviceQueries"
 
 export function useCreateDeviceMutation() {
@@ -39,6 +39,7 @@ export function useCreateDeviceMutation() {
             ip: string
             mac: string
             status?: DeviceStatus
+            type?: DeviceType
         }) => {
             const insertData = toSupabaseDeviceInsert(info)
             if (info.status) insertData.status = info.status

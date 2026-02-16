@@ -3,6 +3,7 @@
 import { createClient } from "@/utils/supabase/server"
 import { revalidatePath } from "next/cache"
 import type { DeviceInsert, DeviceUpdate } from "@/types/supabase"
+import { ACTIVITY_LOG_ACTIONS } from "@/constants/activity-log"
 
 // ============================================
 // Lấy danh sách devices của user hiện tại
@@ -11,17 +12,59 @@ import type { DeviceInsert, DeviceUpdate } from "@/types/supabase"
 export async function getDevices() {
     const supabase = await createClient()
 
-    const { data, error } = await supabase
+    // 1. Lấy danh sách devices
+    const { data: devices, error: deviceError } = await supabase
         .from("devices")
         .select("*")
+        .is("deleted_at", null)
         .order("created_at", { ascending: false })
 
-    if (error) {
-        console.error("Lỗi lấy danh sách devices:", error.message)
-        return { data: null, error: error.message }
+    if (deviceError) {
+        console.error("Lỗi lấy danh sách devices:", deviceError.message)
+        return { data: null, error: deviceError.message }
     }
 
-    return { data, error: null }
+    // 2. Lấy danh sách assignments active (chưa trả)
+    // Để tối ưu, chỉ lấy các assignment của devices vừa fetch được
+    const deviceIds = devices.map(d => d.id)
+    const { data: assignments, error: assignmentError } = await supabase
+        .from("device_assignments")
+        .select(`
+            id,
+            device_id,
+            end_user_id,
+            assigned_at,
+            end_users (full_name, email)
+        `)
+        .in("device_id", deviceIds)
+        .is("returned_at", null)
+
+    if (assignmentError) {
+        console.error("Lỗi lấy assignments:", assignmentError.message)
+        // Không return error, vẫn trả về device list nhưng không có info assignment
+    }
+
+    // 3. Map assignment vào device
+    const devicesWithAssignment = devices.map(device => {
+        const assignment = assignments?.find(a => a.device_id === device.id)
+        // Handle end_users being array or object
+        const user = Array.isArray(assignment?.end_users)
+            ? assignment?.end_users[0]
+            : assignment?.end_users
+
+        return {
+            ...device,
+            assignment: assignment ? {
+                id: assignment.id,
+                end_user_id: assignment.end_user_id,
+                assignee_name: user?.full_name,
+                assignee_email: user?.email,
+                assigned_at: assignment.assigned_at
+            } : undefined
+        }
+    })
+
+    return { data: devicesWithAssignment, error: null }
 }
 
 // ============================================
@@ -45,6 +88,7 @@ export async function getDeviceWithSheets(deviceId: string) {
       )
     `)
         .eq("id", deviceId)
+        .is("deleted_at", null)
         .single()
 
     if (error) {
@@ -52,7 +96,37 @@ export async function getDeviceWithSheets(deviceId: string) {
         return { data: null, error: error.message }
     }
 
-    return { data, error: null }
+    // 2. Fetch active assignment
+    const { data: assignment } = await supabase
+        .from("device_assignments")
+        .select(`
+         id,
+         end_user_id,
+         assigned_at,
+         end_users (full_name, email)
+       `)
+        .eq("device_id", deviceId)
+        .is("returned_at", null)
+        .maybeSingle()
+
+    // Handle end_users being array or object
+    const user = Array.isArray(assignment?.end_users)
+        ? assignment?.end_users[0]
+        : assignment?.end_users
+
+    // Map assignment info
+    const deviceWithAssignment = {
+        ...data,
+        assignment: assignment ? {
+            id: assignment.id,
+            end_user_id: assignment.end_user_id,
+            assignee_name: user?.full_name,
+            assignee_email: user?.email,
+            assigned_at: assignment.assigned_at
+        } : undefined
+    }
+
+    return { data: deviceWithAssignment, error: null }
 }
 
 // ============================================
@@ -98,10 +172,7 @@ export async function updateDevice(
 
     const { data, error } = await supabase
         .from("devices")
-        .update({
-            ...updates,
-            updated_at: new Date().toISOString(),
-        })
+        .update(updates)
         .eq("id", deviceId)
         .select()
         .single()
@@ -125,7 +196,7 @@ export async function deleteDevice(deviceId: string) {
     // và ON DELETE CASCADE cho device_sheets
     const { error } = await supabase
         .from("devices")
-        .delete()
+        .update({ deleted_at: new Date().toISOString() })
         .eq("id", deviceId)
 
     if (error) {
@@ -192,7 +263,7 @@ export async function importDevice(
     await supabase.from("activity_logs").insert({
         device_id: device.id,
         user_id: user.id,
-        action: "import",
+        action: ACTIVITY_LOG_ACTIONS.IMPORT,
         details: `Import ${deviceData.name} với ${sheets.length} sheets`,
     })
 

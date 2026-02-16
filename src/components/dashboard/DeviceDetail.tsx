@@ -1,8 +1,10 @@
+import { useState, useCallback, useEffect } from 'react';
 import {
     Dialog,
     DialogContent,
     DialogTitle,
 } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -14,15 +16,10 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsContent, TabsList } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import { Input } from '@/components/ui/input';
 import {
     Select,
     SelectContent,
@@ -30,12 +27,6 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { Download, Trash2, Calendar, HardDrive, Cpu, Network, Laptop, SlidersHorizontal, Monitor, Pencil, Check, X, Plus, Copy, Eye, CheckCircle2 } from 'lucide-react';
-import { Device, DeviceInfo, DeviceStatus, DEVICE_STATUS_CONFIG, SHEET_NAMES } from '@/types/device';
-import { STATUS_DOT_COLORS } from '@/constants/device';
-import { SheetTable } from './SheetTable';
-import { Input } from '@/components/ui/input';
-import { useState, useCallback, useEffect } from 'react';
 import {
     useDeviceDetailQuery,
     useUpdateDeviceMutation,
@@ -50,6 +41,8 @@ import {
     useAddColumnMutation,
     useUpdateDeviceVisibleSheetsMutation,
 } from '@/hooks/useDevicesQuery';
+import { Device, DeviceInfo, DeviceStatus, SHEET_NAMES, DeviceType } from '@/types/device';
+import { DEVICE_STATUS_CONFIG, STATUS_DOT_COLORS, DEVICE_TYPES, DEVICE_TYPE_LABELS } from '@/constants/device';
 import { SheetTabsCarousel } from '@/components/carousel/SheetTabsCarousel';
 import { InfoRow, EditField, SortableTab, DatabaseIcon } from './DeviceDetailHelpers';
 import * as VisuallyHidden from '@radix-ui/react-visually-hidden';
@@ -61,6 +54,25 @@ import {
     arrayMove, SortableContext,
     horizontalListSortingStrategy,
 } from '@dnd-kit/sortable';
+import {
+    Download,
+    Trash2,
+    Calendar,
+    HardDrive,
+    Cpu,
+    Network,
+    Laptop,
+    SlidersHorizontal,
+    Monitor,
+    Pencil,
+    CheckCircle2,
+    X,
+    Plus,
+    Tag,
+    ArrowLeftRight
+} from 'lucide-react';
+import { SheetTable } from './SheetTable';
+import { DeviceAssignmentDialog } from './DeviceAssignmentDialog';
 
 interface DeviceDetailProps {
     device: Device | null;
@@ -98,6 +110,7 @@ export function DeviceDetail({
     const [isAddingSheet, setIsAddingSheet] = useState(false);
     const [newColumnName, setNewColumnName] = useState('');
     const [addingColumnSheet, setAddingColumnSheet] = useState<string | null>(null);
+    const [assignmentDialogOpen, setAssignmentDialogOpen] = useState(false);
 
     // Fetch full data with sheets if we have an ID
     const { data: detailData, isLoading: isDetailLoading } = useDeviceDetailQuery(device?.id ?? null);
@@ -331,92 +344,180 @@ export function DeviceDetail({
                             )}
                         </div>
 
-                        <Separator />
+                    </div>
 
-                        {/* Thông tin thiết bị — tự động editable khi ở Edit mode */}
-                        <div className="space-y-3">
-                            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Thông tin</p>
-                            {isEditMode ? (
-                                <div className="space-y-2.5">
-                                    <EditField icon={<Laptop className="h-3.5 w-3.5" />} label="OS" value={editForm.os ?? ''} onChange={(v) => setEditForm((f) => ({ ...f, os: v }))} />
-                                    <EditField icon={<Cpu className="h-3.5 w-3.5" />} label="CPU" value={editForm.cpu ?? ''} onChange={(v) => setEditForm((f) => ({ ...f, cpu: v }))} />
-                                    <EditField icon={<HardDrive className="h-3.5 w-3.5" />} label="RAM" value={editForm.ram ?? ''} onChange={(v) => setEditForm((f) => ({ ...f, ram: v }))} />
-                                    <EditField icon={<Monitor className="h-3.5 w-3.5" />} label="Arch" value={editForm.architecture ?? ''} onChange={(v) => setEditForm((f) => ({ ...f, architecture: v }))} />
-                                    <EditField icon={<Network className="h-3.5 w-3.5" />} label="MAC" value={editForm.mac ?? ''} onChange={(v) => setEditForm((f) => ({ ...f, mac: v }))} />
+                    <Separator />
+
+                    {/* ASSIGNMENT CARD */}
+                    <div className="bg-background rounded-lg border p-3 shadow-sm">
+                        <h3 className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">
+                            Thông tin sử dụng
+                        </h3>
+
+                        {fullDevice.assignment ? (
+                            <div className="space-y-3">
+                                <div className="flex items-start gap-2.5">
+                                    <div className="h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-[10px]">
+                                        {fullDevice.assignment.assignee_name?.charAt(0) || "U"}
+                                    </div>
+                                    <div className="flex-1 overflow-hidden">
+                                        <p className="text-sm font-medium truncate leading-none mb-0.5" title={fullDevice.assignment.assignee_name}>
+                                            {fullDevice.assignment.assignee_name}
+                                        </p>
+                                        <p className="text-[10px] text-muted-foreground truncate">
+                                            {(fullDevice.assignment as any).assignee_email || "No email"}
+                                        </p>
+                                    </div>
                                 </div>
-                            ) : (
-                                <>
 
-                                    <InfoRow icon={<Laptop className="h-3.5 w-3.5" />} label="OS" value={fullDevice.deviceInfo.os} />
-                                    <InfoRow icon={<Cpu className="h-3.5 w-3.5" />} label="CPU" value={fullDevice.deviceInfo.cpu} />
-                                    <InfoRow icon={<HardDrive className="h-3.5 w-3.5" />} label="RAM" value={fullDevice.deviceInfo.ram} />
-                                    <InfoRow icon={<Monitor className="h-3.5 w-3.5" />} label="Arch" value={fullDevice.deviceInfo.architecture} />
-                                    <InfoRow icon={<Network className="h-3.5 w-3.5" />} label="MAC" value={fullDevice.deviceInfo.mac || 'Không có'} />
-                                </>
-                            )}
-                        </div>
-
-                        <Separator />
-
-                        {/* Metadata */}
-                        <div className="space-y-2">
-                            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Chi tiết</p>
-                            <div className="space-y-1.5 text-sm">
-                                <div className="flex items-center gap-2 text-muted-foreground">
-                                    <Calendar className="h-3.5 w-3.5" />
-                                    <span className="text-xs">{fullDevice.deviceInfo.lastUpdate}</span>
+                                <div className="text-[10px] text-muted-foreground pl-9.5 -mt-1">
+                                    Gán: {new Date(fullDevice.assignment.assigned_at).toLocaleDateString("vi-VN")}
                                 </div>
-                                <div className="flex items-center gap-2 text-muted-foreground">
-                                    <DatabaseIcon className="h-3.5 w-3.5" />
-                                    <span className="text-xs">{fullDevice.metadata.fileSize}</span>
-                                </div>
-                                <div className="flex items-center gap-2 text-muted-foreground">
-                                    <SlidersHorizontal className="h-3.5 w-3.5" />
-                                    <span className="text-xs">{fullDevice.metadata.totalSheets} sheet • {fullDevice.metadata.totalRows} dòng</span>
-                                </div>
-                            </div>
-                        </div>
 
-                        <Separator />
-
-                        {/* Actions — Export, Duplicate, Delete */}
-                        <div className="space-y-2">
-                            <div className={`grid gap-2 ${isEditMode ? 'grid-cols-2' : 'grid-cols-1'}`}>
-                                <Button variant="outline" size="sm" className="w-full" onClick={() => onExport(fullDevice)}>
-                                    <Download className="mr-1.5 h-3.5 w-3.5" />
-                                    Xuất file
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="w-full text-xs h-7"
+                                    onClick={() => setAssignmentDialogOpen(true)}
+                                >
+                                    <ArrowLeftRight className="mr-1.5 h-3 w-3" />
+                                    Thu hồi / Đổi
                                 </Button>
-                                {/* Duplicate tạm ẩn — cần Server Action riêng */}
                             </div>
-                            <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                    <Button variant="outline" size="sm" className="w-full text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/30">
-                                        <Trash2 className="mr-1.5 h-3.5 w-3.5" />
-                                        Xóa
-                                    </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                        <AlertDialogTitle>Xác nhận xóa?</AlertDialogTitle>
-                                        <AlertDialogDescription>
-                                            Thiết bị sẽ bị xóa vĩnh viễn. Bạn có thể dùng Undo (Ctrl+Z) để khôi phục.
-                                        </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                        <AlertDialogCancel>Hủy</AlertDialogCancel>
-                                        <AlertDialogAction
-                                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                            onClick={() => {
-                                                onDelete(fullDevice.id);
-                                                onClose();
-                                            }}
+                        ) : (
+                            <div className="text-center py-1">
+                                <div className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-muted/50 mb-2">
+                                    <Monitor className="h-4 w-4 text-muted-foreground" />
+                                </div>
+                                <p className="text-xs text-muted-foreground mb-3">
+                                    Chưa được gán
+                                </p>
+                                <Button
+                                    variant="default"
+                                    size="sm"
+                                    className="w-full text-xs h-7"
+                                    disabled={fullDevice.status !== 'active'}
+                                    onClick={() => setAssignmentDialogOpen(true)}
+                                >
+                                    <Plus className="mr-1.5 h-3 w-3" />
+                                    Gán thiết bị
+                                </Button>
+                                {fullDevice.status !== 'active' && (
+                                    <p className="text-[9px] text-destructive mt-1.5">
+                                        *Chỉ thiết bị "Active" mới được gán
+                                    </p>
+                                )}
+                            </div>
+                        )}
+                    </div>
+
+                    <Separator />
+
+                    {/* Thông tin thiết bị — tự động editable khi ở Edit mode */}
+                    <div className="space-y-3">
+                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Thông tin</p>
+                        {isEditMode ? (
+                            <div className="space-y-2.5">
+                                <EditField icon={<Laptop className="h-3.5 w-3.5" />} label="OS" value={editForm.os ?? ''} onChange={(v) => setEditForm((f) => ({ ...f, os: v }))} />
+                                <EditField icon={<Cpu className="h-3.5 w-3.5" />} label="CPU" value={editForm.cpu ?? ''} onChange={(v) => setEditForm((f) => ({ ...f, cpu: v }))} />
+                                <EditField icon={<HardDrive className="h-3.5 w-3.5" />} label="RAM" value={editForm.ram ?? ''} onChange={(v) => setEditForm((f) => ({ ...f, ram: v }))} />
+                                <EditField icon={<Monitor className="h-3.5 w-3.5" />} label="Arch" value={editForm.architecture ?? ''} onChange={(v) => setEditForm((f) => ({ ...f, architecture: v }))} />
+                                <div className="flex items-center gap-2">
+                                    <span className="text-muted-foreground flex-shrink-0"><Tag className="h-3.5 w-3.5" /></span>
+                                    <div className="flex-1 min-w-0">
+                                        <Label className="text-[11px] text-muted-foreground">Loại</Label>
+                                        <Select
+                                            value={editForm.type ?? fullDevice.type}
+                                            onValueChange={(val) => setEditForm(f => ({ ...f, type: val as DeviceType }))}
                                         >
-                                            Xóa
-                                        </AlertDialogAction>
-                                    </AlertDialogFooter>
-                                </AlertDialogContent>
-                            </AlertDialog>
+                                            <SelectTrigger className="h-7 text-sm mt-0.5 w-full">
+                                                <SelectValue placeholder="Chọn loại" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {Object.values(DEVICE_TYPES).map((type) => (
+                                                    <SelectItem key={type} value={type}>
+                                                        {DEVICE_TYPE_LABELS[type]}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                </div>
+                                <EditField icon={<Network className="h-3.5 w-3.5" />} label="MAC" value={editForm.mac ?? ''} onChange={(v) => setEditForm((f) => ({ ...f, mac: v }))} />
+                            </div>
+                        ) : (
+                            <>
+
+                                <InfoRow icon={<Laptop className="h-3.5 w-3.5" />} label="OS" value={fullDevice.deviceInfo.os} />
+                                <InfoRow icon={<Cpu className="h-3.5 w-3.5" />} label="CPU" value={fullDevice.deviceInfo.cpu} />
+                                <InfoRow icon={<HardDrive className="h-3.5 w-3.5" />} label="RAM" value={fullDevice.deviceInfo.ram} />
+                                <InfoRow icon={<Monitor className="h-3.5 w-3.5" />} label="Arch" value={fullDevice.deviceInfo.architecture} />
+                                <InfoRow icon={<Tag className="h-3.5 w-3.5" />} label="Loại" value={DEVICE_TYPE_LABELS[fullDevice.type] ?? fullDevice.type} />
+                                <InfoRow icon={<Network className="h-3.5 w-3.5" />} label="MAC" value={fullDevice.deviceInfo.mac || 'Không có'} />
+                            </>
+                        )}
+                    </div>
+
+                    <Separator />
+
+                    {/* Metadata */}
+                    <div className="space-y-2">
+                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Chi tiết</p>
+                        <div className="space-y-1.5 text-sm">
+                            <div className="flex items-center gap-2 text-muted-foreground">
+                                <Calendar className="h-3.5 w-3.5" />
+                                <span className="text-xs">{fullDevice.deviceInfo.lastUpdate}</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-muted-foreground">
+                                <DatabaseIcon className="h-3.5 w-3.5" />
+                                <span className="text-xs">{fullDevice.metadata.fileSize}</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-muted-foreground">
+                                <SlidersHorizontal className="h-3.5 w-3.5" />
+                                <span className="text-xs">{fullDevice.metadata.totalSheets} sheet • {fullDevice.metadata.totalRows} dòng</span>
+                            </div>
                         </div>
+                    </div>
+
+                    <Separator />
+
+                    {/* Actions — Export, Duplicate, Delete */}
+                    <div className="space-y-2">
+                        <div className={`grid gap-2 ${isEditMode ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                            <Button variant="outline" size="sm" className="w-full" onClick={() => onExport(fullDevice)}>
+                                <Download className="mr-1.5 h-3.5 w-3.5" />
+                                Xuất file
+                            </Button>
+                            {/* Duplicate tạm ẩn — cần Server Action riêng */}
+                        </div>
+                        <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                                <Button variant="outline" size="sm" className="w-full text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/30">
+                                    <Trash2 className="mr-1.5 h-3.5 w-3.5" />
+                                    Xóa
+                                </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                                <AlertDialogHeader>
+                                    <AlertDialogTitle>Xác nhận xóa?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                        Thiết bị sẽ bị xóa vĩnh viễn. Bạn có thể dùng Undo (Ctrl+Z) để khôi phục.
+                                    </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                    <AlertDialogCancel>Hủy</AlertDialogCancel>
+                                    <AlertDialogAction
+                                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                        onClick={() => {
+                                            onDelete(fullDevice.id);
+                                            onClose();
+                                        }}
+                                    >
+                                        Xóa
+                                    </AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
                     </div>
                 </div>
 
@@ -702,7 +803,23 @@ export function DeviceDetail({
                     </Tabs>
                 </div>
             </DialogContent>
-        </Dialog>
+            {
+                fullDevice && (
+                    <DeviceAssignmentDialog
+                        isOpen={assignmentDialogOpen}
+                        onClose={() => setAssignmentDialogOpen(false)}
+                        onSuccess={() => {
+                            updateDeviceMutation.mutate({
+                                deviceId: fullDevice!.id,
+                                updates: {}
+                            });
+                        }}
+                        deviceId={fullDevice.id}
+                        deviceName={fullDevice.deviceInfo.name}
+                    />
+                )
+            }
+        </Dialog >
     );
 }
 

@@ -86,6 +86,44 @@ export type Database = {
                     },
                 ]
             }
+            device_assignments: {
+                Row: {
+                    id: string
+                    device_id: string
+                    end_user_id: string
+                    user_id: string
+                    assigned_at: string
+                    returned_at: string | null
+                    created_at: string
+                }
+                Insert: {
+                    id?: string
+                    device_id: string
+                    end_user_id: string
+                    user_id: string
+                    assigned_at?: string
+                    returned_at?: string | null
+                    created_at?: string
+                }
+                Update: {
+                    id?: string
+                    device_id?: string
+                    end_user_id?: string
+                    user_id?: string
+                    assigned_at?: string
+                    returned_at?: string | null
+                    created_at?: string
+                }
+                Relationships: [
+                    {
+                        foreignKeyName: "device_assignments_device_id_fkey"
+                        columns: ["device_id"]
+                        isOneToOne: false
+                        referencedRelation: "devices"
+                        referencedColumns: ["id"]
+                    },
+                ]
+            }
             devices: {
                 Row: {
                     code: string | null

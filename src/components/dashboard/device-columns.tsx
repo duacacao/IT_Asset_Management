@@ -7,7 +7,8 @@ import {
     DropdownMenuItem, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { SoftLabel } from '@/components/ui/soft-label';
-import { Device, DeviceStatus, DEVICE_STATUS_CONFIG } from '@/types/device';
+import { Device, DeviceStatus } from '@/types/device';
+import { DEVICE_STATUS_CONFIG } from '@/constants/device';
 import { timeAgo } from '@/lib/time';
 
 // Dot colors cho status dropdown items

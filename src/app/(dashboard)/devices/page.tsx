@@ -2,7 +2,7 @@
 
 import { ImportDevice } from '@/components/dashboard/ImportDevice';
 import { DeviceList } from '@/components/dashboard/DeviceList';
-import { DeviceDetail } from '@/components/dashboard/DeviceDetail';
+import { DeviceDetailModal } from '@/components/dashboard/detail/DeviceDetailModal';
 import { SheetSelectionDialog } from '@/components/dashboard/SheetSelectionDialog';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -40,7 +40,6 @@ export default function DevicesPage() {
     const { highlightId, setHighlightId, isImporting, setImporting } = useUIStore();
 
     const [isDetailOpen, setIsDetailOpen] = useState(false);
-    const [detailMode, setDetailMode] = useState<'view' | 'edit'>('view');
     const [selectedDevice, setSelectedDevice] = useState<Device | null>(null);
     const [isImportOpen, setIsImportOpen] = useState(false);
     const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -66,13 +65,11 @@ export default function DevicesPage() {
 
     const handleViewDevice = (device: Device) => {
         setSelectedDevice(device);
-        setDetailMode('view');
         setIsDetailOpen(true);
     };
 
     const handleUpdateDevice = (device: Device) => {
         setSelectedDevice(device);
-        setDetailMode('edit');
         setIsDetailOpen(true);
     };
 
@@ -236,10 +233,9 @@ export default function DevicesPage() {
                 onConfirm={handleSheetConfirm}
             />
 
-            <DeviceDetail
+            <DeviceDetailModal
                 device={selectedDevice}
                 isOpen={isDetailOpen}
-                mode={detailMode}
                 onClose={handleCloseDetail}
                 onExport={handleExportDevice}
                 onDelete={handleDeleteDevice}
@@ -256,3 +252,4 @@ export default function DevicesPage() {
         </div>
     );
 }
+

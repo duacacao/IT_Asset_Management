@@ -26,7 +26,8 @@ import {
     AlertDialogContent, AlertDialogDescription,
     AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Device, DeviceStatus, DEVICE_STATUS_CONFIG } from '@/types/device';
+import { Device, DeviceStatus } from '@/types/device';
+import { DEVICE_STATUS_CONFIG } from '@/constants/device';
 import { useUpdateStatusMutation } from '@/hooks/useDevicesQuery';
 import { FilterBar, DeviceFilters } from './FilterBar';
 import { createDeviceColumns, STATUS_DOT_COLORS } from './device-columns';

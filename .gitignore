@@ -65,3 +65,13 @@ build.log
 # Explicitly keep .agent folder (not vital but good for documentation)
 !/.agent/
 
+# SQL scripts (kept local)
+/sql/
+
+# Agent temp files
+/.agent/preview.log
+/.agent/preview.pid
+
+# Tool temp files
+/.opencode/
+

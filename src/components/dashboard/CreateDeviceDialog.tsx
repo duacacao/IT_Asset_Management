@@ -29,7 +29,8 @@ import {
     FormLabel,
     FormMessage,
 } from '@/components/ui/form';
-import { DeviceStatus, DEVICE_STATUS_CONFIG } from '@/types/device';
+import { DeviceStatus, DeviceType } from '@/types/device';
+import { DEVICE_STATUS_CONFIG, DEVICE_TYPES, DEVICE_TYPE_LABELS } from '@/constants/device';
 import { useCreateDeviceMutation } from '@/hooks/useDevicesQuery';
 import { Monitor, Cpu, HardDrive, Laptop, Network, Loader2 } from 'lucide-react';
 
@@ -45,6 +46,7 @@ const MAC_REGEX = /^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/;
 
 const formSchema = z.object({
     name: z.string().min(1, 'Tên thiết bị là bắt buộc'),
+    type: z.enum(Object.values(DEVICE_TYPES) as [string, ...string[]]),
     os: z.string().optional(),
     cpu: z.string().optional(),
     ram: z.string().optional(),
@@ -62,6 +64,7 @@ type FormValues = z.infer<typeof formSchema>;
 
 const INITIAL_VALUES: FormValues = {
     name: '',
+    type: 'PC',
     os: '',
     cpu: '',
     ram: '',
@@ -86,6 +89,7 @@ export function CreateDeviceDialog({ isOpen, onClose, onCreated }: CreateDeviceD
             // Gọi Server Action qua React Query mutation
             const result = await createMutation.mutateAsync({
                 name: values.name,
+                type: values.type as DeviceType,
                 os: values.os || '',
                 cpu: values.cpu || '',
                 ram: values.ram || '',
@@ -141,6 +145,32 @@ export function CreateDeviceDialog({ isOpen, onClose, onCreated }: CreateDeviceD
                                             {...field}
                                         />
                                     </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+
+                        {/* Loại thiết bị */}
+                        <FormField
+                            control={form.control}
+                            name="type"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Loại thiết bị</FormLabel>
+                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                        <FormControl>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Chọn loại thiết bị" />
+                                            </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            {Object.values(DEVICE_TYPES).map((type) => (
+                                                <SelectItem key={type} value={type}>
+                                                    {DEVICE_TYPE_LABELS[type]}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
                                     <FormMessage />
                                 </FormItem>
                             )}

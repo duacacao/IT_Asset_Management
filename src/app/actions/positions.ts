@@ -9,7 +9,7 @@ export async function getPositions(): Promise<{
     error: string | null
 }> {
     const supabase = await createClient()
-    
+
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
         return { data: null, error: "Not authenticated" }
@@ -19,6 +19,7 @@ export async function getPositions(): Promise<{
         .from("positions")
         .select("*")
         .eq("user_id", user.id)
+        .is("deleted_at", null)
         .order("name", { ascending: true })
 
     if (error) {
@@ -99,7 +100,7 @@ export async function deletePosition(id: string): Promise<{
 
     const { error } = await supabase
         .from("positions")
-        .delete()
+        .update({ deleted_at: new Date().toISOString() })
         .eq("id", id)
         .eq("user_id", user.id)
 

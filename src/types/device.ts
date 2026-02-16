@@ -3,11 +3,10 @@
 // Trạng thái thiết bị
 export type DeviceStatus = 'active' | 'broken' | 'inactive';
 
-export const DEVICE_STATUS_CONFIG = {
-  active: { label: 'Đang sử dụng', softColor: 'success' as const },
-  broken: { label: 'Hư hỏng', softColor: 'error' as const },
-  inactive: { label: 'Không sử dụng', softColor: 'warning' as const },
-} as const;
+// Loại thiết bị
+export type DeviceType = 'PC' | 'Laptop' | 'Monitor' | 'Printer' | 'Phone' | 'Tablet' | 'Network' | 'Other';
+
+// Status config moved to @/constants/device
 
 // Device data structure
 export interface DeviceInfo {
@@ -19,6 +18,7 @@ export interface DeviceInfo {
   ip: string;
   mac: string;
   lastUpdate: string;
+  type?: DeviceType;
 }
 
 export interface DeviceMetadata {
@@ -33,6 +33,13 @@ export interface DeviceMetadata {
 
 export interface Device {
   id: string;
+  name: string; // Adding name to top level if convenient, but refering to schema it is in deviceInfo? Wait.
+  // In Schema: id, name, status, type, ...
+  // In Interface Device: id, status, deviceInfo... 
+  // The 'name' is in deviceInfo currently in the frontend type. 
+  // But in DB it is a column 'name'.
+  // I should check if I should add 'type' to Device interface.
+  type: DeviceType;
   status: DeviceStatus;
   deviceInfo: DeviceInfo;
   fileName: string;
@@ -40,6 +47,13 @@ export interface Device {
     [sheetName: string]: any[];
   };
   metadata: DeviceMetadata;
+  assignment?: {
+    id: string;
+    end_user_id: string;
+    assignee_name?: string;
+    assignee_email?: string;
+    assigned_at: string;
+  };
 }
 
 // Sheet names mapping - Tieng Viet khong dau de nhat quan voi Python output

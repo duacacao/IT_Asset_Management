@@ -4,6 +4,10 @@ import { createClient } from "@/utils/supabase/server"
 import { revalidatePath } from "next/cache"
 import type { EndUser, EndUserInsert, EndUserUpdate, EndUserWithDevice } from "@/types/end-user"
 
+// ============================================
+// Lấy danh sách end-users + thông tin phòng ban, chức vụ, thiết bị đang assign
+// Join qua device_assignments để lấy thiết bị hiện tại (returned_at IS NULL)
+// ============================================
 export async function getEndUsers(): Promise<{
     data: EndUserWithDevice[] | null
     error: string | null
@@ -15,14 +19,11 @@ export async function getEndUsers(): Promise<{
         return { data: [], error: null }
     }
 
+    // Lấy end_users + join FK phòng ban/chức vụ
     const { data, error } = await supabase
         .from("end_users")
         .select(`
             *,
-            devices:device_id (
-                name,
-                type
-            ),
             departments:department_id (
                 name
             ),
@@ -31,6 +32,7 @@ export async function getEndUsers(): Promise<{
             )
         `)
         .eq("user_id", user.id)
+        .is("deleted_at", null)
         .order("created_at", { ascending: false })
 
     if (error) {
@@ -38,17 +40,48 @@ export async function getEndUsers(): Promise<{
         return { data: [], error: null }
     }
 
-    const formattedData: EndUserWithDevice[] = (data || []).map((item: any) => ({
-        ...item,
-        department: item.departments?.name || item.department || null,
-        position: item.positions?.name || item.position || null,
-        device_name: item.devices?.name || null,
-        device_type: item.devices?.type || null,
-    }))
+    // Lấy tất cả active assignments của user này để map device cho mỗi end-user
+    const { data: assignments } = await supabase
+        .from("device_assignments")
+        .select(`
+            end_user_id,
+            devices:device_id (
+                name,
+                type
+            )
+        `)
+        .eq("user_id", user.id)
+        .is("returned_at", null)
+
+    // Tạo map end_user_id → device info cho lookup nhanh
+    const assignmentMap = new Map<string, { name: string; type: string }>()
+    for (const a of (assignments || []) as any[]) {
+        if (a.end_user_id && a.devices) {
+            assignmentMap.set(a.end_user_id, {
+                name: a.devices.name,
+                type: a.devices.type,
+            })
+        }
+    }
+
+    // Format data với tên phòng ban/chức vụ + thiết bị
+    const formattedData: EndUserWithDevice[] = (data || []).map((item: any) => {
+        const device = assignmentMap.get(item.id)
+        return {
+            ...item,
+            department: item.departments?.name || null,
+            position: item.positions?.name || null,
+            device_name: device?.name || null,
+            device_type: device?.type || null,
+        }
+    })
 
     return { data: formattedData, error: null }
 }
 
+// ============================================
+// Lấy chi tiết 1 end-user
+// ============================================
 export async function getEndUser(id: string): Promise<{
     data: EndUser | null
     error: string | null
@@ -65,6 +98,7 @@ export async function getEndUser(id: string): Promise<{
         .select("*")
         .eq("id", id)
         .eq("user_id", user.id)
+        .is("deleted_at", null)
         .single()
 
     if (error) {
@@ -75,6 +109,10 @@ export async function getEndUser(id: string): Promise<{
     return { data, error: null }
 }
 
+// ============================================
+// Tạo end-user mới
+// department_id và position_id bắt buộc (NOT NULL trong DB)
+// ============================================
 export async function createEndUser(endUser: EndUserInsert): Promise<{
     data: EndUser | null
     error: string | null
@@ -86,16 +124,23 @@ export async function createEndUser(endUser: EndUserInsert): Promise<{
         return { data: null, error: "Người dùng chưa đăng nhập" }
     }
 
+    // Validate bắt buộc
+    if (!endUser.department_id) {
+        return { data: null, error: "Phòng ban là bắt buộc" }
+    }
+    if (!endUser.position_id) {
+        return { data: null, error: "Chức vụ là bắt buộc" }
+    }
+
     const { data, error } = await supabase
         .from("end_users")
         .insert({
             full_name: endUser.full_name,
             email: endUser.email,
             phone: endUser.phone,
-            department_id: endUser.department_id || null,
-            position_id: endUser.position_id || null,
+            department_id: endUser.department_id,
+            position_id: endUser.position_id,
             notes: endUser.notes,
-            device_id: endUser.device_id || null,
             user_id: user.id,
         })
         .select()
@@ -106,17 +151,14 @@ export async function createEndUser(endUser: EndUserInsert): Promise<{
         return { data: null, error: error.message }
     }
 
-    if (endUser.device_id) {
-        await supabase
-            .from("devices")
-            .update({ end_user_id: data.id })
-            .eq("id", endUser.device_id)
-    }
-
     revalidatePath("/end-user")
     return { data, error: null }
 }
 
+// ============================================
+// Cập nhật end-user
+// Không xử lý device assignment ở đây — dùng device-assignments.ts
+// ============================================
 export async function updateEndUser(id: string, updates: EndUserUpdate): Promise<{
     data: EndUser | null
     error: string | null
@@ -128,17 +170,6 @@ export async function updateEndUser(id: string, updates: EndUserUpdate): Promise
         return { data: null, error: "Người dùng chưa đăng nhập" }
     }
 
-    const { data: current, error: fetchError } = await supabase
-        .from("end_users")
-        .select("device_id, user_id")
-        .eq("id", id)
-        .eq("user_id", user.id)
-        .single()
-
-    if (fetchError) {
-        return { data: null, error: "Không tìm thấy end-user hoặc bạn không có quyền sửa" }
-    }
-
     const { data, error } = await supabase
         .from("end_users")
         .update({
@@ -148,8 +179,6 @@ export async function updateEndUser(id: string, updates: EndUserUpdate): Promise
             department_id: updates.department_id,
             position_id: updates.position_id,
             notes: updates.notes,
-            device_id: updates.device_id,
-            updated_at: new Date().toISOString(),
         })
         .eq("id", id)
         .eq("user_id", user.id)
@@ -161,26 +190,14 @@ export async function updateEndUser(id: string, updates: EndUserUpdate): Promise
         return { data: null, error: error.message }
     }
 
-    if (updates.device_id !== undefined) {
-        if (current.device_id && current.device_id !== updates.device_id) {
-            await supabase
-                .from("devices")
-                .update({ end_user_id: null })
-                .eq("id", current.device_id)
-        }
-
-        if (updates.device_id) {
-            await supabase
-                .from("devices")
-                .update({ end_user_id: id })
-                .eq("id", updates.device_id)
-        }
-    }
-
     revalidatePath("/end-user")
     return { data, error: null }
 }
 
+// ============================================
+// Xóa end-user
+// device_assignments sẽ tự CASCADE delete theo FK
+// ============================================
 export async function deleteEndUser(id: string): Promise<{
     success: boolean
     error: string | null
@@ -192,27 +209,9 @@ export async function deleteEndUser(id: string): Promise<{
         return { success: false, error: "Người dùng chưa đăng nhập" }
     }
 
-    const { data: current, error: fetchError } = await supabase
-        .from("end_users")
-        .select("device_id")
-        .eq("id", id)
-        .eq("user_id", user.id)
-        .single()
-
-    if (fetchError) {
-        return { success: false, error: "Không tìm thấy end-user hoặc bạn không có quyền xóa" }
-    }
-
-    if (current) {
-        await supabase
-            .from("devices")
-            .update({ end_user_id: null })
-            .eq("end_user_id", id)
-    }
-
     const { error } = await supabase
         .from("end_users")
-        .delete()
+        .update({ deleted_at: new Date().toISOString() })
         .eq("id", id)
         .eq("user_id", user.id)
 
@@ -225,6 +224,10 @@ export async function deleteEndUser(id: string): Promise<{
     return { success: true, error: null }
 }
 
+// ============================================
+// Lấy danh sách devices chưa được assign (dùng cho dropdown gán thiết bị)
+// Query device_assignments thay vì end_users.device_id
+// ============================================
 export async function getAvailableDevices(): Promise<{
     data: { id: string; name: string; type: string }[] | null
     error: string | null
@@ -236,35 +239,30 @@ export async function getAvailableDevices(): Promise<{
         return { data: [], error: null }
     }
 
-    // Lấy devices đã assign cho end_users của user này
-    const { data: endUserDevices } = await supabase
-        .from("end_users")
+    // Lấy device_ids đang được assign (returned_at IS NULL)
+    const { data: activeAssignments } = await supabase
+        .from("device_assignments")
         .select("device_id")
         .eq("user_id", user.id)
-        .not("device_id", "is", null)
+        .is("returned_at", null)
 
-    const assignedIds = (endUserDevices || [])
-        .map(eu => eu.device_id)
-        .filter(Boolean)
+    const assignedDeviceIds = (activeAssignments || []).map(a => a.device_id)
 
-    // Query devices - filter theo owner_id (devices dùng owner_id, không phải user_id)
+    // Lấy tất cả devices của user
     const { data, error } = await supabase
         .from("devices")
         .select("id, name, type")
         .eq("owner_id", user.id)
+        .is("deleted_at", null)
         .order("name")
 
-    // Graceful fallback - không return error, chỉ return empty array
     if (error) {
         console.error("Lỗi lấy devices:", error.message)
         return { data: [], error: null }
     }
 
-    // Lọc bỏ devices đã được assign cho end_users khác
-    let availableDevices = data || []
-    if (assignedIds.length > 0) {
-        availableDevices = availableDevices.filter(d => !assignedIds.includes(d.id))
-    }
+    // Lọc bỏ devices đã được assign
+    const availableDevices = (data || []).filter(d => !assignedDeviceIds.includes(d.id))
 
     return { data: availableDevices, error: null }
 }

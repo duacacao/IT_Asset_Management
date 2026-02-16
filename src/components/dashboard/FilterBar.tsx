@@ -12,7 +12,8 @@ import {
 } from "@/components/ui/select"
 import { SearchBar } from "./SearchBar"
 import { DateRangeFilter } from "./DateRangeFilter"
-import { DeviceStatus, DEVICE_STATUS_CONFIG } from "@/types/device"
+import { DeviceStatus } from '@/types/device';
+import { DEVICE_STATUS_CONFIG } from '@/constants/device';
 import { DateRange } from "react-day-picker"
 
 export interface DeviceFilters {
