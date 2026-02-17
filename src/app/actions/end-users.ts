@@ -63,33 +63,39 @@ export async function getEndUsers(): Promise<{
     .eq('user_id', user.id)
     .is('returned_at', null)
 
-  // Tạo map end_user_id → device info cho lookup nhanh
-  const assignmentMap = new Map<string, { name: string; type: string }>()
+  // Tạo map end_user_id → danh sách device info (1 user có thể có N device)
+  const assignmentsByUser = new Map<string, Array<{ id: string; name: string; type: string; assignment_id: string }>>()
   for (const a of (assignments || []) as any[]) {
     if (a.end_user_id && a.devices) {
-      assignmentMap.set(a.end_user_id, {
-        name: a.devices.name,
-        type: a.devices.type,
+      const device = Array.isArray(a.devices) ? a.devices[0] : a.devices
+      if (!device) continue
+      const list = assignmentsByUser.get(a.end_user_id) || []
+      list.push({
+        id: device.id,
+        name: device.name,
+        type: device.type,
+        assignment_id: a.id,
       })
+      assignmentsByUser.set(a.end_user_id, list)
     }
   }
 
-  // Format data với tên phòng ban/chức vụ + thiết bị
+  // Format data với tên phòng ban/chức vụ + danh sách thiết bị
   const formattedData: EndUserWithDevice[] = (data || []).map((item: any) => {
-    const assignment = (assignments || []).find((a: any) => a.end_user_id === item.id)
-
-    // Handle devices being array or object
-    const deviceData = assignment?.devices
-    const device = Array.isArray(deviceData) ? deviceData[0] : deviceData
+    const deviceList = assignmentsByUser.get(item.id) || []
+    const firstDevice = deviceList[0] || null
 
     return {
       ...item,
       department: item.departments?.name || null,
       position: item.positions?.name || null,
-      device_name: device?.name || null,
-      device_type: device?.type || null,
-      assignment_id: assignment?.id || null,
-      device_id: device?.id || null,
+      // Danh sách đầy đủ (1:N)
+      devices: deviceList,
+      // Backward compat — lấy từ device đầu tiên
+      device_name: firstDevice?.name || null,
+      device_type: firstDevice?.type || null,
+      assignment_id: firstDevice?.assignment_id || null,
+      device_id: firstDevice?.id || null,
     }
   })
 
@@ -172,12 +178,14 @@ export async function createEndUser(endUser: EndUserInsert): Promise<{
     return { data: null, error: error.message }
   }
 
-  // Nếu có device_id, gán thiết bị cho user vừa tạo
-  if (data && endUser.device_id) {
-    const assignResult = await assignDevice(endUser.device_id, data.id)
-    if (assignResult.error) {
-      console.error('Lỗi gán thiết bị:', assignResult.error)
-      // Không throw error, vẫn trả về user đã tạo
+  // Nếu có device_ids, gán tất cả thiết bị cho user vừa tạo (1:N)
+  if (data && endUser.device_ids && endUser.device_ids.length > 0) {
+    for (const deviceId of endUser.device_ids) {
+      const assignResult = await assignDevice(deviceId, data.id)
+      if (assignResult.error) {
+        console.error(`Lỗi gán thiết bị ${deviceId}:`, assignResult.error)
+        // Không throw error, vẫn tiếp tục gán các device khác
+      }
     }
   }
 
@@ -225,28 +233,28 @@ export async function updateEndUser(
     return { data: null, error: error.message }
   }
 
-  // Xử lý device assignment nếu device_id thay đổi
-  // Logic: device_id từ form = thiết bị user MUỐN gán
-  //        assignment_id = assignment đang active (nếu có)
-  if (data && updates.device_id !== undefined) {
-    const newDeviceId = updates.device_id
-    const assignmentId = updates.assignment_id
+  // Xử lý device assignment theo diff (1:N)
+  // So sánh device_ids mới vs existing_devices → biết thêm/bớt
+  if (data && updates.device_ids !== undefined) {
+    const newIds = updates.device_ids || []
+    const existingDevices = updates.existing_devices || []
+    const existingIds = existingDevices.map((d) => d.id)
 
-    // Nếu có assignment hiện tại → trả thiết bị cũ trước
-    if (assignmentId) {
-      const returnResult = await returnDevice(assignmentId)
+    // Devices cần thu hồi (có trong existing nhưng không có trong new)
+    const toReturn = existingDevices.filter((d) => !newIds.includes(d.id))
+    for (const device of toReturn) {
+      const returnResult = await returnDevice(device.assignment_id)
       if (returnResult.error) {
-        console.error('Lỗi trả thiết bị cũ:', returnResult.error)
-        return { data: null, error: `Không thể trả thiết bị cũ: ${returnResult.error}` }
+        console.error(`Lỗi thu hồi thiết bị ${device.name}:`, returnResult.error)
       }
     }
 
-    // Nếu có device_id mới → gán thiết bị mới
-    if (newDeviceId) {
-      const assignResult = await assignDevice(newDeviceId, id)
+    // Devices cần gán mới (có trong new nhưng không có trong existing)
+    const toAssign = newIds.filter((id) => !existingIds.includes(id))
+    for (const deviceId of toAssign) {
+      const assignResult = await assignDevice(deviceId, id)
       if (assignResult.error) {
-        console.error('Lỗi gán thiết bị mới:', assignResult.error)
-        return { data: null, error: `Không thể gán thiết bị mới: ${assignResult.error}` }
+        console.error(`Lỗi gán thiết bị ${deviceId}:`, assignResult.error)
       }
     }
   }
@@ -272,20 +280,21 @@ export async function deleteEndUser(id: string): Promise<{
     return { success: false, error: 'Người dùng chưa đăng nhập' }
   }
 
-  // B1: Trả thiết bị đang được gán (nếu có)
-  const { data: activeAssignment } = await supabase
+  // B1: Trả TẤT CẢ thiết bị đang được gán (1:N)
+  const { data: activeAssignments } = await supabase
     .from('device_assignments')
     .select('id')
     .eq('end_user_id', id)
     .eq('user_id', user.id)
     .is('returned_at', null)
-    .maybeSingle()
 
-  if (activeAssignment) {
-    const returnResult = await returnDevice(activeAssignment.id)
-    // Nếu lỗi trả thiết bị, ta vẫn tiếp tục xóa user nhưng log lại
-    if (!returnResult.success) {
-      console.error('Lỗi tự động trả thiết bị khi xóa user:', returnResult.error)
+  if (activeAssignments && activeAssignments.length > 0) {
+    for (const assignment of activeAssignments) {
+      const returnResult = await returnDevice(assignment.id)
+      // Nếu lỗi trả thiết bị, ta vẫn tiếp tục xóa user nhưng log lại
+      if (!returnResult.success) {
+        console.error(`Lỗi tự động trả thiết bị ${assignment.id} khi xóa user:`, returnResult.error)
+      }
     }
   }
 

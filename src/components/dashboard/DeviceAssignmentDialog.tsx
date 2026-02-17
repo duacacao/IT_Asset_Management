@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
-import { Check, ChevronsUpDown, Loader2 } from 'lucide-react'
+import { Check, ChevronsUpDown, Loader2, AlertTriangle } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useQueryClient } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -25,9 +26,9 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 
-import { assignDevice } from '@/app/actions/device-assignments'
+import { assignDevice, type AssignDeviceResult } from '@/app/actions/device-assignments'
 import { getEndUsers } from '@/app/actions/end-users'
-import { getAvailableDevices } from '@/app/actions/end-users' // Re-using this useful action
+import { getAvailableDevices } from '@/app/actions/end-users'
 import { EndUserWithDevice } from '@/types/end-user'
 
 interface DeviceAssignmentDialogProps {
@@ -49,11 +50,19 @@ export function DeviceAssignmentDialog({
   deviceName,
   userName,
 }: DeviceAssignmentDialogProps) {
+  const queryClient = useQueryClient()
+
   const [selectedDevice, setSelectedDevice] = useState<string>(deviceId || '')
   const [selectedUser, setSelectedUser] = useState<string>(userId || '')
   const [notes, setNotes] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isLoadingData, setIsLoadingData] = useState(false)
+
+  // State cho smart reassign confirm
+  const [reassignInfo, setReassignInfo] = useState<{
+    needsConfirm: boolean
+    currentEndUserName: string | null
+  }>({ needsConfirm: false, currentEndUserName: null })
 
   // Data for selection
   const [users, setUsers] = useState<EndUserWithDevice[]>([])
@@ -96,10 +105,20 @@ export function DeviceAssignmentDialog({
       if (deviceId) setSelectedDevice(deviceId)
       if (userId) setSelectedUser(userId)
       setNotes('')
+      // Reset reassign confirm state khi dialog mở lại
+      setReassignInfo({ needsConfirm: false, currentEndUserName: null })
     }
   }, [isOpen, deviceId, userId])
 
-  const handleAssign = async () => {
+  // Hàm invalidate tất cả query liên quan sau khi assign thành công
+  const invalidateRelatedQueries = () => {
+    queryClient.invalidateQueries({ queryKey: ['devices'] })
+    queryClient.invalidateQueries({ queryKey: ['end-users'] })
+    queryClient.invalidateQueries({ queryKey: ['available-devices'] })
+  }
+
+  // Xử lý assign — hỗ trợ smart reassign
+  const handleAssign = async (forceReassign: boolean = false) => {
     if (!selectedDevice || !selectedUser) {
       toast.error('Vui lòng chọn đầy đủ thông tin')
       return
@@ -107,13 +126,31 @@ export function DeviceAssignmentDialog({
 
     setIsSubmitting(true)
     try {
-      // Gọi server action với arguments (deviceId, endUserId)
-      const result = await assignDevice(selectedDevice, selectedUser)
+      const result: AssignDeviceResult = await assignDevice(
+        selectedDevice,
+        selectedUser,
+        forceReassign
+      )
+
+      // Trường hợp cần xác nhận chuyển thiết bị
+      if (result.needsReassign && !forceReassign) {
+        setReassignInfo({
+          needsConfirm: true,
+          currentEndUserName: result.currentEndUserName || 'Unknown',
+        })
+        setIsSubmitting(false)
+        return
+      }
 
       if (result.error) {
         toast.error(result.error)
       } else {
-        toast.success('Gán thiết bị thành công')
+        const msg = forceReassign
+          ? 'Đã chuyển thiết bị thành công'
+          : 'Gán thiết bị thành công'
+        toast.success(msg)
+        // Self-invalidate React Query cache → UI tự refresh
+        invalidateRelatedQueries()
         onSuccess()
         onClose()
       }
@@ -259,19 +296,51 @@ export function DeviceAssignmentDialog({
               placeholder="Tình trạng thiết bị khi bàn giao..."
             />
           </div>
+
+          {/* Cảnh báo khi thiết bị đang được bàn giao cho người khác */}
+          {reassignInfo.needsConfirm && (
+            <div className="rounded-md border border-yellow-500/30 bg-yellow-500/10 p-3">
+              <div className="flex items-start gap-2">
+                <AlertTriangle className="h-5 w-5 shrink-0 text-yellow-500 mt-0.5" />
+                <div className="text-sm">
+                  <p className="font-semibold text-yellow-700 dark:text-yellow-400">
+                    Thiết bị đang được bàn giao
+                  </p>
+                  <p className="text-muted-foreground mt-1">
+                    Thiết bị này hiện đang được gán cho{' '}
+                    <strong className="text-foreground">{reassignInfo.currentEndUserName}</strong>.
+                    Xác nhận sẽ <strong>tự động thu hồi</strong> từ người này và gán cho người mới.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>
             Hủy
           </Button>
-          <Button
-            onClick={handleAssign}
-            disabled={isSubmitting || isLoadingData || !selectedUser || !selectedDevice}
-          >
-            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Xác nhận
-          </Button>
+
+          {/* Nút thay đổi tuỳ theo trạng thái reassign */}
+          {reassignInfo.needsConfirm ? (
+            <Button
+              variant="destructive"
+              onClick={() => handleAssign(true)}
+              disabled={isSubmitting}
+            >
+              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Chuyển thiết bị
+            </Button>
+          ) : (
+            <Button
+              onClick={() => handleAssign(false)}
+              disabled={isSubmitting || isLoadingData || !selectedUser || !selectedDevice}
+            >
+              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Xác nhận
+            </Button>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>

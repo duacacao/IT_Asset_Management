@@ -11,15 +11,27 @@ export interface EndUser {
   updated_at: string
 }
 
+// Thông tin 1 thiết bị đang assign cho end-user
+export interface AssignedDeviceInfo {
+  id: string
+  name: string
+  type: string
+  assignment_id: string
+}
+
 // Mở rộng EndUser với tên phòng ban/chức vụ (resolve từ FK)
 // và thông tin thiết bị đang assign (resolve từ device_assignments)
+// 1 user có thể có nhiều device → field `devices` là mảng
 export interface EndUserWithDevice extends EndUser {
   department: string | null
   position: string | null
+  // Danh sách tất cả thiết bị đang assign (1:N)
+  devices: AssignedDeviceInfo[]
+  // Backward compat — lấy từ device đầu tiên (hoặc null)
   device_name: string | null
   device_type: string | null
-  assignment_id: string | null // ID của assignment hiện tại
-  device_id: string | null // ID của device đang được gán
+  assignment_id: string | null
+  device_id: string | null
 }
 
 export interface EndUserInsert {
@@ -30,7 +42,7 @@ export interface EndUserInsert {
   department_id: string // Bắt buộc — NOT NULL trong DB
   position_id: string // Bắt buộc — NOT NULL trong DB
   notes?: string
-  device_id?: string | null // Thiết bị muốn gán (optional)
+  device_ids?: string[] // Danh sách thiết bị muốn gán (1:N)
 }
 
 export interface EndUserUpdate {
@@ -40,6 +52,6 @@ export interface EndUserUpdate {
   department_id?: string
   position_id?: string
   notes?: string
-  device_id?: string | null // Thiết bị muốn gán (null = bỏ gán)
-  assignment_id?: string | null // Assignment hiện tại để return nếu đổi device
+  device_ids?: string[] // Danh sách thiết bị muốn gán (1:N)
+  existing_devices?: AssignedDeviceInfo[] // Devices hiện tại để diff thêm/bớt
 }

@@ -4,11 +4,14 @@ import { Badge } from '@/components/ui/badge'
 import { Laptop, Cpu, HardDrive, Monitor, Network, Tag, Calendar, Database } from 'lucide-react'
 import { format } from 'date-fns'
 import { Button } from '@/components/ui/button'
-import { Download, Trash2, ArrowLeftRight, Plus } from 'lucide-react'
+import { Download, Trash2, ArrowLeftRight, Plus, Undo2, Loader2 } from 'lucide-react'
 import { Separator } from '@/components/ui/separator'
 import { DEVICE_STATUS_CONFIG, STATUS_DOT_COLORS, DEVICE_TYPE_LABELS } from '@/constants/device'
 import { useState } from 'react'
+import { toast } from 'sonner'
+import { useQueryClient } from '@tanstack/react-query'
 import { DeviceAssignmentDialog } from '../DeviceAssignmentDialog'
+import { returnDevice } from '@/app/actions/device-assignments'
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog'
 import {
   AlertDialog,
@@ -30,7 +33,32 @@ interface DeviceOverviewTabProps {
 }
 
 export function DeviceOverviewTab({ device, onExport, onDelete, onClose }: DeviceOverviewTabProps) {
+  const queryClient = useQueryClient()
   const [assignmentDialogOpen, setAssignmentDialogOpen] = useState(false)
+  const [returnDialogOpen, setReturnDialogOpen] = useState(false)
+  const [isReturning, setIsReturning] = useState(false)
+
+  // Thu hồi thiết bị — gọi server action + invalidate cache
+  const handleReturn = async () => {
+    if (!device.assignment?.id) return
+    setIsReturning(true)
+    try {
+      const result = await returnDevice(device.assignment.id)
+      if (result.success) {
+        toast.success('Đã thu hồi thiết bị thành công')
+        queryClient.invalidateQueries({ queryKey: ['devices'] })
+        queryClient.invalidateQueries({ queryKey: ['end-users'] })
+        queryClient.invalidateQueries({ queryKey: ['available-devices'] })
+        setReturnDialogOpen(false)
+      } else {
+        toast.error(result.error || 'Lỗi thu hồi thiết bị')
+      }
+    } catch {
+      toast.error('Đã có lỗi xảy ra')
+    } finally {
+      setIsReturning(false)
+    }
+  }
 
   // Status config
   const statusConfig = DEVICE_STATUS_CONFIG[device.status ?? 'active']
@@ -172,31 +200,71 @@ export function DeviceOverviewTab({ device, onExport, onDelete, onClose }: Devic
               </div>
             )}
 
-            <div className="flex gap-2">
-              <Button
-                variant={device.assignment ? 'outline' : 'default'}
-                className="w-full"
-                onClick={() => setAssignmentDialogOpen(true)}
-                disabled={device.status !== 'active' && !device.assignment}
-              >
-                {device.assignment ? (
-                  <>
-                    <ArrowLeftRight className="mr-2 h-4 w-4" />
-                    Điều chuyển / Thu hồi
-                  </>
-                ) : (
-                  <>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Gán thiết bị
-                  </>
-                )}
-              </Button>
-            </div>
+            {device.assignment ? (
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => setAssignmentDialogOpen(true)}
+                >
+                  <ArrowLeftRight className="mr-2 h-4 w-4" />
+                  Điều chuyển
+                </Button>
+                <Button
+                  variant="destructive"
+                  className="flex-1"
+                  onClick={() => setReturnDialogOpen(true)}
+                >
+                  <Undo2 className="mr-2 h-4 w-4" />
+                  Thu hồi
+                </Button>
+              </div>
+            ) : (
+              <div className="flex gap-2">
+                <Button
+                  variant="default"
+                  className="w-full"
+                  onClick={() => setAssignmentDialogOpen(true)}
+                  disabled={device.status !== 'active'}
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Gán thiết bị
+                </Button>
+              </div>
+            )}
             {device.status !== 'active' && !device.assignment && (
               <p className="text-destructive text-center text-[10px]">
                 *Chỉ thiết bị "Active" mới có thể gán
               </p>
             )}
+
+            {/* AlertDialog xác nhận thu hồi */}
+            <AlertDialog open={returnDialogOpen} onOpenChange={setReturnDialogOpen}>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Xác nhận thu hồi thiết bị</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Thiết bị <strong>"{device.deviceInfo.name}"</strong> đang được sử dụng bởi{' '}
+                    <strong>{device.assignment?.assignee_name}</strong>.
+                    Thu hồi sẽ gỡ gán thiết bị khỏi người này.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel disabled={isReturning}>Hủy</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={(e) => {
+                      e.preventDefault()
+                      handleReturn()
+                    }}
+                    disabled={isReturning}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    {isReturning && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Xác nhận thu hồi
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </CardContent>
         </Card>
       </div>
@@ -205,7 +273,10 @@ export function DeviceOverviewTab({ device, onExport, onDelete, onClose }: Devic
       <DeviceAssignmentDialog
         isOpen={assignmentDialogOpen}
         onClose={() => setAssignmentDialogOpen(false)}
-        onSuccess={() => {}}
+        onSuccess={() => {
+          // Cache invalidation đã được handle bên trong DeviceAssignmentDialog
+          // Không cần thêm logic ở đây
+        }}
         deviceId={device.id}
         deviceName={device.deviceInfo.name}
       />

@@ -1,62 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
-import {
-  Plus,
-  Pencil,
-  Trash2,
-  Loader2,
-  User,
-  Eye,
-  Laptop,
-  Building,
-  Briefcase,
-  FileText,
-  MoreHorizontal,
-} from 'lucide-react'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { z } from 'zod'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useForm } from 'react-hook-form'
-import { useRouter } from 'next/navigation'
+import { Loader2 } from 'lucide-react'
 
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form'
-import { Badge } from '@/components/ui/badge'
-import { Checkbox } from '@/components/ui/checkbox'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -66,948 +13,237 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { SmartCombobox } from '@/components/ui/smart-combobox'
-import { EndUserWithDevice, EndUserInsert, EndUserUpdate } from '@/types/end-user'
-import {
-  useEndUsersQuery,
-  useDepartmentsQuery,
-  usePositionsQuery,
-  useAvailableDevicesQuery,
-  useCreateEndUserMutation,
-  useUpdateEndUserMutation,
-  useDeleteEndUserMutation,
-  useCreateDepartmentMutation,
-  useUpdateDepartmentMutation,
-  useDeleteDepartmentMutation,
-  useCreatePositionMutation,
-  useUpdatePositionMutation,
-  useDeletePositionMutation,
-} from '@/hooks/useEndUsersQuery'
+import { EndUserTable } from '@/components/dashboard/end-user/EndUserTable'
+import { EndUserToolbar } from '@/components/dashboard/end-user/EndUserToolbar'
+import { EndUserDialog } from '@/components/dashboard/end-user/EndUserDialog'
+import { EndUserDetailDialog } from '@/components/dashboard/end-user/EndUserDetailDialog'
 
-const endUserFormSchema = z.object({
-  full_name: z.string().min(1, 'Họ tên không được để trống').max(100),
-  email: z.string().email('Email không hợp lệ').optional().or(z.literal('')),
-  phone: z.string().optional(),
-  department_id: z.string().min(1, 'Phòng ban là bắt buộc'),
-  position_id: z.string().min(1, 'Chức vụ là bắt buộc'),
-  device_id: z.string().optional().nullable(),
-  notes: z.string().optional(),
-})
-
-type EndUserFormValues = z.infer<typeof endUserFormSchema>
-
-function getDepartmentColor(department: string): string {
-  const colors: Record<string, string> = {
-    IT: 'bg-purple-100 text-purple-700 border-purple-200',
-    'Kế toán': 'bg-green-100 text-green-700 border-green-200',
-    'Nhân sự': 'bg-pink-100 text-pink-700 border-pink-200',
-    'Kinh doanh': 'bg-orange-100 text-orange-700 border-orange-200',
-    Marketing: 'bg-blue-100 text-blue-700 border-blue-200',
-    'Kỹ thuật': 'bg-cyan-100 text-cyan-700 border-cyan-200',
-    'Hành chính': 'bg-gray-100 text-gray-700 border-gray-200',
-    'Tài chính': 'bg-emerald-100 text-emerald-700 border-emerald-200',
-    'Pháp lý': 'bg-indigo-100 text-indigo-700 border-indigo-200',
-    'Vận hành': 'bg-amber-100 text-amber-700 border-amber-200',
-  }
-  return colors[department] || 'bg-slate-100 text-slate-700 border-slate-200'
-}
-
-function getPositionColor(position: string): string {
-  const colors: Record<string, string> = {
-    'Giám đốc': 'bg-red-100 text-red-700 border-red-200',
-    'Trưởng phòng': 'bg-orange-100 text-orange-700 border-orange-200',
-    'Phó phòng': 'bg-amber-100 text-amber-700 border-amber-200',
-    'Trưởng nhóm': 'bg-violet-100 text-violet-700 border-violet-200',
-    'Nhân viên': 'bg-blue-100 text-blue-700 border-blue-200',
-    'Thực tập': 'bg-green-100 text-green-700 border-green-200',
-    'Kế toán trưởng': 'bg-emerald-100 text-emerald-700 border-emerald-200',
-    'Kỹ sư': 'bg-cyan-100 text-cyan-700 border-cyan-200',
-  }
-  return colors[position] || 'bg-slate-100 text-slate-700 border-slate-200'
-}
+import { useEndUsersQuery, useDepartmentsQuery, usePositionsQuery } from '@/hooks/useEndUsersQuery'
+import { useDeleteEndUserMutation } from '@/hooks/mutations/endUserMutations'
+import { useDevicesQuery } from '@/hooks/useDevicesQuery'
+import { EndUserWithDevice } from '@/types/end-user'
 
 export default function EndUsersPage() {
-  const router = useRouter()
-
-  // React Query Hooks
+  // Queries
+  // Queries
   const { data: endUsers = [], isLoading: isLoadingUsers } = useEndUsersQuery()
-  const { data: departments = [] } = useDepartmentsQuery()
-  const { data: positions = [] } = usePositionsQuery()
-  const { data: availableDevices = [] } = useAvailableDevicesQuery()
+  const { data: deptOptions = [], isLoading: isLoadingDepartments } = useDepartmentsQuery()
+  const { data: posOptions = [], isLoading: isLoadingPositions } = usePositionsQuery()
 
-  // Mutations
-  const createMutation = useCreateEndUserMutation()
-  const updateMutation = useUpdateEndUserMutation()
+  const isLoading = isLoadingUsers || isLoadingDepartments || isLoadingPositions
+
+  const { data: availableDevices, isLoading: isLoadingDevices } = useDevicesQuery()
   const deleteMutation = useDeleteEndUserMutation()
-  const createDeptMutation = useCreateDepartmentMutation()
-  const updateDeptMutation = useUpdateDepartmentMutation()
-  const deleteDeptMutation = useDeleteDepartmentMutation()
-  const createPosMutation = useCreatePositionMutation()
-  const updatePosMutation = useUpdatePositionMutation()
-  const deletePosMutation = useDeletePositionMutation()
 
-  // Local UI State
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [isSaving, setIsSaving] = useState(false)
-  const [editingId, setEditingId] = useState<string | null>(null)
-  const [deletingId, setDeletingId] = useState<string | null>(null)
-  const [viewingId, setViewingId] = useState<string | null>(null)
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  // State
   const [filters, setFilters] = useState({
     search: '',
-    department: '',
-    position: '',
+    department: 'ALL',
+    position: 'ALL',
   })
-
-  const form = useForm<EndUserFormValues>({
-    resolver: zodResolver(endUserFormSchema),
-    defaultValues: {
-      full_name: '',
-      email: '',
-      phone: '',
-      department_id: '',
-      position_id: '',
-      device_id: null,
-      notes: '',
-    },
-  })
-
-  // State cho thông tin user đang edit (để xử lý device assignment)
+  const [selectedIds, setSelectedIds] = useState<string[]>([])
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingUser, setEditingUser] = useState<EndUserWithDevice | null>(null)
-  const [showDeviceConfirm, setShowDeviceConfirm] = useState(false)
-  const [pendingFormData, setPendingFormData] = useState<EndUserFormValues | null>(null)
+  const [viewingUser, setViewingUser] = useState<EndUserWithDevice | null>(null)
 
-  const handleOpenDialog = (user?: EndUserWithDevice) => {
-    if (user) {
-      setEditingId(user.id)
-      setEditingUser(user)
-      form.reset({
-        full_name: user.full_name,
-        email: user.email || '',
-        phone: user.phone || '',
-        department_id: user.department_id || '',
-        position_id: user.position_id || '',
-        device_id: user.device_id || null,
-        notes: user.notes || '',
+  // Delete State
+  const [deleteId, setDeleteId] = useState<string | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
+
+  // Filter Logic
+  const filteredUsers = useMemo(() => {
+    return endUsers.filter((user) => {
+      const matchSearch =
+        filters.search === '' ||
+        user.full_name.toLowerCase().includes(filters.search.toLowerCase()) ||
+        user.email?.toLowerCase().includes(filters.search.toLowerCase()) ||
+        user.phone?.includes(filters.search)
+
+      const matchDept =
+        filters.department === 'ALL' || user.department_id === filters.department
+
+      const matchPos =
+        filters.position === 'ALL' || user.position_id === filters.position
+
+      return matchSearch && matchDept && matchPos
+    })
+  }, [endUsers, filters])
+
+  // Selectable Devices Logic (for Dialog)
+  const selectableDevices = useMemo(() => {
+    if (!availableDevices) return []
+    return availableDevices
+      .filter((d) => {
+        // Device is available if status is 'active' AND it has no assignment
+        const isAvailable = d.status === 'active' && !d.assignment
+        // If editing, allow devices currently assigned to this user
+        const isAssignedToCurrentUser = editingUser?.devices?.some(
+          (ud) => ud.id === d.id
+        )
+        return isAvailable || isAssignedToCurrentUser
       })
-    } else {
-      setEditingId(null)
-      setEditingUser(null)
-      form.reset({
-        full_name: '',
-        email: '',
-        phone: '',
-        department_id: '',
-        position_id: '',
-        device_id: null,
-        notes: '',
-      })
-    }
+      .map(d => ({
+        id: d.id,
+        name: d.name,
+        type: d.type
+      }))
+  }, [availableDevices, editingUser])
+
+  // Handlers
+  const handleOpenCreate = () => {
+    setEditingUser(null)
     setIsDialogOpen(true)
   }
 
-  const handleCloseDialog = () => {
-    setIsDialogOpen(false)
-    setEditingId(null)
-    setEditingUser(null)
-    setShowDeviceConfirm(false)
-    setPendingFormData(null)
-    form.reset()
+  const handleOpenEdit = (user: EndUserWithDevice) => {
+    setEditingUser(user)
+    setIsDialogOpen(true)
   }
 
-  async function onSubmit(data: EndUserFormValues) {
-    // Kiểm tra nếu đang edit và thay đổi thiết bị
-    if (editingId && editingUser && editingUser.device_id !== data.device_id) {
-      if (editingUser.device_id && data.device_id) {
-        // Đổi từ thiết bị A sang thiết bị B - cần xác nhận
-        setPendingFormData(data)
-        setShowDeviceConfirm(true)
-        return
-      }
-    }
-
-    await submitForm(data)
+  const handleView = (id: string) => {
+    const user = endUsers.find((u) => u.id === id) || null
+    setViewingUser(user)
   }
 
-  async function submitForm(data: EndUserFormValues) {
-    setIsSaving(true)
+  const handleDeleteClick = (id: string) => {
+    setDeleteId(id)
+  }
+
+  const handleConfirmDelete = async () => {
+    if (!deleteId) return
+    setIsDeleting(true)
     try {
-      if (editingId) {
-        const payload: EndUserUpdate = {
-          full_name: data.full_name,
-          email: data.email || undefined,
-          phone: data.phone || undefined,
-          department_id: data.department_id,
-          position_id: data.position_id,
-          notes: data.notes || undefined,
-          device_id: data.device_id,
-          assignment_id: editingUser?.assignment_id,
-        }
-        await updateMutation.mutateAsync({ id: editingId, data: payload })
+      if (deleteId === 'BULK') {
+        // Bulk delete logic
+        await Promise.all(selectedIds.map((id) => deleteMutation.mutateAsync(id)))
+        setSelectedIds([])
+        toast.success(`Đã xóa ${selectedIds.length} người dùng`)
       } else {
-        const payload: EndUserInsert = {
-          full_name: data.full_name,
-          email: data.email || undefined,
-          phone: data.phone || undefined,
-          department_id: data.department_id,
-          position_id: data.position_id,
-          notes: data.notes || undefined,
-          device_id: data.device_id,
-        }
-        await createMutation.mutateAsync(payload)
+        await deleteMutation.mutateAsync(deleteId)
+        toast.success('Đã xóa người dùng')
       }
-
-      handleCloseDialog()
     } catch (error) {
-      console.error('Lỗi save:', error)
-      toast.error('Không thể lưu')
+      toast.error('Có lỗi xảy ra khi xóa')
     } finally {
-      setIsSaving(false)
+      setIsDeleting(false)
+      setDeleteId(null)
     }
   }
 
-  async function handleConfirmDeviceChange() {
-    if (pendingFormData) {
-      setShowDeviceConfirm(false)
-      await submitForm(pendingFormData)
+  const handleSelectId = (id: string, checked: boolean) => {
+    if (checked) {
+      setSelectedIds((prev) => [...prev, id])
+    } else {
+      setSelectedIds((prev) => prev.filter((i) => i !== id))
     }
   }
 
-  const handleDelete = async () => {
-    if (!deletingId) return
-
-    try {
-      await deleteMutation.mutateAsync(deletingId)
-      setDeletingId(null)
-    } catch (error) {
-      console.error('Lỗi delete:', error)
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedIds(filteredUsers.map((u) => u.id))
+    } else {
+      setSelectedIds([])
     }
   }
 
-  const handleBulkDelete = async () => {
-    if (selectedIds.size === 0) return
-
-    try {
-      const deletePromises = Array.from(selectedIds).map((id) => deleteMutation.mutateAsync(id))
-      await Promise.all(deletePromises)
-      setSelectedIds(new Set())
-    } catch (error) {
-      console.error('Lỗi bulk delete:', error)
-    }
+  if (isLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    )
   }
-
-  const filteredUsers = endUsers.filter((user) => {
-    const matchSearch =
-      !filters.search ||
-      user.full_name.toLowerCase().includes(filters.search.toLowerCase()) ||
-      user.email?.toLowerCase().includes(filters.search.toLowerCase()) ||
-      user.phone?.includes(filters.search)
-    const matchDepartment = !filters.department || user.department_id === filters.department
-    const matchPosition = !filters.position || user.position_id === filters.position
-    return matchSearch && matchDepartment && matchPosition
-  })
 
   return (
-    <div className="space-y-6 px-4 lg:px-6">
-      <div className="flex items-center justify-between">
+    <div className="h-full flex-1 flex-col space-y-8 p-8 md:flex">
+      <div className="flex items-center justify-between space-y-2">
         <div>
-          <h1 className="text-3xl font-bold">End-Users</h1>
-          <p className="text-muted-foreground">Quản lý người dùng cuối sử dụng thiết bị.</p>
-        </div>
-        <div className="flex items-center gap-2">
-          {selectedIds.size > 0 && (
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="destructive" size="sm" className="cursor-pointer">
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Xóa đã chọn ({selectedIds.size})
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Xóa nhiều End-User?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Bạn có chắc muốn xóa {selectedIds.size} end-user? Hành động này không thể hoàn
-                    tác.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Hủy</AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={handleBulkDelete}
-                    className="bg-destructive text-destructive-foreground"
-                  >
-                    Xóa
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          )}
-          <Button onClick={() => handleOpenDialog()} className="cursor-pointer">
-            <Plus className="mr-2 h-4 w-4" />
-            Thêm End-User
-          </Button>
+          <h2 className="text-2xl font-bold tracking-tight">Quản lý End-User</h2>
         </div>
       </div>
 
-      <div className="bg-muted/30 flex items-center gap-4 rounded-lg p-4">
-        <Input
-          placeholder="Tìm kiếm theo tên, email, số điện thoại..."
-          value={filters.search}
-          onChange={(e) => setFilters((f) => ({ ...f, search: e.target.value }))}
-          className="max-w-[300px]"
+      <div className="space-y-4">
+        <EndUserToolbar
+          filters={filters}
+          setFilters={setFilters}
+          departments={deptOptions}
+          positions={posOptions}
+          onAdd={handleOpenCreate}
+          onBulkDelete={() => setDeleteId('BULK')}
+          selectedCount={selectedIds.length}
+          totalCount={endUsers.length}
+          filteredCount={filteredUsers.length}
         />
-        <div className="flex items-center gap-1">
-          <Select
-            value={filters.department || '__all__'}
-            onValueChange={(v) =>
-              setFilters((f) => ({ ...f, department: v === '__all__' ? '' : v }))
-            }
-          >
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Tất cả phòng ban" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="__all__">Tất cả phòng ban</SelectItem>
-              {departments.map((d) => (
-                <SelectItem key={d.value} value={d.value}>
-                  {d.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="flex items-center gap-1">
-          <Select
-            value={filters.position || '__all__'}
-            onValueChange={(v) => setFilters((f) => ({ ...f, position: v === '__all__' ? '' : v }))}
-          >
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Tất cả chức vụ" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="__all__">Tất cả chức vụ</SelectItem>
-              {positions.map((p) => (
-                <SelectItem key={p.value} value={p.value}>
-                  {p.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        {(filters.search || filters.department || filters.position) && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setFilters({ search: '', department: '', position: '' })}
-          >
-            Xóa lọc
-          </Button>
-        )}
-        <span className="text-muted-foreground ml-auto text-sm">
-          {filteredUsers.length} / {endUsers.length} kết quả
-        </span>
+
+        <EndUserTable
+          data={filteredUsers}
+          selectedIds={selectedIds}
+          onSelectId={handleSelectId}
+          onSelectAll={handleSelectAll}
+          onEdit={handleOpenEdit}
+          onDelete={handleDeleteClick}
+          onView={(id) => handleView(id)}
+        />
       </div>
 
-      {isLoadingUsers ? (
-        <div className="flex items-center justify-center py-10">
-          <Loader2 className="text-muted-foreground h-8 w-8 animate-spin" />
-        </div>
-      ) : endUsers.length === 0 ? (
-        <div className="text-muted-foreground flex flex-col items-center justify-center py-10">
-          <User className="mb-4 h-12 w-12" />
-          <p>Chưa có end-user nào</p>
-          <Button variant="link" onClick={() => handleOpenDialog()}>
-            Thêm end-user đầu tiên
-          </Button>
-        </div>
-      ) : (
-        <div className="rounded-lg border">
-          <Table containerClassName="max-h-[600px] overflow-auto">
-            <TableHeader className="bg-background sticky top-0 z-10">
-              <TableRow>
-                <TableHead className="w-[50px]">
-                  <Checkbox
-                    checked={selectedIds.size > 0 && selectedIds.size === endUsers.length}
-                    onCheckedChange={(checked) => {
-                      if (checked) {
-                        setSelectedIds(new Set(endUsers.map((u) => u.id)))
-                      } else {
-                        setSelectedIds(new Set())
-                      }
-                    }}
-                  />
-                </TableHead>
-                <TableHead className="w-[180px]">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="data-[state=open]:bg-accent -ml-3 h-8"
-                      >
-                        Họ tên
-                        {filters.search && (
-                          <Badge variant="secondary" className="ml-1 h-4 w-4 p-0 text-[10px]">
-                            ●
-                          </Badge>
-                        )}
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start" className="w-[200px]">
-                      <div className="p-2">
-                        <Input
-                          placeholder="Tìm kiếm..."
-                          value={filters.search}
-                          onChange={(e) => setFilters((f) => ({ ...f, search: e.target.value }))}
-                          className="h-8"
-                        />
-                      </div>
-                      {filters.search && (
-                        <DropdownMenuItem onClick={() => setFilters((f) => ({ ...f, search: '' }))}>
-                          Xóa filter
-                        </DropdownMenuItem>
-                      )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableHead>
-                <TableHead className="w-[200px]">Email</TableHead>
-                <TableHead className="w-[120px]">Điện thoại</TableHead>
-                <TableHead className="w-[180px]">Thiết bị</TableHead>
-                <TableHead className="w-[110px]">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="data-[state=open]:bg-accent -ml-3 h-8"
-                      >
-                        Phòng ban
-                        {filters.department && (
-                          <Badge variant="secondary" className="ml-1 h-4 w-4 p-0 text-[10px]">
-                            ●
-                          </Badge>
-                        )}
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start" className="w-[200px]">
-                      <DropdownMenuItem
-                        onClick={() => setFilters((f) => ({ ...f, department: '' }))}
-                      >
-                        Tất cả
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      {departments.map((dept) => (
-                        <DropdownMenuItem
-                          key={dept.value}
-                          onClick={() => setFilters((f) => ({ ...f, department: dept.value }))}
-                        >
-                          {dept.label}
-                        </DropdownMenuItem>
-                      ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableHead>
-                <TableHead className="w-[100px]">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="data-[state=open]:bg-accent -ml-3 h-8"
-                      >
-                        Chức vụ
-                        {filters.position && (
-                          <Badge variant="secondary" className="ml-1 h-4 w-4 p-0 text-[10px]">
-                            ●
-                          </Badge>
-                        )}
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start" className="w-[200px]">
-                      <DropdownMenuItem onClick={() => setFilters((f) => ({ ...f, position: '' }))}>
-                        Tất cả
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      {positions.map((pos) => (
-                        <DropdownMenuItem
-                          key={pos.value}
-                          onClick={() => setFilters((f) => ({ ...f, position: pos.value }))}
-                        >
-                          {pos.label}
-                        </DropdownMenuItem>
-                      ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableHead>
-                <TableHead className="w-[80px]">Thao tác</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredUsers.map((user) => (
-                <TableRow key={user.id}>
-                  <TableCell>
-                    <Checkbox
-                      checked={selectedIds.has(user.id)}
-                      onCheckedChange={(checked) => {
-                        const newSet = new Set(selectedIds)
-                        if (checked) {
-                          newSet.add(user.id)
-                        } else {
-                          newSet.delete(user.id)
-                        }
-                        setSelectedIds(newSet)
-                      }}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <User className="text-muted-foreground h-4 w-4" />
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <span className="truncate font-medium">{user.full_name}</span>
-                        </TooltipTrigger>
-                        <TooltipContent>{user.full_name}</TooltipContent>
-                      </Tooltip>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    {user.email ? (
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <span className="truncate">{user.email}</span>
-                        </TooltipTrigger>
-                        <TooltipContent>{user.email}</TooltipContent>
-                      </Tooltip>
-                    ) : (
-                      <span className="text-muted-foreground">-</span>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {user.phone ? (
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <span className="truncate">{user.phone}</span>
-                        </TooltipTrigger>
-                        <TooltipContent>{user.phone}</TooltipContent>
-                      </Tooltip>
-                    ) : (
-                      <span className="text-muted-foreground">-</span>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {user.device_name ? (
-                      <Badge variant="outline" className="gap-1">
-                        <Laptop className="h-3 w-3 shrink-0" />
-                        {user.device_name}
-                        {user.device_type && (
-                          <span className="text-muted-foreground">({user.device_type})</span>
-                        )}
-                      </Badge>
-                    ) : (
-                      <span className="text-muted-foreground text-sm">Chưa assign</span>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {user.department ? (
-                      <Badge className={getDepartmentColor(user.department)}>
-                        {user.department}
-                      </Badge>
-                    ) : (
-                      <span className="text-muted-foreground">-</span>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {user.position ? (
-                      <Badge variant="outline" className={getPositionColor(user.position)}>
-                        {user.position}
-                      </Badge>
-                    ) : (
-                      <span className="text-muted-foreground">-</span>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="cursor-pointer">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => setViewingId(user.id)}>
-                          <Eye className="mr-2 h-4 w-4" />
-                          Xem chi tiết
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleOpenDialog(user)}>
-                          <Pencil className="mr-2 h-4 w-4" />
-                          Sửa
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          className="text-destructive cursor-pointer"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            setDeletingId(user.id)
-                          }}
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Xóa
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      )}
+      {/* Dialogs */}
+      <EndUserDialog
+        open={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+        userToEdit={editingUser}
+        departments={deptOptions}
+        positions={posOptions}
+        selectableDevices={selectableDevices}
+        onSuccess={() => {
+          // Query invalidation handled in mutation hooks
+        }}
+      />
 
-      {/* Dialog Delete Single User */}
-      <AlertDialog open={!!deletingId} onOpenChange={(open) => !open && setDeletingId(null)}>
+      <EndUserDetailDialog
+        open={!!viewingUser}
+        onOpenChange={(open) => !open && setViewingUser(null)}
+        user={viewingUser}
+        onEdit={(user) => {
+          setViewingUser(null)
+          handleOpenEdit(user)
+        }}
+      />
+
+      {/* Delete Confirmation */}
+      <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Xóa End-User?</AlertDialogTitle>
+            <AlertDialogTitle>Bạn có chắc chắn muốn xóa?</AlertDialogTitle>
             <AlertDialogDescription>
-              Bạn có chắc muốn xóa "{endUsers.find((u) => u.id === deletingId)?.full_name}"? Hành
-              động này không thể hoàn tác.
+              {deleteId === 'BULK'
+                ? `Hành động này sẽ xóa ${selectedIds.length} người dùng đã chọn.`
+                : 'Hành động này sẽ xóa người dùng này khỏi hệ thống.'}
+              {' '}Việc này không thể hoàn tác.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Hủy</AlertDialogCancel>
+            <AlertDialogCancel disabled={isDeleting}>Hủy</AlertDialogCancel>
             <AlertDialogAction
-              onClick={handleDelete}
-              className="bg-destructive text-destructive-foreground"
-            >
-              Xóa
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {/* Dialog xác nhận đổi thiết bị */}
-      <AlertDialog open={showDeviceConfirm} onOpenChange={(open) => !open && setShowDeviceConfirm(false)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Xác nhận đổi thiết bị?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Bạn đang thay đổi thiết bị cho nhân viên này.
-              <br />
-              Thiết bị cũ sẽ được tự động trả lại kho.
-              <br />
-              Bạn có chắc muốn tiếp tục?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setPendingFormData(null)}>Hủy</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleConfirmDeviceChange}
-              className="bg-primary text-primary-foreground"
-            >
-              Xác nhận
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>{editingId ? 'Sửa End-User' : 'Thêm End-User'}</DialogTitle>
-            <DialogDescription>
-              {editingId ? 'Cập nhật thông tin người dùng.' : 'Thêm người dùng cuối mới.'}
-            </DialogDescription>
-          </DialogHeader>
-
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="full_name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Họ và tên *</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Nguyễn Văn A" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email</FormLabel>
-                      <FormControl>
-                        <Input type="email" placeholder="email@example.com" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="phone"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Điện thoại</FormLabel>
-                      <FormControl>
-                        <Input placeholder="0123-456-789" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="department_id"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel>Phòng ban</FormLabel>
-                      <SmartCombobox
-                        value={field.value}
-                        onValueChange={field.onChange}
-                        options={departments}
-                        placeholder="Chọn phòng ban..."
-                        searchPlaceholder="Tìm kiếm phòng ban..."
-                        emptyText="Không tìm thấy phòng ban nào."
-                        creatable
-                        createLabel="Thêm phòng ban mới"
-                        onCreate={async (value) => {
-                          const result = await createDeptMutation.mutateAsync(value)
-                          if (result?.id) {
-                            field.onChange(result.id)
-                          }
-                        }}
-                        editable
-                        onEdit={async (id, newValue) => {
-                          if (
-                            !newValue ||
-                            newValue === departments.find((d) => d.value === id)?.label
-                          )
-                            return
-                          await updateDeptMutation.mutateAsync({ id, name: newValue })
-                        }}
-                        deletable
-                        onDelete={async (id) => {
-                          await deleteDeptMutation.mutateAsync(id)
-                          if (field.value === id) field.onChange('')
-                        }}
-                      />
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="position_id"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel>Chức vụ</FormLabel>
-                      <SmartCombobox
-                        value={field.value}
-                        onValueChange={field.onChange}
-                        options={positions}
-                        placeholder="Chọn chức vụ..."
-                        searchPlaceholder="Tìm kiếm chức vụ..."
-                        emptyText="Không tìm thấy chức vụ nào."
-                        creatable
-                        createLabel="Thêm chức vụ mới"
-                        onCreate={async (value) => {
-                          const result = await createPosMutation.mutateAsync(value)
-                          if (result?.id) {
-                            field.onChange(result.id)
-                          }
-                        }}
-                        editable
-                        onEdit={async (id, newValue) => {
-                          if (
-                            !newValue ||
-                            newValue === positions.find((p) => p.value === id)?.label
-                          )
-                            return
-                          await updatePosMutation.mutateAsync({ id, name: newValue })
-                        }}
-                        deletable
-                        onDelete={async (id) => {
-                          await deletePosMutation.mutateAsync(id)
-                          if (field.value === id) field.onChange('')
-                        }}
-                      />
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <FormField
-                control={form.control}
-                name="device_id"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel>Thiết bị được gán</FormLabel>
-                    <Select
-                      value={field.value || '__none__'}
-                      onValueChange={(v) => field.onChange(v === '__none__' ? null : v)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Chọn thiết bị..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="__none__">Không gán thiết bị</SelectItem>
-                        {/* Hiển thị thiết bị hiện tại nếu đang edit */}
-                        {editingUser?.device_id && editingUser?.device_name && (
-                          <SelectItem value={editingUser.device_id}>
-                            {editingUser.device_name} {editingUser.device_type && `(${editingUser.device_type})`} - Đang gán
-                          </SelectItem>
-                        )}
-                        {/* Các thiết bị khả dụng — lọc bỏ device đang gán để tránh duplicate key */}
-                        {availableDevices
-                          .filter((device) => device.id !== editingUser?.device_id)
-                          .map((device) => (
-                            <SelectItem key={device.id} value={device.id}>
-                              {device.name} ({device.type})
-                            </SelectItem>
-                          ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="notes"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Ghi chú</FormLabel>
-                    <FormControl>
-                      <Textarea placeholder="Ghi chú thêm..." {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <DialogFooter>
-                <Button type="button" variant="outline" onClick={handleCloseDialog}>
-                  Hủy
-                </Button>
-                <Button type="submit" disabled={isSaving} className="cursor-pointer">
-                  {isSaving ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Đang lưu...
-                    </>
-                  ) : (
-                    'Lưu'
-                  )}
-                </Button>
-              </DialogFooter>
-            </form>
-          </Form>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={!!viewingId} onOpenChange={(open) => !open && setViewingId(null)}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>Chi tiết End-User</DialogTitle>
-          </DialogHeader>
-
-          {(() => {
-            const user = endUsers.find((u) => u.id === viewingId)
-            if (!user) return null
-
-            return (
-              <div className="grid gap-4 py-4">
-                <div className="grid gap-2">
-                  <label className="text-sm font-medium">Họ và tên</label>
-                  <Input value={user.full_name} disabled />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="grid gap-2">
-                    <label className="text-sm font-medium">Email</label>
-                    <Input value={user.email || '-'} disabled />
-                  </div>
-                  <div className="grid gap-2">
-                    <label className="text-sm font-medium">Điện thoại</label>
-                    <Input value={user.phone || '-'} disabled />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="grid gap-2">
-                    <label className="text-sm font-medium">Phòng ban</label>
-                    <Input value={user.department || '-'} disabled />
-                  </div>
-                  <div className="grid gap-2">
-                    <label className="text-sm font-medium">Chức vụ</label>
-                    <Input value={user.position || '-'} disabled />
-                  </div>
-                </div>
-
-                <div className="grid gap-2">
-                  <label className="text-sm font-medium">Thiết bị đang sử dụng</label>
-                  <Input
-                    value={
-                      user.device_name
-                        ? `${user.device_name} (${user.device_type || 'N/A'})`
-                        : 'Chưa gán thiết bị'
-                    }
-                    disabled
-                  />
-                </div>
-
-                <div className="grid gap-2">
-                  <label className="text-sm font-medium">Ghi chú</label>
-                  <Textarea value={user.notes || '-'} disabled className="min-h-[80px]" />
-                </div>
-              </div>
-            )
-          })()}
-
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setViewingId(null)}>
-              Đóng
-            </Button>
-            <Button
-              type="button"
-              onClick={() => {
-                const user = endUsers.find((u) => u.id === viewingId)
-                if (user) {
-                  setViewingId(null)
-                  handleOpenDialog(user)
-                }
+              onClick={(e) => {
+                e.preventDefault()
+                handleConfirmDelete()
               }}
-              className="cursor-pointer"
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              <Pencil className="mr-2 h-4 w-4" />
-              Sửa
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+              {isDeleting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Đang xóa...
+                </>
+              ) : (
+                'Xóa'
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

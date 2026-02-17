@@ -1,6 +1,8 @@
 import { useState, useCallback, useEffect } from 'react'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
+import { toast } from 'sonner'
+import { useQueryClient } from '@tanstack/react-query'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -72,9 +74,12 @@ import {
   Plus,
   Tag,
   ArrowLeftRight,
+  Undo2,
+  Loader2,
 } from 'lucide-react'
 import { SheetTable } from './SheetTable'
 import { DeviceAssignmentDialog } from './DeviceAssignmentDialog'
+import { returnDevice } from '@/app/actions/device-assignments'
 
 interface DeviceDetailProps {
   device: Device | null
@@ -113,6 +118,31 @@ export function DeviceDetail({
   const [newColumnName, setNewColumnName] = useState('')
   const [addingColumnSheet, setAddingColumnSheet] = useState<string | null>(null)
   const [assignmentDialogOpen, setAssignmentDialogOpen] = useState(false)
+  const [returnDialogOpen, setReturnDialogOpen] = useState(false)
+  const [isReturning, setIsReturning] = useState(false)
+  const queryClient = useQueryClient()
+
+  // Thu hồi thiết bị — gọi server action + invalidate cache
+  const handleReturnDevice = async () => {
+    if (!fullDevice?.assignment?.id) return
+    setIsReturning(true)
+    try {
+      const result = await returnDevice(fullDevice.assignment.id)
+      if (result.success) {
+        toast.success('Đã thu hồi thiết bị thành công')
+        queryClient.invalidateQueries({ queryKey: ['devices'] })
+        queryClient.invalidateQueries({ queryKey: ['end-users'] })
+        queryClient.invalidateQueries({ queryKey: ['available-devices'] })
+        setReturnDialogOpen(false)
+      } else {
+        toast.error(result.error || 'Lỗi thu hồi thiết bị')
+      }
+    } catch {
+      toast.error('Đã có lỗi xảy ra')
+    } finally {
+      setIsReturning(false)
+    }
+  }
 
   // Fetch full data with sheets if we have an ID
   const { data: detailData, isLoading: isDetailLoading } = useDeviceDetailQuery(device?.id ?? null)
@@ -386,15 +416,54 @@ export function DeviceDetail({
                   Gán: {new Date(fullDevice.assignment.assigned_at).toLocaleDateString('vi-VN')}
                 </div>
 
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-7 w-full text-xs"
-                  onClick={() => setAssignmentDialogOpen(true)}
-                >
-                  <ArrowLeftRight className="mr-1.5 h-3 w-3" />
-                  Thu hồi / Đổi
-                </Button>
+                <div className="flex gap-1.5">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-7 flex-1 text-xs"
+                    onClick={() => setAssignmentDialogOpen(true)}
+                  >
+                    <ArrowLeftRight className="mr-1 h-3 w-3" />
+                    Điều chuyển
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    className="h-7 flex-1 text-xs"
+                    onClick={() => setReturnDialogOpen(true)}
+                  >
+                    <Undo2 className="mr-1 h-3 w-3" />
+                    Thu hồi
+                  </Button>
+                </div>
+
+                {/* AlertDialog xác nhận thu hồi */}
+                <AlertDialog open={returnDialogOpen} onOpenChange={setReturnDialogOpen}>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Xác nhận thu hồi thiết bị</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Thiết bị <strong>"{fullDevice.deviceInfo.name}"</strong> đang được sử dụng bởi{' '}
+                        <strong>{fullDevice.assignment.assignee_name}</strong>.
+                        Thu hồi sẽ gỡ gán thiết bị khỏi người này.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel disabled={isReturning}>Hủy</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={(e) => {
+                          e.preventDefault()
+                          handleReturnDevice()
+                        }}
+                        disabled={isReturning}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      >
+                        {isReturning && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        Xác nhận thu hồi
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </div>
             ) : (
               <div className="py-1 text-center">
@@ -647,19 +716,19 @@ export function DeviceDetail({
                             onDelete={
                               allSheetKeys.length > 1
                                 ? () => {
-                                    if (confirm(`Xóa sheet "${getDisplayName(sheetName)}"?`)) {
-                                      const sheetId = sheetIdMap[sheetName]
-                                      if (sheetId) {
-                                        deleteSheetMutation.mutate({
-                                          deviceId: fullDevice.id,
-                                          sheetId: sheetId,
-                                        })
-                                        if (activeSheet === sheetName) setActiveSheet(null)
-                                      } else {
-                                        console.error('Missing sheetId for delete')
-                                      }
+                                  if (confirm(`Xóa sheet "${getDisplayName(sheetName)}"?`)) {
+                                    const sheetId = sheetIdMap[sheetName]
+                                    if (sheetId) {
+                                      deleteSheetMutation.mutate({
+                                        deviceId: fullDevice.id,
+                                        sheetId: sheetId,
+                                      })
+                                      if (activeSheet === sheetName) setActiveSheet(null)
+                                    } else {
+                                      console.error('Missing sheetId for delete')
                                     }
                                   }
+                                }
                                 : undefined
                             }
                           />
@@ -918,10 +987,14 @@ export function DeviceDetail({
           isOpen={assignmentDialogOpen}
           onClose={() => setAssignmentDialogOpen(false)}
           onSuccess={() => {
-            updateDeviceMutation.mutate({
-              deviceId: fullDevice!.id,
-              updates: {},
-            })
+            // DeviceAssignmentDialog đã tự invalidate queries (devices, end-users, available-devices)
+            // Refetch device detail để cập nhật modal nếu đang mở
+            if (fullDevice?.id) {
+              updateDeviceMutation.mutate({
+                deviceId: fullDevice.id,
+                updates: {},
+              })
+            }
           }}
           deviceId={fullDevice.id}
           deviceName={fullDevice.deviceInfo.name}

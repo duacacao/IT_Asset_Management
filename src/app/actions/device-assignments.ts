@@ -5,13 +5,26 @@ import { revalidatePath } from 'next/cache'
 import { ACTIVITY_LOG_ACTIONS } from '@/constants/activity-log'
 
 // ============================================
+// Kết quả trả về của assignDevice — hỗ trợ smart reassign
+// needsReassign=true → thiết bị đang assigned, frontend cần confirm
+// ============================================
+export type AssignDeviceResult = {
+  success: boolean
+  error: string | null
+  // Thông tin khi cần xác nhận chuyển thiết bị
+  needsReassign?: boolean
+  currentEndUserName?: string | null
+}
+
+// ============================================
 // Gán thiết bị cho end-user (tạo assignment mới)
-// Kiểm tra xem cả device và end-user đều chưa có assignment active
+// forceReassign=true → tự động thu hồi assignment cũ trước khi gán mới
 // ============================================
 export async function assignDevice(
   deviceId: string,
-  endUserId: string
-): Promise<{ success: boolean; error: string | null }> {
+  endUserId: string,
+  forceReassign: boolean = false
+): Promise<AssignDeviceResult> {
   const supabase = await createClient()
 
   const {
@@ -21,31 +34,43 @@ export async function assignDevice(
     return { success: false, error: 'Người dùng chưa đăng nhập' }
   }
 
-  // Kiểm tra device chưa được assign cho ai
+  // B1: Kiểm tra device đã được assign cho ai chưa
   const { data: existingDeviceAssignment } = await supabase
     .from('device_assignments')
-    .select('id')
+    .select(`
+      id,
+      end_users:end_user_id (
+        full_name
+      )
+    `)
     .eq('device_id', deviceId)
     .is('returned_at', null)
     .maybeSingle()
 
   if (existingDeviceAssignment) {
-    return { success: false, error: 'Thiết bị này đã được gán cho người khác' }
+    const currentName = (existingDeviceAssignment as any).end_users?.full_name || 'Unknown'
+
+    // Nếu chưa được xác nhận → trả thông tin để frontend hiện confirm
+    if (!forceReassign) {
+      return {
+        success: false,
+        error: null,
+        needsReassign: true,
+        currentEndUserName: currentName,
+      }
+    }
+
+    // forceReassign=true → Thu hồi assignment cũ trước
+    const returnResult = await returnDevice(existingDeviceAssignment.id)
+    if (!returnResult.success) {
+      return { success: false, error: `Lỗi thu hồi từ ${currentName}: ${returnResult.error}` }
+    }
   }
 
-  // Kiểm tra end-user chưa có thiết bị nào
-  const { data: existingUserAssignment } = await supabase
-    .from('device_assignments')
-    .select('id')
-    .eq('end_user_id', endUserId)
-    .is('returned_at', null)
-    .maybeSingle()
+  // B2: (Đã bỏ) — Cho phép 1 user nhận nhiều device (1:N)
+  // Chỉ giữ B1: 1 device chỉ assign cho 1 user tại 1 thời điểm
 
-  if (existingUserAssignment) {
-    return { success: false, error: 'End-user này đã có thiết bị được gán' }
-  }
-
-  // Tạo assignment mới
+  // B3: Tạo assignment mới
   const { error } = await supabase.from('device_assignments').insert({
     device_id: deviceId,
     end_user_id: endUserId,
@@ -57,7 +82,7 @@ export async function assignDevice(
     return { success: false, error: error.message }
   }
 
-  // Log activity
+  // B4: Log activity
   await supabase.from('activity_logs').insert({
     device_id: deviceId,
     user_id: user.id,
@@ -118,15 +143,15 @@ export async function returnDevice(
 // ============================================
 export async function getDeviceHistory(endUserId: string): Promise<{
   data:
-    | {
-        id: string
-        device_id: string
-        device_name: string
-        device_type: string
-        assigned_at: string
-        returned_at: string | null
-      }[]
-    | null
+  | {
+    id: string
+    device_id: string
+    device_name: string
+    device_type: string
+    assigned_at: string
+    returned_at: string | null
+  }[]
+  | null
   error: string | null
 }> {
   const supabase = await createClient()
