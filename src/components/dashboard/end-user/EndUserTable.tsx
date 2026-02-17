@@ -92,8 +92,8 @@ export function EndUserTable({
                         <TableHead className="w-[30%] min-w-[250px]">Tên</TableHead>
                         <TableHead className="w-[12%] whitespace-nowrap">Phòng ban</TableHead>
                         <TableHead className="w-[12%] whitespace-nowrap">Chức vụ</TableHead>
-                        <TableHead className="w-[41%]">Thiết bị</TableHead>
-                        <TableHead className="w-[50px]">Thao tác</TableHead>
+                        <TableHead className="w-[25%]">Thiết bị</TableHead>
+                        <TableHead className="w-[120px]">Thao tác</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -148,7 +148,7 @@ export function EndUserTable({
                                             {/* Show first device fully */}
                                             <div className="flex items-center gap-2 rounded-md border px-2 py-1 bg-muted/50">
                                                 {getDeviceIcon(user.devices[0].type)}
-                                                <span className="font-medium text-sm">{user.devices[0].name}</span>
+                                                <span className="font-medium text-xs">{user.devices[0].name}</span>
                                             </div>
 
                                             {/* Show +N for others */}
@@ -179,31 +179,30 @@ export function EndUserTable({
                                     )}
                                 </TableCell>
                                 <TableCell>
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                            <Button variant="ghost" className="h-8 w-8 p-0">
-                                                <MoreHorizontal className="h-4 w-4" />
-                                            </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="end">
-                                            <DropdownMenuLabel>Thao tác</DropdownMenuLabel>
-                                            <DropdownMenuItem onClick={() => onView(user.id)} className="cursor-pointer">
-                                                <Eye className="mr-2 h-4 w-4" />
-                                                Xem chi tiết
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem onClick={() => onEdit(user)} className="cursor-pointer">
-                                                <Pencil className="mr-2 h-4 w-4" />
-                                                Sửa
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem
-                                                onClick={() => onDelete(user.id)}
-                                                className="text-destructive focus:text-destructive cursor-pointer"
-                                            >
-                                                <Trash className="mr-2 h-4 w-4" />
-                                                Xóa
-                                            </DropdownMenuItem>
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
+                                    <div className="flex items-center gap-1">
+                                        <Button variant="ghost" className="h-8 w-8 p-0" onClick={() => onView(user.id)} title="Xem chi tiết">
+                                            <Eye className="h-4 w-4 text-muted-foreground" />
+                                        </Button>
+                                        <Button variant="ghost" className="h-8 w-8 p-0" onClick={() => onEdit(user)} title="Sửa">
+                                            <Pencil className="h-4 w-4 text-muted-foreground" />
+                                        </Button>
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button variant="ghost" className="h-8 w-8 p-0">
+                                                    <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="end">
+                                                <DropdownMenuItem
+                                                    onClick={() => onDelete(user.id)}
+                                                    className="text-destructive focus:text-destructive cursor-pointer"
+                                                >
+                                                    <Trash className="mr-2 h-4 w-4" />
+                                                    Xóa
+                                                </DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+                                    </div>
                                 </TableCell>
                             </TableRow>
                         ))

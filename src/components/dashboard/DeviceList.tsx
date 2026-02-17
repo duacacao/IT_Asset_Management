@@ -264,11 +264,26 @@ export function DeviceList({
           <TableHeader className="bg-background sticky top-0 z-10">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
-                    {flexRender(header.column.columnDef.header, header.getContext())}
-                  </TableHead>
-                ))}
+                {headerGroup.headers.map((header) => {
+                  // Determine column width based on header ID
+                  let widthClass = ''
+                  const id = header.id
+
+                  if (id === 'select') widthClass = 'w-[40px]'
+                  else if (id === 'deviceInfo_name') widthClass = 'w-[40%] min-w-[300px]'
+                  else if (id === 'type') widthClass = 'w-[15%]'
+                  else if (id === 'status') widthClass = 'w-[15%]'
+                  else if (id === 'assignment_assignee_name') widthClass = 'w-[20%]'
+                  else if (id === 'actions') widthClass = 'w-[120px]'
+
+                  return (
+                    <TableHead key={header.id} className={widthClass}>
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(header.column.columnDef.header, header.getContext())}
+                    </TableHead>
+                  )
+                })}
               </TableRow>
             ))}
           </TableHeader>
