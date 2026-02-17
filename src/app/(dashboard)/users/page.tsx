@@ -1,31 +1,35 @@
+import { Suspense } from 'react'
+import { UsersClient } from './UsersClient'
+import { getEndUsers } from '@/app/actions/end-users'
 import { Separator } from '@/components/ui/separator'
 import { SidebarTrigger } from '@/components/ui/sidebar'
+import { EndUserWithDevice } from '@/types/end-user'
 
-export default function UsersPage() {
+export default async function UsersPage() {
+  const result = await getEndUsers()
+
+  // Safe default
+  const initialData: EndUserWithDevice[] = result.data || []
+
+  if (result.error) {
+    console.error('Failed to fetch users:', result.error)
+    // Có thể thêm Error Boundary hoặc Alert UI ở đây nếu muốn
+  }
+
   return (
     <>
       <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
         <div className="flex items-center gap-2 px-4">
           <SidebarTrigger className="-ml-1" />
           <Separator orientation="vertical" className="mr-2 h-4" />
-          <h1 className="font-semibold">Người dùng</h1>
+          <h1 className="font-semibold">Quản lý Nhân sự</h1>
         </div>
       </header>
-      <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-        <div className="grid auto-rows-min gap-4 md:grid-cols-3">
-          <div className="bg-muted/50 aspect-video rounded-xl" />
-          <div className="bg-muted/50 aspect-video rounded-xl" />
-          <div className="bg-muted/50 aspect-video rounded-xl" />
-        </div>
-        <div className="bg-muted/50 flex min-h-[100vh] flex-1 items-center justify-center rounded-xl md:min-h-min">
-          <div className="text-center">
-            <h2 className="text-xl font-semibold">Tính năng đang phát triển</h2>
-            <p className="text-muted-foreground mt-2">
-              Tab này dùng để định danh thiết bị cho từng user.
-            </p>
-          </div>
-        </div>
-      </div>
+
+      {/* Client Component Container with Suspense for potential streaming */}
+      <Suspense fallback={<div className="p-4">Đang tải dữ liệu...</div>}>
+        <UsersClient initialData={initialData} />
+      </Suspense>
     </>
   )
 }

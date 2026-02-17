@@ -35,6 +35,7 @@ export interface DeviceMetadata {
   tags: string[]
   // Sheet nào được hiển thị (override per device, null = dùng global default)
   visibleSheets?: string[]
+  sheetIdMap?: Record<string, string>
 }
 
 export interface Device {

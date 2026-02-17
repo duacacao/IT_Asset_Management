@@ -78,6 +78,12 @@ export function toFrontendDeviceWithSheets(dbDevice: DbDevice, dbSheets: DbSheet
     sheets[sheet.sheet_name] = (sheet.sheet_data as any[]) || []
   })
 
+  // Create Sheet ID Map
+  const sheetIdMap: Record<string, string> = {}
+  sortedSheets.forEach((s) => {
+    sheetIdMap[s.sheet_name] = s.id
+  })
+
   return {
     ...base,
     sheets,
@@ -85,6 +91,7 @@ export function toFrontendDeviceWithSheets(dbDevice: DbDevice, dbSheets: DbSheet
       ...base.metadata,
       totalSheets: dbSheets.length,
       totalRows: Object.values(sheets).reduce((sum, rows) => sum + rows.length, 0),
+      sheetIdMap,
     },
   }
 }

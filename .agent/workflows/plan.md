@@ -25,7 +25,7 @@ Use the `project-planner` agent with this context:
 CONTEXT:
 - User Request: $ARGUMENTS
 - Mode: PLANNING ONLY (no code)
-- Output: docs/PLAN-{task-slug}.md (dynamic naming)
+- Output: plans/PLAN-{task-slug}.md (dynamic naming)
 
 NAMING RULES:
 1. Extract 2-3 key words from request
@@ -47,7 +47,7 @@ RULES:
 
 | Deliverable | Location |
 |-------------|----------|
-| Project Plan | `docs/PLAN-{task-slug}.md` |
+| Project Plan | `plans/PLAN-{task-slug}.md` |
 | Task Breakdown | Inside plan file |
 | Agent Assignments | Inside plan file |
 | Verification Checklist | Phase X in plan file |
@@ -57,8 +57,9 @@ RULES:
 ## After Planning
 
 Tell user:
+
 ```
-[OK] Plan created: docs/PLAN-{slug}.md
+[OK] Plan created: plans/PLAN-{slug}.md
 
 Next steps:
 - Review the plan
@@ -72,11 +73,11 @@ Next steps:
 
 | Request | Plan File |
 |---------|-----------|
-| `/plan e-commerce site with cart` | `docs/PLAN-ecommerce-cart.md` |
-| `/plan mobile app for fitness` | `docs/PLAN-fitness-app.md` |
-| `/plan add dark mode feature` | `docs/PLAN-dark-mode.md` |
-| `/plan fix authentication bug` | `docs/PLAN-auth-fix.md` |
-| `/plan SaaS dashboard` | `docs/PLAN-saas-dashboard.md` |
+| `/plan e-commerce site with cart` | `plans/PLAN-ecommerce-cart.md` |
+| `/plan mobile app for fitness` | `plans/PLAN-fitness-app.md` |
+| `/plan add dark mode feature` | `plans/PLAN-dark-mode.md` |
+| `/plan fix authentication bug` | `plans/PLAN-auth-fix.md` |
+| `/plan SaaS dashboard` | `plans/PLAN-saas-dashboard.md` |
 
 ---
 

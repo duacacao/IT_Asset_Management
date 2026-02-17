@@ -100,14 +100,15 @@ export function createDeviceColumns({
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+          className="pl-4"
         >
           Tên thiết bị
           <ArrowUpDown className="ml-2 h-4 w-4" aria-hidden="true" />
         </Button>
       ),
       cell: ({ row }) => (
-        <div className="flex items-center gap-3 py-1 pr-12">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted/50 border">
+        <div className="flex items-center gap-3 py-1 pl-4 pr-12">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted/50 border">
             {getDeviceIcon(row.original.type)}
           </div>
           <div className="flex flex-col">

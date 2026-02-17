@@ -12,6 +12,41 @@ export const profiles = pgTable('profiles', {
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
 })
 
+// Department (Phòng ban)
+export const departments = pgTable('departments', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  userId: uuid('user_id').notNull(), // Owner/Creator (cho RLS đơn giản)
+  name: text('name').notNull(),
+  description: text('description'),
+  deletedAt: timestamp('deleted_at', { withTimezone: true }), // Soft delete
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+})
+
+// Position (Chức vụ)
+export const positions = pgTable('positions', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  userId: uuid('user_id').notNull(),
+  name: text('name').notNull(),
+  description: text('description'),
+  deletedAt: timestamp('deleted_at', { withTimezone: true }), // Soft delete
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+})
+
+// End Users (Nhân viên sử dụng thiết bị)
+export const endUsers = pgTable('end_users', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  userId: uuid('user_id').notNull(), // Managed by Admin User ID
+  fullName: text('full_name').notNull(),
+  email: text('email'),
+  phone: text('phone'),
+  notes: text('notes'),
+  departmentId: uuid('department_id').references(() => departments.id),
+  positionId: uuid('position_id').references(() => positions.id),
+  deletedAt: timestamp('deleted_at', { withTimezone: true }), // Soft delete
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+})
+
 export const devices = pgTable('devices', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
   code: text('code').unique(), // Asset Code (e.g. LAP-001)
@@ -26,6 +61,9 @@ export const devices = pgTable('devices', {
   notes: text('notes'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  file_name: text('file_name'), // Track import source
+  device_info: jsonb('device_info').default({}), // Extra details
+  metadata: jsonb('metadata').default({}),
 })
 
 // Bảng theo dõi lịch sử gán thiết bị cho end-user
@@ -35,7 +73,9 @@ export const deviceAssignments = pgTable('device_assignments', {
   deviceId: uuid('device_id')
     .notNull()
     .references(() => devices.id, { onDelete: 'cascade' }),
-  endUserId: uuid('end_user_id').notNull(), // References end_users.id
+  endUserId: uuid('end_user_id')
+    .notNull()
+    .references(() => endUsers.id),
   userId: uuid('user_id').notNull(), // References auth.users.id — dùng cho RLS
   assignedAt: timestamp('assigned_at', { withTimezone: true }).defaultNow().notNull(),
   returnedAt: timestamp('returned_at', { withTimezone: true }), // NULL = đang active
