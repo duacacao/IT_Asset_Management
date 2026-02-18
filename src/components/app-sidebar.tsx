@@ -7,8 +7,8 @@ import Link from 'next/link'
 
 import { NavMain } from '@/components/nav-main'
 import { NavUser } from '@/components/nav-user'
-import { useDevicesQuery, useDeviceStatsQuery } from '@/hooks/useDevicesQuery'
-import { Badge } from '@/components/ui/badge'
+import { useDeviceStatsQuery } from '@/hooks/useDevicesQuery'
+import { useEndUserStatsQuery } from '@/hooks/useEndUsersQuery'
 import { Logo } from '@/components/logo'
 import {
   Sidebar,
@@ -23,46 +23,44 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar'
 
-// Mini stats component — ẩn khi sidebar collapsed (icon mode)
 function SidebarQuickStats() {
-  const { data: stats } = useDeviceStatsQuery()
+  const { data: deviceStats } = useDeviceStatsQuery()
+  const { data: endUserStats } = useEndUserStatsQuery()
   const { state } = useSidebar()
 
-  if (!stats || state === 'collapsed') return null
+  if (state === 'collapsed') return null
 
-  const { active, broken, inactive } = stats
+  const totalDevices = deviceStats?.total ?? 0
+  const totalUsers = endUserStats?.total ?? 0
 
   return (
     <SidebarGroup>
       <SidebarGroupLabel>Thống kê nhanh</SidebarGroupLabel>
       <div className="px-2 py-1">
-        <div className="grid grid-cols-3 gap-1.5 text-center">
-          <div className="rounded-md bg-emerald-500/10 px-1.5 py-1.5">
-            <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400">{active}</p>
-            <p className="text-muted-foreground text-[10px]">Hoạt động</p>
-          </div>
-          <div className="rounded-md bg-red-500/10 px-1.5 py-1.5">
-            <p className="text-sm font-bold text-red-600 dark:text-red-400">{broken}</p>
-            <p className="text-muted-foreground text-[10px]">Hư hỏng</p>
-          </div>
-          <div className="rounded-md bg-gray-500/10 px-1.5 py-1.5">
-            <p className="text-sm font-bold text-gray-600 dark:text-gray-400">{inactive}</p>
-            <p className="text-muted-foreground text-[10px]">Không dùng</p>
-          </div>
+        <div className="grid grid-cols-2 gap-2">
+          <Link
+            href="/devices"
+            className="hover:bg-muted/50 bg-primary/5 flex items-center gap-2 rounded-md px-3 py-2 transition-colors"
+          >
+            <Laptop className="text-primary h-4 w-4" />
+            <div>
+              <p className="text-sm font-bold">{totalDevices}</p>
+              <p className="text-muted-foreground text-[10px]">Thiết bị</p>
+            </div>
+          </Link>
+          <Link
+            href="/end-user"
+            className="hover:bg-muted/50 flex items-center gap-2 rounded-md bg-blue-500/5 px-3 py-2 transition-colors"
+          >
+            <Users className="h-4 w-4 text-blue-500" />
+            <div>
+              <p className="text-sm font-bold">{totalUsers}</p>
+              <p className="text-muted-foreground text-[10px]">Người dùng</p>
+            </div>
+          </Link>
         </div>
       </div>
     </SidebarGroup>
-  )
-}
-
-// Device count badge cho nav item
-function DeviceCountBadge() {
-  const { data: devices = [] } = useDevicesQuery()
-  if (devices.length === 0) return null
-  return (
-    <Badge variant="secondary" className="ml-auto h-5 min-w-5 px-1.5 text-[10px] font-semibold">
-      {devices.length}
-    </Badge>
   )
 }
 
@@ -80,7 +78,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           title: 'Thiết bị',
           url: '/devices',
           icon: Laptop,
-          badge: <DeviceCountBadge />,
         },
         {
           title: 'End-Users',
@@ -115,8 +112,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       ],
     },
   ]
-
-  // ... imports
 
   return (
     <Sidebar {...props}>

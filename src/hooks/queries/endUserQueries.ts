@@ -1,7 +1,7 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { getEndUsers, getEndUser, getAvailableDevices } from '@/app/actions/end-users'
+import { getEndUsers, getEndUser, getAvailableDevices, getEndUserStats } from '@/app/actions/end-users'
 import { toFrontendEndUser } from '@/lib/supabase-adapter'
 import { getDepartments } from '@/app/actions/departments'
 import { getPositions } from '@/app/actions/positions'
@@ -84,3 +84,19 @@ export function useAvailableDevicesQuery() {
     },
   })
 }
+
+// ============================================
+// END USER STATS QUERY
+// ============================================
+
+export function useEndUserStatsQuery() {
+  return useQuery({
+    queryKey: queryKeys.endUsers.stats(),
+    staleTime: 60 * 1000,
+    queryFn: async () => {
+      const data = await getEndUserStats()
+      return data
+    },
+  })
+}
+

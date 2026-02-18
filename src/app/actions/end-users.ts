@@ -333,3 +333,31 @@ export async function getAvailableDevices(): Promise<{
 
   return { data: availableDevices, error: null }
 }
+
+
+// ============================================
+// Lấy thống kê end-users cho sidebar
+// ============================================
+export async function getEndUserStats() {
+  const supabase = await createClient()
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) {
+    return { total: 0 }
+  }
+
+  const { count, error } = await supabase
+    .from('end_users')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', user.id)
+    .is('deleted_at', null)
+
+  if (error) {
+    console.error('Lỗi lấy thống kê end-users:', error.message)
+    return { total: 0 }
+  }
+
+  return { total: count || 0 }
+}

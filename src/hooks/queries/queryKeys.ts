@@ -6,6 +6,7 @@
 export const queryKeys = {
   // End Users
   endUsers: {
+    stats: () => [...queryKeys.endUsers.all, 'stats'] as const,
     all: ['end-users'] as const,
     list: () => [...queryKeys.endUsers.all, 'list'] as const,
     detail: (id: string) => [...queryKeys.endUsers.all, 'detail', id] as const,

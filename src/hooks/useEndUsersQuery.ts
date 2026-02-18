@@ -8,6 +8,7 @@ export { queryKeys } from './queries/queryKeys'
 export {
   useEndUsersQuery,
   useEndUserQuery,
+  useEndUserStatsQuery,
   useDepartmentsQuery,
   usePositionsQuery,
   useAvailableDevicesQuery,
