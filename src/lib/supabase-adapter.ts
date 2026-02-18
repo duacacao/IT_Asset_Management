@@ -1,11 +1,13 @@
 import type { Tables } from '@/types/supabase'
 import type { Device, DeviceInfo, DeviceStatus, DeviceType } from '@/types/device'
+import type { EndUser, EndUserWithDevice, AssignedDeviceInfo } from '@/types/end-user'
 
 // ============================================
 // Type alias cho database rows
 // ============================================
 type DbDevice = Tables<'devices'>
 type DbSheet = Tables<'device_sheets'>
+type DbEndUser = Tables<'end_users'>
 
 // Cấu trúc specs JSONB lưu trong database
 interface DeviceSpecs {
@@ -31,8 +33,26 @@ interface DeviceSpecs {
 // Supabase Row → Frontend Device (không có sheets)
 // Dùng cho list view — không cần load sheets
 // ============================================
-export function toFrontendDevice(dbDevice: DbDevice & { assignment?: any }): Device {
+// ============================================
+// Supabase Row → Frontend Device (không có sheets)
+// Dùng cho list view — không cần load sheets
+// Update: Accepts raw assignments array for unification
+// ============================================
+export function toFrontendDevice(dbDevice: DbDevice, assignments: any[] = []): Device {
   const specs = (dbDevice.specs as DeviceSpecs) || {}
+
+  // Find assignment for this device from the raw list
+  const assignment = assignments.find((a) => a.device_id === dbDevice.id)
+
+  const mappedAssignment = assignment
+    ? {
+      id: assignment.id,
+      end_user_id: assignment.end_user_id,
+      assignee_name: assignment.end_users?.full_name || assignment.end_users?.[0]?.full_name,
+      assignee_email: assignment.end_users?.email || assignment.end_users?.[0]?.email,
+      assigned_at: assignment.assigned_at,
+    }
+    : undefined
 
   return {
     id: dbDevice.id,
@@ -60,7 +80,49 @@ export function toFrontendDevice(dbDevice: DbDevice & { assignment?: any }): Dev
       tags: specs.tags || [],
       visibleSheets: specs.visibleSheets,
     },
-    assignment: dbDevice.assignment,
+    assignment: mappedAssignment,
+  }
+}
+
+// ============================================
+// Supabase Row → Frontend EndUser
+// Dùng cho list view / detail view
+// ============================================
+export function toFrontendEndUser(
+  dbUser: DbEndUser & { departments?: { name: string } | null; positions?: { name: string } | null },
+  assignments: any[] = [] // Raw assignments from DB
+): EndUserWithDevice {
+  // Lọc assignments của user này (match theo end_user_id)
+  const userAssignments = assignments.filter((a) => a.end_user_id === dbUser.id)
+
+  const devices: AssignedDeviceInfo[] = userAssignments.map((a) => ({
+    id: a.devices?.id, // Use devices joined data
+    name: a.devices?.name || 'Unknown Device',
+    type: a.devices?.type || 'Unknown Type',
+    assignment_id: a.id,
+  }))
+
+  const firstDevice = devices[0] || null
+
+  return {
+    id: dbUser.id,
+    user_id: dbUser.user_id,
+    full_name: dbUser.full_name,
+    email: dbUser.email,
+    phone: dbUser.phone,
+    department_id: dbUser.department_id,
+    position_id: dbUser.position_id,
+    notes: dbUser.notes,
+    created_at: dbUser.created_at,
+    updated_at: dbUser.updated_at,
+    department: dbUser.departments?.name || null,
+    position: dbUser.positions?.name || null,
+    devices: devices,
+    // Backward compatibility fields
+    device_name: firstDevice?.name || null,
+    device_type: firstDevice?.type || null,
+    assignment_id: firstDevice?.assignment_id || null,
+    device_id: firstDevice?.id || null,
   }
 }
 
@@ -68,8 +130,12 @@ export function toFrontendDevice(dbDevice: DbDevice & { assignment?: any }): Dev
 // Supabase Device + Sheets → Frontend Device (đầy đủ)
 // Dùng cho detail view — load sheets kèm theo
 // ============================================
-export function toFrontendDeviceWithSheets(dbDevice: DbDevice, dbSheets: DbSheet[]): Device {
-  const base = toFrontendDevice(dbDevice)
+export function toFrontendDeviceWithSheets(
+  dbDevice: DbDevice,
+  dbSheets: DbSheet[],
+  assignment: any = null
+): Device {
+  const base = toFrontendDevice(dbDevice, assignment ? [assignment] : [])
 
   // Convert mảng sheets DB → Record<sheetName, data[]>
   const sheets: Record<string, any[]> = {}

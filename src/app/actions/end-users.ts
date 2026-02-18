@@ -7,99 +7,74 @@ import { assignDevice, returnDevice } from './device-assignments'
 
 // ============================================
 // Lấy danh sách end-users + thông tin phòng ban, chức vụ, thiết bị đang assign
-// Join qua device_assignments để lấy thiết bị hiện tại (returned_at IS NULL)
+// Refactor: Trả về raw data để Frontend Query Hook tự xử lý qua adapter
 // ============================================
-export async function getEndUsers(): Promise<{
-  data: EndUserWithDevice[] | null
-  error: string | null
-}> {
+export async function getEndUsers() {
   const supabase = await createClient()
 
   const {
     data: { user },
   } = await supabase.auth.getUser()
   if (!user) {
-    return { data: [], error: null }
+    return { data: { endUsers: [], assignments: [] }, error: null }
   }
 
-  // Lấy end_users + join FK phòng ban/chức vụ
-  const { data, error } = await supabase
-    .from('end_users')
-    .select(
-      `
-            *,
-            departments:department_id (
-                name
-            ),
-            positions:position_id (
-                name
-            )
+  // Parallel queries with Promise.all for performance
+  const [endUsersResult, assignmentsResult] = await Promise.all([
+    supabase
+      .from('end_users')
+      .select(
         `
-    )
-    .eq('user_id', user.id)
-    .is('deleted_at', null)
-    .order('created_at', { ascending: false })
-
-  if (error) {
-    console.error('Lỗi lấy end_users:', error.message)
-    return { data: [], error: null }
-  }
-
-  // Lấy tất cả active assignments của user này để map device cho mỗi end-user
-  const { data: assignments } = await supabase
-    .from('device_assignments')
-    .select(
-      `
+        *,
+        departments:department_id (
+            name
+        ),
+        positions:position_id (
+            name
+        )
+        `
+      )
+      .eq('user_id', user.id)
+      .is('deleted_at', null)
+      .order('created_at', { ascending: false }),
+    supabase
+      .from('device_assignments')
+      .select(
+        `
+        id,
+        end_user_id,
+        device_id,
+        devices:device_id (
             id,
-            end_user_id,
-            device_id,
-            devices:device_id (
-                id,
-                name,
-                type
-            )
+            name,
+            type
+        )
         `
-    )
-    .eq('user_id', user.id)
-    .is('returned_at', null)
+      )
+      .eq('user_id', user.id)
+      .is('returned_at', null),
+  ])
 
-  // Tạo map end_user_id → danh sách device info (1 user có thể có N device)
-  const assignmentsByUser = new Map<string, Array<{ id: string; name: string; type: string; assignment_id: string }>>()
-  for (const a of (assignments || []) as any[]) {
-    if (a.end_user_id && a.devices) {
-      const device = Array.isArray(a.devices) ? a.devices[0] : a.devices
-      if (!device) continue
-      const list = assignmentsByUser.get(a.end_user_id) || []
-      list.push({
-        id: device.id,
-        name: device.name,
-        type: device.type,
-        assignment_id: a.id,
-      })
-      assignmentsByUser.set(a.end_user_id, list)
+  if (endUsersResult.error) {
+    console.error('Lỗi lấy end_users:', endUsersResult.error.message)
+    return { data: { endUsers: [], assignments: [] }, error: endUsersResult.error.message }
+  }
+
+  if (assignmentsResult.error) {
+    console.error('Lỗi lấy device_assignments:', assignmentsResult.error.message)
+    return {
+      data: { endUsers: endUsersResult.data || [], assignments: [] },
+      error: assignmentsResult.error.message,
     }
   }
 
-  // Format data với tên phòng ban/chức vụ + danh sách thiết bị
-  const formattedData: EndUserWithDevice[] = (data || []).map((item: any) => {
-    const deviceList = assignmentsByUser.get(item.id) || []
-    const firstDevice = deviceList[0] || null
-
-    return {
-      ...item,
-      department: item.departments?.name || null,
-      position: item.positions?.name || null,
-      // Danh sách đầy đủ (1:N)
-      devices: deviceList,
-      // Backward compat — lấy từ device đầu tiên
-      device_name: firstDevice?.name || null,
-      device_type: firstDevice?.type || null,
-      assignment_id: firstDevice?.assignment_id || null,
-      device_id: firstDevice?.id || null,
-    }
-  })
-
-  return { data: formattedData, error: null }
+  return {
+    data: {
+      endUsers: endUsersResult.data || [],
+      assignments: assignmentsResult.data || [],
+    },
+    error: null,
+  }
 }
 
 // ============================================

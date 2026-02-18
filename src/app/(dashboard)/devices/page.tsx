@@ -159,38 +159,7 @@ export default function DevicesPage() {
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Quản lý thiết bị</h2>
         </div>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="icon" disabled={isImporting}>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => setIsCreateOpen(true)}>
-              <Plus className="mr-2 h-4 w-4" />
-              Tạo mới
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setIsImportOpen(true)}>
-              <Upload className="mr-2 h-4 w-4" />
-              Import Excel
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => {
-                const devicesToExport =
-                  selectedDevices.length > 0 ? selectedDevices : devices
-                exportDevicesToCSV(devicesToExport)
-              }}
-            >
-              <FileDown className="mr-2 h-4 w-4" />
-              Export CSV
-              {selectedDevices.length > 0 && (
-                <span className="text-muted-foreground ml-2 text-xs">
-                  ({selectedDevices.length})
-                </span>
-              )}
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div />
       </div>
 
       {/* Import progress bar */}
@@ -241,6 +210,40 @@ export default function DevicesPage() {
             onDeleteDevice={handleDeleteDevice}
             onSelectionChange={setSelectedDevices}
             highlightId={highlightId}
+            headerAction={
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="icon" disabled={isImporting}>
+                    <MoreHorizontal className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => setIsCreateOpen(true)}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Tạo mới
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setIsImportOpen(true)}>
+                    <Upload className="mr-2 h-4 w-4" />
+                    Import Excel
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      const devicesToExport =
+                        selectedDevices.length > 0 ? selectedDevices : devices
+                      exportDevicesToCSV(devicesToExport)
+                    }}
+                  >
+                    <FileDown className="mr-2 h-4 w-4" />
+                    Export CSV
+                    {selectedDevices.length > 0 && (
+                      <span className="text-muted-foreground ml-2 text-xs">
+                        ({selectedDevices.length})
+                      </span>
+                    )}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            }
           />
         </div>
       )}

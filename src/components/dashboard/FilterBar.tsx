@@ -24,9 +24,10 @@ interface FilterBarProps {
   onFilterChange: (filters: DeviceFilters) => void
   onReset: () => void
   className?: string
+  children?: React.ReactNode
 }
 
-export function FilterBar({ onFilterChange, onReset, className }: FilterBarProps) {
+export function FilterBar({ onFilterChange, onReset, className, children }: FilterBarProps) {
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState<DeviceStatus | 'all'>('all')
   const [deviceType, setDeviceType] = useState<DeviceType | 'all'>('all')
@@ -106,13 +107,12 @@ export function FilterBar({ onFilterChange, onReset, className }: FilterBarProps
               <SelectItem key={key} value={key}>
                 <div className="flex items-center gap-2">
                   <div
-                    className={`h-2 w-2 rounded-full ${
-                      key === 'active'
+                    className={`h-2 w-2 rounded-full ${key === 'active'
                         ? 'bg-emerald-500'
                         : key === 'broken'
                           ? 'bg-red-500'
                           : 'bg-amber-500'
-                    }`}
+                      }`}
                   />
                   {config.label}
                 </div>
@@ -154,6 +154,10 @@ export function FilterBar({ onFilterChange, onReset, className }: FilterBarProps
             <span>Đang lọc</span>
           </div>
         )}
+        {/* Action Slot */}
+        <div className="ml-auto flex items-center gap-2">
+          {children}
+        </div>
       </div>
     </div>
   )

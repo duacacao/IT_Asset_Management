@@ -1,21 +1,51 @@
 'use client'
 
+import dynamic from 'next/dynamic'
+import { Suspense } from 'react'
 import { SectionCards } from './section-cards'
-import { HardwareOverview } from '@/components/dashboard/HardwareOverview'
 import { RecentActivity } from '@/components/dashboard/RecentActivity'
-import { DeviceStatusChart } from '@/components/dashboard/DeviceStatusChart'
-import { OSDistributionChart } from '@/components/dashboard/OSDistributionChart'
 import { useDevicesQuery } from '@/hooks/useDevicesQuery'
+import { useEndUsersQuery } from '@/hooks/useEndUsersQuery'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Upload, LayoutDashboard } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { Skeleton } from '@/components/ui/skeleton'
+
+const DeviceStatusChart = dynamic(
+  () => import('@/components/dashboard/DeviceStatusChart').then((mod) => mod.DeviceStatusChart),
+  { ssr: false }
+)
+
+const DepartmentChart = dynamic(
+  () => import('@/components/dashboard/DepartmentChart').then((mod) => mod.DepartmentChart),
+  { ssr: false }
+)
+
+const HardwareOverview = dynamic(
+  () => import('@/components/dashboard/HardwareOverview').then((mod) => mod.HardwareOverview),
+  { ssr: false }
+)
+
+function ChartSkeleton() {
+  return (
+    <Card className="flex h-full flex-col">
+      <CardHeader className="pb-2">
+        <Skeleton className="h-5 w-32" />
+        <Skeleton className="h-4 w-24" />
+      </CardHeader>
+      <CardContent className="flex flex-1 items-center justify-center pb-4">
+        <Skeleton className="h-48 w-48 rounded-full" />
+      </CardContent>
+    </Card>
+  )
+}
 
 export function DeviceDashboardClient() {
   const { data: devices = [] } = useDevicesQuery()
+  const { data: endUsers = [] } = useEndUsersQuery()
   const router = useRouter()
 
-  // Empty dashboard state
   if (devices.length === 0) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-6 p-4 pt-0">
@@ -42,24 +72,27 @@ export function DeviceDashboardClient() {
 
   return (
     <div className="@container/main flex flex-1 flex-col gap-4 p-4 lg:px-6">
-      {/* Visually hidden h1 for screen readers */}
       <h1 className="sr-only">Device Management Dashboard</h1>
 
-      {/* Row 1 — Stats Cards (4 cột) */}
-      <SectionCards devices={devices} />
+      {/* Row 1 — Stats Cards */}
+      <SectionCards devices={devices} endUsers={endUsers} />
 
-      {/* Row 2 — Charts: Trạng thái thiết bị + Phân bổ OS (full width, 50/50) */}
+      {/* Row 2 — Charts: Device Status + Department Distribution */}
       <div className="grid gap-4 lg:grid-cols-2">
-        <DeviceStatusChart devices={devices} />
-        <OSDistributionChart devices={devices} />
+        <Suspense fallback={<ChartSkeleton />}>
+          <DeviceStatusChart devices={devices} />
+        </Suspense>
+        <Suspense fallback={<ChartSkeleton />}>
+          <DepartmentChart endUsers={endUsers} />
+        </Suspense>
       </div>
 
-      {/* Row 3 — Hardware Overview (2/3) + Recent Activity (1/3) */}
-      <div className="grid gap-4 lg:grid-cols-3">
-        <div className="lg:col-span-2">
+      {/* Row 3 — Hardware Overview + Recent Activity */}
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Suspense fallback={<ChartSkeleton />}>
           <HardwareOverview devices={devices} />
-        </div>
-        <RecentActivity devices={devices} />
+        </Suspense>
+        <RecentActivity devices={devices} endUsers={endUsers} />
       </div>
     </div>
   )

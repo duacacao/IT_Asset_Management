@@ -1,9 +1,19 @@
-import type { NextConfig } from "next";
+import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
-  output: "standalone",
+  output: 'standalone',
   experimental: {
-    optimizePackageImports: ["lucide-react", "@radix-ui/react-icons"],
+    optimizePackageImports: [
+      'lucide-react',
+      '@radix-ui/react-icons',
+      '@radix-ui/react-dialog',
+      '@radix-ui/react-dropdown-menu',
+      '@radix-ui/react-popover',
+      '@radix-ui/react-select',
+      '@radix-ui/react-tabs',
+      '@radix-ui/react-tooltip',
+      'recharts',
+    ],
   },
 
   // Image optimization
@@ -41,7 +51,7 @@ const nextConfig: NextConfig = {
           },
         ],
       },
-    ];
+    ]
   },
 
   // Redirects for better SEO
@@ -52,8 +62,8 @@ const nextConfig: NextConfig = {
         destination: '/dashboard',
         permanent: true,
       },
-    ];
+    ]
   },
-};
+}
 
-export default nextConfig;
+export default nextConfig

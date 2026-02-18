@@ -8,68 +8,63 @@ import { returnDevice } from './device-assignments'
 
 // ============================================
 // Lấy danh sách devices của user hiện tại
-// RLS tự động filter theo owner_id = auth.uid()
+// FIX: Added auth check + owner_id filter (consistent with getEndUsers)
+// Refactor: Return raw data { devices, assignments }
 // ============================================
 export async function getDevices() {
   const supabase = await createClient()
 
-  // 1. Lấy danh sách devices
-  const { data: devices, error: deviceError } = await supabase
-    .from('devices')
-    .select('*')
-    .is('deleted_at', null)
-    .order('created_at', { ascending: false })
-
-  if (deviceError) {
-    console.error('Lỗi lấy danh sách devices:', deviceError.message)
-    return { data: null, error: deviceError.message }
+  // Auth check
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) {
+    return { data: { devices: [], assignments: [] }, error: 'Người dùng chưa đăng nhập' }
   }
 
-  // 2. Lấy danh sách assignments active (chưa trả)
-  // Để tối ưu, chỉ lấy các assignment của devices vừa fetch được
-  const deviceIds = devices.map((d) => d.id)
-  const { data: assignments, error: assignmentError } = await supabase
-    .from('device_assignments')
-    .select(
-      `
-            id,
-            device_id,
-            end_user_id,
-            assigned_at,
-            end_users (full_name, email)
+  // Parallel queries with Promise.all for performance
+  const [devicesResult, assignmentsResult] = await Promise.all([
+    supabase
+      .from('devices')
+      .select('*')
+      .eq('owner_id', user.id)
+      .is('deleted_at', null)
+      .order('created_at', { ascending: false }),
+    supabase
+      .from('device_assignments')
+      .select(
         `
-    )
-    .in('device_id', deviceIds)
-    .is('returned_at', null)
+        id,
+        device_id,
+        end_user_id,
+        assigned_at,
+        end_users (full_name, email)
+        `
+      )
+      .eq('user_id', user.id)
+      .is('returned_at', null),
+  ])
 
-  if (assignmentError) {
-    console.error('Lỗi lấy assignments:', assignmentError.message)
-    // Không return error, vẫn trả về device list nhưng không có info assignment
+  if (devicesResult.error) {
+    console.error('Lỗi lấy danh sách devices:', devicesResult.error.message)
+    return { data: { devices: [], assignments: [] }, error: devicesResult.error.message }
   }
 
-  // 3. Map assignment vào device
-  const devicesWithAssignment = devices.map((device) => {
-    const assignment = assignments?.find((a) => a.device_id === device.id)
-    // Handle end_users being array or object
-    const user = Array.isArray(assignment?.end_users)
-      ? assignment?.end_users[0]
-      : assignment?.end_users
-
+  if (assignmentsResult.error) {
+    console.error('Lỗi lấy assignments:', assignmentsResult.error.message)
     return {
-      ...device,
-      assignment: assignment
-        ? {
-          id: assignment.id,
-          end_user_id: assignment.end_user_id,
-          assignee_name: user?.full_name,
-          assignee_email: user?.email,
-          assigned_at: assignment.assigned_at,
-        }
-        : undefined,
+      data: { devices: devicesResult.data || [], assignments: [] },
+      error: assignmentsResult.error.message,
     }
-  })
+  }
 
-  return { data: devicesWithAssignment, error: null }
+  return {
+    data: {
+      devices: devicesResult.data || [],
+      assignments: assignmentsResult.data || [],
+    },
+    error: null,
+  }
 }
 
 // ============================================
@@ -79,65 +74,56 @@ export async function getDevices() {
 export async function getDeviceWithSheets(deviceId: string) {
   const supabase = await createClient()
 
-  // Lấy device + sheets trong 1 query (join)
-  const { data, error } = await supabase
-    .from('devices')
-    .select(
+  // Parallel: device+sheets and assignment
+  const [deviceResult, assignmentResult] = await Promise.all([
+    supabase
+      .from('devices')
+      .select(
+        `
+        *,
+        device_sheets (
+          id,
+          sheet_name,
+          sheet_data,
+          sort_order,
+          created_at
+        )
       `
-      *,
-      device_sheets (
-        id,
-        sheet_name,
-        sheet_data,
-        sort_order,
-        created_at
       )
-    `
-    )
-    .eq('id', deviceId)
-    .is('deleted_at', null)
-    .single()
-
-  if (error) {
-    console.error('Lỗi lấy device:', error.message)
-    return { data: null, error: error.message }
-  }
-
-  // 2. Fetch active assignment
-  const { data: assignment } = await supabase
-    .from('device_assignments')
-    .select(
-      `
+      .eq('id', deviceId)
+      .is('deleted_at', null)
+      .single(),
+    supabase
+      .from('device_assignments')
+      .select(
+        `
          id,
+         device_id,
          end_user_id,
          assigned_at,
          end_users (full_name, email)
        `
-    )
-    .eq('device_id', deviceId)
-    .is('returned_at', null)
-    .maybeSingle()
+      )
+      .eq('device_id', deviceId)
+      .is('returned_at', null)
+      .maybeSingle(),
+  ])
 
-  // Handle end_users being array or object
-  const user = Array.isArray(assignment?.end_users)
-    ? assignment?.end_users[0]
-    : assignment?.end_users
-
-  // Map assignment info
-  const deviceWithAssignment = {
-    ...data,
-    assignment: assignment
-      ? {
-        id: assignment.id,
-        end_user_id: assignment.end_user_id,
-        assignee_name: user?.full_name,
-        assignee_email: user?.email,
-        assigned_at: assignment.assigned_at,
-      }
-      : undefined,
+  if (deviceResult.error) {
+    console.error('Lỗi lấy device:', deviceResult.error.message)
+    return { data: null, error: deviceResult.error.message }
   }
 
-  return { data: deviceWithAssignment, error: null }
+  const { device_sheets, ...deviceData } = deviceResult.data
+
+  return {
+    data: {
+      device: deviceData,
+      sheets: device_sheets || [],
+      assignment: assignmentResult.data,
+    },
+    error: null,
+  }
 }
 
 // ============================================
@@ -210,12 +196,14 @@ export async function checkDeviceAssignment(deviceId: string): Promise<{
 
   const { data } = await supabase
     .from('device_assignments')
-    .select(`
+    .select(
+      `
       id,
       end_users:end_user_id (
         full_name
       )
-    `)
+    `
+    )
     .eq('device_id', deviceId)
     .is('returned_at', null)
     .maybeSingle()

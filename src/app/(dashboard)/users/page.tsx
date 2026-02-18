@@ -8,8 +8,8 @@ import { EndUserWithDevice } from '@/types/end-user'
 export default async function UsersPage() {
   const result = await getEndUsers()
 
-  // Safe default
-  const initialData: EndUserWithDevice[] = result.data || []
+  // FIX: Handle new return type { endUsers, assignments }
+  const initialData: EndUserWithDevice[] = result.data?.endUsers || []
 
   if (result.error) {
     console.error('Failed to fetch users:', result.error)

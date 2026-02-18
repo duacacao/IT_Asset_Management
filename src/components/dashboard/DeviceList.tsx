@@ -55,6 +55,7 @@ interface DeviceListProps {
   onDeleteDevice: (deviceId: string) => void
   onSelectionChange?: (selectedDevices: Device[]) => void
   highlightId?: string | null
+  headerAction?: React.ReactNode
 }
 
 export function DeviceList({
@@ -65,6 +66,7 @@ export function DeviceList({
   onDeleteDevice,
   onSelectionChange,
   highlightId,
+  headerAction,
 }: DeviceListProps) {
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
@@ -101,9 +103,7 @@ export function DeviceList({
       try {
         const result = await checkDeviceAssignment(deleteId!)
         if (!cancelled) {
-          setAssignmentWarning(
-            result.hasAssignment ? { endUserName: result.endUserName } : null
-          )
+          setAssignmentWarning(result.hasAssignment ? { endUserName: result.endUserName } : null)
         }
       } catch {
         // Nếu lỗi check → fallback về dialog thường (an toàn)
@@ -114,7 +114,9 @@ export function DeviceList({
     }
 
     check()
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+    }
   }, [deleteId])
 
   const updateStatusMutation = useUpdateStatusMutation()
@@ -179,7 +181,9 @@ export function DeviceList({
   return (
     <div className="space-y-4">
       {/* FilterBar */}
-      <FilterBar onFilterChange={setFilters} onReset={() => setFilters({})} />
+      <FilterBar onFilterChange={setFilters} onReset={() => setFilters({})}>
+        {headerAction}
+      </FilterBar>
 
       {/* Bulk Actions toolbar */}
       {Object.keys(rowSelection).length > 0 && (
@@ -296,21 +300,8 @@ export function DeviceList({
                   role="row"
                   data-highlighted={highlightId === row.original.id}
                   aria-label={`Device ${row.original.deviceInfo.name}, Status ${row.original.status}, IP ${row.original.deviceInfo.ip || 'Not set'}, OS ${row.original.deviceInfo.os}`}
-                  className={`hover:bg-muted/50 cursor-pointer ${highlightId === row.original.id ? 'bg-primary/10 transition-colors duration-1000' : ''}`}
+                  className={`${highlightId === row.original.id ? 'bg-primary/10 transition-colors duration-1000' : ''}`}
                   tabIndex={0}
-                  onClick={(e) => {
-                    // Không mở view modal khi click vào actions column hoặc checkbox
-                    const target = e.target as HTMLElement
-                    if (target.closest('[data-no-row-click]')) return
-                    onViewDevice(row.original)
-                  }}
-                  onKeyDown={(e) => {
-                    // B1: Hỗ trợ keyboard navigation — Enter mở detail
-                    if (e.key === 'Enter') {
-                      e.preventDefault()
-                      onViewDevice(row.original)
-                    }
-                  }}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
@@ -438,8 +429,8 @@ export function DeviceList({
             <AlertDialogDescription>
               {bulkAssignmentCount > 0 ? (
                 <>
-                  ⚠️ <strong>{bulkAssignmentCount}</strong> trong{' '}
-                  {Object.keys(rowSelection).length} thiết bị đang được bàn giao cho end-user.
+                  ⚠️ <strong>{bulkAssignmentCount}</strong> trong {Object.keys(rowSelection).length}{' '}
+                  thiết bị đang được bàn giao cho end-user.
                   <br />
                   Tất cả sẽ tự động được thu hồi nếu bạn xóa.
                 </>

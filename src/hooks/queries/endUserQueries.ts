@@ -2,6 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { getEndUsers, getEndUser, getAvailableDevices } from '@/app/actions/end-users'
+import { toFrontendEndUser } from '@/lib/supabase-adapter'
 import { getDepartments } from '@/app/actions/departments'
 import { getPositions } from '@/app/actions/positions'
 import { queryKeys } from './queryKeys'
@@ -13,10 +14,15 @@ import { queryKeys } from './queryKeys'
 export function useEndUsersQuery() {
   return useQuery({
     queryKey: queryKeys.endUsers.list(),
+    staleTime: 60 * 1000,
     queryFn: async () => {
       const { data, error } = await getEndUsers()
       if (error) throw new Error(error)
-      return data || []
+      if (!data) return []
+
+      const { endUsers, assignments } = data
+
+      return endUsers.map((user: any) => toFrontendEndUser(user, assignments))
     },
   })
 }

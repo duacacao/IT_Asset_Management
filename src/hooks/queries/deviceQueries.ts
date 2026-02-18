@@ -18,10 +18,14 @@ export const deviceKeys = {
 export function useDevicesQuery() {
   return useQuery({
     queryKey: deviceKeys.list(),
+    staleTime: 60 * 1000,
     queryFn: async () => {
       const { data, error } = await getDevices()
       if (error || !data) throw new Error(error || 'Không thể tải danh sách devices')
-      return data.map(toFrontendDevice)
+
+      const { devices, assignments } = data
+
+      return devices.map((d: any) => toFrontendDevice(d, assignments))
     },
   })
 }
@@ -30,15 +34,17 @@ export function useDeviceDetailQuery(deviceId: string | null) {
   return useQuery({
     queryKey: deviceKeys.detail(deviceId!),
     enabled: !!deviceId,
+    staleTime: 30 * 1000,
     queryFn: async () => {
       const { data, error } = await getDeviceWithSheets(deviceId!)
       if (error || !data) throw new Error(error || 'Không thể tải device')
 
-      const { device_sheets = [], ...deviceRow } = data as any
+      const { device, sheets = [], assignment } = data as any
+
       return {
-        device: toFrontendDeviceWithSheets(deviceRow, device_sheets),
-        sheetIdMap: buildSheetIdMap(device_sheets),
-        rawSheets: device_sheets,
+        device: toFrontendDeviceWithSheets(device, sheets, assignment),
+        sheetIdMap: buildSheetIdMap(sheets),
+        rawSheets: sheets,
       }
     },
   })

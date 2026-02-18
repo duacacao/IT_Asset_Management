@@ -82,7 +82,7 @@ export function DeviceAssignmentDialog({
           // If we need to select a user (assigning a device)
           if (deviceId && !userId) {
             const res = await getEndUsers()
-            if (res.data) setUsers(res.data)
+            if (res.data) setUsers(res.data.endUsers || [])
           }
 
           // If we need to select a device (assigning to a user)
@@ -145,9 +145,7 @@ export function DeviceAssignmentDialog({
       if (result.error) {
         toast.error(result.error)
       } else {
-        const msg = forceReassign
-          ? 'Đã chuyển thiết bị thành công'
-          : 'Gán thiết bị thành công'
+        const msg = forceReassign ? 'Đã chuyển thiết bị thành công' : 'Gán thiết bị thành công'
         toast.success(msg)
         // Self-invalidate React Query cache → UI tự refresh
         invalidateRelatedQueries()
@@ -301,7 +299,7 @@ export function DeviceAssignmentDialog({
           {reassignInfo.needsConfirm && (
             <div className="rounded-md border border-yellow-500/30 bg-yellow-500/10 p-3">
               <div className="flex items-start gap-2">
-                <AlertTriangle className="h-5 w-5 shrink-0 text-yellow-500 mt-0.5" />
+                <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-yellow-500" />
                 <div className="text-sm">
                   <p className="font-semibold text-yellow-700 dark:text-yellow-400">
                     Thiết bị đang được bàn giao
