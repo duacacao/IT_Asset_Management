@@ -335,7 +335,7 @@ export async function importDevice(
 export async function getDeviceStats() {
   const supabase = await createClient()
 
-  const { data, error } = await supabase.from('devices').select('status')
+  const { data, error } = await supabase.from('devices').select('status').is('deleted_at', null)
 
   if (error) {
     return { total: 0, active: 0, broken: 0, inactive: 0 }

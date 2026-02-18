@@ -16,27 +16,25 @@ interface DeviceStatusChartProps {
   devices: Device[]
 }
 
-// Cấu hình màu cho từng trạng thái — tông hiện đại, tương phản tốt
 const chartConfig = {
   count: {
     label: 'Thiết bị',
   },
   active: {
     label: 'Đang sử dụng',
-    color: 'hsl(160, 84%, 39%)', // Emerald — hoạt động tốt
+    color: 'hsl(160, 84%, 39%)',
   },
   broken: {
     label: 'Hư hỏng',
-    color: 'hsl(0, 84%, 60%)', // Red — cần chú ý
+    color: 'hsl(0, 84%, 60%)',
   },
   inactive: {
     label: 'Không sử dụng',
-    color: 'hsl(43, 96%, 56%)', // Amber — trung tính
+    color: 'hsl(43, 96%, 56%)',
   },
 } satisfies ChartConfig
 
 export function DeviceStatusChart({ devices }: DeviceStatusChartProps) {
-  // Nhóm thiết bị theo trạng thái
   const chartData = React.useMemo(() => {
     const active = devices.filter((d) => (d.status ?? 'active') === 'active').length
     const broken = devices.filter((d) => d.status === 'broken').length
@@ -46,21 +44,21 @@ export function DeviceStatusChart({ devices }: DeviceStatusChartProps) {
       { status: 'active', count: active, fill: 'var(--color-active)' },
       { status: 'broken', count: broken, fill: 'var(--color-broken)' },
       { status: 'inactive', count: inactive, fill: 'var(--color-inactive)' },
-    ].filter((d) => d.count > 0) // Chỉ hiển thị trạng thái có thiết bị
+    ].filter((d) => d.count > 0)
   }, [devices])
 
   const total = devices.length
 
   return (
-    <Card className="flex h-full flex-col">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-base font-semibold">Trạng thái thiết bị</CardTitle>
-        <CardDescription>Phân bổ theo trạng thái hoạt động</CardDescription>
+    <Card className="flex flex-col">
+      <CardHeader className="items-center pb-0">
+        <CardTitle>Trạng thái thiết bị</CardTitle>
+        <CardDescription>Phân bổ theo trạng thái</CardDescription>
       </CardHeader>
-      <CardContent className="flex flex-1 items-center justify-center gap-2 pb-4 sm:gap-4">
+      <CardContent className="flex flex-1 flex-col items-center gap-4 pb-0 lg:flex-row lg:gap-6">
         <ChartContainer
           config={chartConfig}
-          className="mx-auto aspect-square w-full max-w-[180px] sm:max-w-[240px] lg:max-w-[280px]"
+          className="aspect-square max-h-[250px] w-full max-w-[250px]"
         >
           <PieChart>
             <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
@@ -68,12 +66,11 @@ export function DeviceStatusChart({ devices }: DeviceStatusChartProps) {
               data={chartData}
               dataKey="count"
               nameKey="status"
-              innerRadius={45}
-              outerRadius={70}
-              strokeWidth={2}
+              innerRadius={60}
+              outerRadius={90}
+              strokeWidth={5}
               stroke="hsl(var(--card))"
               paddingAngle={2}
-              className="sm:[&_.recharts-pie-sector]:innerRadius-[55px] sm:[&_.recharts-pie-sector]:outerRadius-[85px] lg:[&_.recharts-pie-sector]:innerRadius-[65px] lg:[&_.recharts-pie-sector]:outerRadius-[100px]"
             >
               <Label
                 content={({ viewBox }) => {
@@ -88,14 +85,14 @@ export function DeviceStatusChart({ devices }: DeviceStatusChartProps) {
                         <tspan
                           x={viewBox.cx}
                           y={viewBox.cy}
-                          className="fill-foreground text-xl font-bold sm:text-2xl lg:text-3xl"
+                          className="fill-foreground text-3xl font-bold"
                         >
                           {total.toLocaleString()}
                         </tspan>
                         <tspan
                           x={viewBox.cx}
-                          y={(viewBox.cy || 0) + 18}
-                          className="fill-muted-foreground text-xs sm:text-sm"
+                          y={(viewBox.cy || 0) + 24}
+                          className="fill-muted-foreground text-sm"
                         >
                           Thiết bị
                         </tspan>
@@ -108,25 +105,20 @@ export function DeviceStatusChart({ devices }: DeviceStatusChartProps) {
           </PieChart>
         </ChartContainer>
 
-        <div className="hidden min-w-[100px] flex-col gap-2 sm:flex sm:min-w-[120px] sm:gap-2.5 lg:flex lg:min-w-[140px] lg:gap-3">
+        <div className="flex w-full flex-row flex-wrap justify-center gap-3 lg:w-auto lg:flex-col lg:gap-2">
           {chartData.map((item) => {
             const config = chartConfig[item.status as keyof typeof chartConfig]
             const percent = total > 0 ? Math.round((item.count / total) * 100) : 0
             return (
-              <div key={item.status} className="flex items-center gap-2 lg:gap-3">
+              <div key={item.status} className="flex items-center gap-2">
                 <span
-                  className="h-2.5 w-2.5 shrink-0 rounded-full lg:h-3 lg:w-3"
-                  style={{ backgroundColor: item.fill.startsWith('var') ? undefined : item.fill }}
-                  data-status={item.status}
+                  className="h-2.5 w-2.5 shrink-0 rounded-full"
+                  style={{ backgroundColor: 'color' in config ? config.color : undefined }}
                 />
-                <div className="min-w-0 flex-1">
-                  <p className="text-xs leading-tight font-medium lg:text-sm">
-                    {'label' in config ? String(config.label) : item.status}
-                  </p>
-                  <p className="text-muted-foreground text-[10px] lg:text-xs">
-                    {item.count} · {percent}%
-                  </p>
-                </div>
+                <span className="text-sm font-medium">
+                  {'label' in config ? String(config.label) : item.status}
+                </span>
+                <span className="text-muted-foreground text-xs">({percent}%)</span>
               </div>
             )
           })}

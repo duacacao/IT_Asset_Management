@@ -23,6 +23,9 @@ interface DeviceSpecs {
   totalRows?: number
   tags?: string[]
   visibleSheets?: string[]
+  screenSize?: string
+  resolution?: string
+  connectionType?: string
 }
 
 // ============================================
@@ -46,12 +49,12 @@ export function toFrontendDevice(dbDevice: DbDevice, assignments: any[] = []): D
 
   const mappedAssignment = assignment
     ? {
-      id: assignment.id,
-      end_user_id: assignment.end_user_id,
-      assignee_name: assignment.end_users?.full_name || assignment.end_users?.[0]?.full_name,
-      assignee_email: assignment.end_users?.email || assignment.end_users?.[0]?.email,
-      assigned_at: assignment.assigned_at,
-    }
+        id: assignment.id,
+        end_user_id: assignment.end_user_id,
+        assignee_name: assignment.end_users?.full_name || assignment.end_users?.[0]?.full_name,
+        assignee_email: assignment.end_users?.email || assignment.end_users?.[0]?.email,
+        assigned_at: assignment.assigned_at,
+      }
     : undefined
 
   return {
@@ -69,6 +72,9 @@ export function toFrontendDevice(dbDevice: DbDevice, assignments: any[] = []): D
       mac: specs.mac || '',
       lastUpdate: dbDevice.updated_at,
       type: (dbDevice.type as DeviceType) || 'PC',
+      screenSize: specs.screenSize,
+      resolution: specs.resolution,
+      connectionType: specs.connectionType,
     },
     fileName: specs.fileName || '',
     sheets: {},
@@ -89,7 +95,10 @@ export function toFrontendDevice(dbDevice: DbDevice, assignments: any[] = []): D
 // Dùng cho list view / detail view
 // ============================================
 export function toFrontendEndUser(
-  dbUser: DbEndUser & { departments?: { name: string } | null; positions?: { name: string } | null },
+  dbUser: DbEndUser & {
+    departments?: { name: string } | null
+    positions?: { name: string } | null
+  },
   assignments: any[] = [] // Raw assignments from DB
 ): EndUserWithDevice {
   // Lọc assignments của user này (match theo end_user_id)
@@ -214,6 +223,9 @@ export function toSupabaseDeviceInsert(
       totalSheets: meta?.totalSheets || 0,
       totalRows: meta?.totalRows || 0,
       tags: [] as string[],
+      screenSize: info.screenSize || '',
+      resolution: info.resolution || '',
+      connectionType: info.connectionType || '',
     },
   }
 }

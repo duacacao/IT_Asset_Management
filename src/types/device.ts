@@ -25,6 +25,9 @@ export interface DeviceInfo {
   mac: string
   lastUpdate: string
   type?: DeviceType
+  screenSize?: string
+  resolution?: string
+  connectionType?: string
 }
 
 export interface DeviceMetadata {

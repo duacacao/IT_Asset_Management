@@ -10,7 +10,12 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { SoftLabel } from '@/components/ui/soft-label'
 import { Device, DeviceStatus } from '@/types/device'
-import { DEVICE_STATUS_CONFIG, DEVICE_TYPE_LABELS } from '@/constants/device'
+import {
+  DEVICE_STATUS_CONFIG,
+  DEVICE_TYPE_LABELS,
+  DEVICE_TYPE_COLORS,
+  DEVICE_TYPES,
+} from '@/constants/device'
 import { Badge } from '@/components/ui/badge'
 import { Laptop, Smartphone, Tablet, Monitor, Server, Printer, Network } from 'lucide-react'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
@@ -18,23 +23,23 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 const getDeviceIcon = (type: string | null) => {
   switch (type?.toLowerCase()) {
     case 'laptop':
-      return <Laptop className="h-4 w-4 text-muted-foreground" />
+      return <Laptop className="text-muted-foreground h-4 w-4" />
     case 'smartphone':
     case 'mobile':
     case 'phone':
-      return <Smartphone className="h-4 w-4 text-muted-foreground" />
+      return <Smartphone className="text-muted-foreground h-4 w-4" />
     case 'tablet':
-      return <Tablet className="h-4 w-4 text-muted-foreground" />
+      return <Tablet className="text-muted-foreground h-4 w-4" />
     case 'monitor':
     case 'desktop':
     case 'pc':
-      return <Monitor className="h-4 w-4 text-muted-foreground" />
+      return <Monitor className="text-muted-foreground h-4 w-4" />
     case 'printer':
-      return <Printer className="h-4 w-4 text-muted-foreground" />
+      return <Printer className="text-muted-foreground h-4 w-4" />
     case 'network':
-      return <Network className="h-4 w-4 text-muted-foreground" />
+      return <Network className="text-muted-foreground h-4 w-4" />
     default:
-      return <Laptop className="h-4 w-4 text-muted-foreground" />
+      return <Laptop className="text-muted-foreground h-4 w-4" />
   }
 }
 
@@ -107,15 +112,15 @@ export function createDeviceColumns({
         </Button>
       ),
       cell: ({ row }) => (
-        <div className="flex items-center gap-3 py-1 pl-4 pr-12">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted/50 border">
+        <div className="flex items-center gap-3 py-1 pr-12 pl-4">
+          <div className="bg-muted/50 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border">
             {getDeviceIcon(row.original.type)}
           </div>
           <div className="flex flex-col">
-            <span className="font-medium text-sm text-foreground">
+            <span className="text-foreground text-sm font-medium">
               {row.original.deviceInfo.name}
             </span>
-            <span className="text-xs text-muted-foreground">
+            <span className="text-muted-foreground text-xs">
               {row.original.deviceInfo.os || 'Unknown OS'}
             </span>
           </div>
@@ -125,11 +130,15 @@ export function createDeviceColumns({
     {
       accessorKey: 'type',
       header: 'Loại',
-      cell: ({ row }) => (
-        <span className="text-sm">
-          {DEVICE_TYPE_LABELS[row.original.type] || row.original.type}
-        </span>
-      ),
+      cell: ({ row }) => {
+        const type = row.original.type
+        const colors = DEVICE_TYPE_COLORS[type] || DEVICE_TYPE_COLORS[DEVICE_TYPES.OTHER]
+        return (
+          <Badge variant="secondary" className={`${colors.bg} ${colors.text} border-0 font-medium`}>
+            {DEVICE_TYPE_LABELS[type] || type}
+          </Badge>
+        )
+      },
     },
     {
       accessorKey: 'status',
@@ -144,10 +153,10 @@ export function createDeviceColumns({
         return assignment && assignment.assignee_name ? (
           <Badge
             variant="secondary"
-            className="flex w-fit items-center gap-2 px-1 py-0.5 pr-2.5 bg-background border border-border text-foreground hover:bg-muted/50 shadow-sm transition-all rounded-full font-normal"
+            className="bg-background border-border text-foreground hover:bg-muted/50 flex w-fit items-center gap-2 rounded-full border px-1 py-0.5 pr-2.5 font-normal shadow-sm transition-all"
           >
             <Avatar className="h-5 w-5">
-              <AvatarFallback className="text-[9px] bg-muted text-muted-foreground">
+              <AvatarFallback className="bg-muted text-muted-foreground text-[9px]">
                 {assignment.assignee_name
                   .split(' ')
                   .map((n) => n[0])
@@ -177,7 +186,7 @@ export function createDeviceColumns({
             }}
             title="Xem chi tiết"
           >
-            <Eye className="h-4 w-4 text-muted-foreground" />
+            <Eye className="text-muted-foreground h-4 w-4" />
           </Button>
           <Button
             variant="ghost"
@@ -188,12 +197,12 @@ export function createDeviceColumns({
             }}
             title="Chỉnh sửa"
           >
-            <Pencil className="h-4 w-4 text-muted-foreground" />
+            <Pencil className="text-muted-foreground h-4 w-4" />
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" aria-label="Thêm hành động">
-                <MoreHorizontal className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+                <MoreHorizontal className="text-muted-foreground h-4 w-4" aria-hidden="true" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">

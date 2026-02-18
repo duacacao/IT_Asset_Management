@@ -44,14 +44,11 @@ export function DeviceDetailModal({
           onValueChange={(v) => setActiveTab(v as any)}
           className="flex min-h-0 flex-1 flex-col"
         >
-          <div className="flex shrink-0 items-center justify-between border-b px-6 py-4">
-            <div className="flex items-center gap-4">
-              <h2 className="text-lg font-semibold tracking-tight">{fullDevice.deviceInfo.name}</h2>
-              <TabsList className="grid w-[200px] grid-cols-2">
-                <TabsTrigger value="overview">Tổng quan</TabsTrigger>
-                <TabsTrigger value="sheets">Dữ liệu</TabsTrigger>
-              </TabsList>
-            </div>
+          <div className="flex shrink-0 items-center justify-start border-b px-6 py-4">
+            <TabsList className="grid w-[200px] grid-cols-2">
+              <TabsTrigger value="overview">Tổng quan</TabsTrigger>
+              <TabsTrigger value="sheets">Dữ liệu</TabsTrigger>
+            </TabsList>
           </div>
 
           {/* Tab Content */}

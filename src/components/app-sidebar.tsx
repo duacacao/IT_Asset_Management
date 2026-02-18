@@ -38,26 +38,14 @@ function SidebarQuickStats() {
       <SidebarGroupLabel>Thống kê nhanh</SidebarGroupLabel>
       <div className="px-2 py-1">
         <div className="grid grid-cols-2 gap-2">
-          <Link
-            href="/devices"
-            className="hover:bg-muted/50 bg-primary/5 flex items-center gap-2 rounded-md px-3 py-2 transition-colors"
-          >
-            <Laptop className="text-primary h-4 w-4" />
-            <div>
-              <p className="text-sm font-bold">{totalDevices}</p>
-              <p className="text-muted-foreground text-[10px]">Thiết bị</p>
-            </div>
-          </Link>
-          <Link
-            href="/end-user"
-            className="hover:bg-muted/50 flex items-center gap-2 rounded-md bg-blue-500/5 px-3 py-2 transition-colors"
-          >
+          <div className="flex items-center justify-center gap-2 rounded-md bg-teal-500/5 px-3 py-2">
+            <Laptop className="h-4 w-4 text-teal-500" />
+            <p className="text-sm font-bold">{totalDevices}</p>
+          </div>
+          <div className="flex items-center justify-center gap-2 rounded-md bg-blue-500/5 px-3 py-2">
             <Users className="h-4 w-4 text-blue-500" />
-            <div>
-              <p className="text-sm font-bold">{totalUsers}</p>
-              <p className="text-muted-foreground text-[10px]">Người dùng</p>
-            </div>
-          </Link>
+            <p className="text-sm font-bold">{totalUsers}</p>
+          </div>
         </div>
       </div>
     </SidebarGroup>

@@ -37,6 +37,9 @@ export function useCreateDeviceMutation() {
       mac: string
       status?: DeviceStatus
       type?: DeviceType
+      screenSize?: string
+      resolution?: string
+      connectionType?: string
     }) => {
       const insertData = toSupabaseDeviceInsert(info)
       if (info.status) insertData.status = info.status
