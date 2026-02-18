@@ -89,3 +89,239 @@ export const DEVICE_DETAIL_CONFIG = {
     DESKTOP: 3,
   },
 } as const
+
+export type CardType = 'hardware' | 'os' | 'network' | 'display' | 'connection'
+
+export interface DetailCardField {
+  key: string
+  label: string
+  source: 'deviceInfo' | 'sheets' | 'computed'
+  computedKey?: string
+}
+
+export interface DetailCardConfig {
+  type: CardType
+  title: string
+  icon: string
+  iconColor: string
+  fields: DetailCardField[]
+}
+
+export const DEVICE_DETAIL_CARDS: Record<string, DetailCardConfig[]> = {
+  [DEVICE_TYPES.PC]: [
+    {
+      type: 'hardware',
+      title: 'Phần cứng',
+      icon: 'Cpu',
+      iconColor: 'text-orange-600',
+      fields: [
+        { key: 'cpu', label: 'Processor', source: 'deviceInfo' },
+        { key: 'ram', label: 'Memory', source: 'deviceInfo' },
+        { key: 'gpu', label: 'Graphics', source: 'computed', computedKey: 'gpu' },
+        { key: 'storage', label: 'Storage', source: 'computed', computedKey: 'storage' },
+      ],
+    },
+    {
+      type: 'os',
+      title: 'Hệ điều hành',
+      icon: 'HardDrive',
+      iconColor: 'text-purple-600',
+      fields: [
+        { key: 'os', label: 'OS', source: 'deviceInfo' },
+        { key: 'architecture', label: 'Architecture', source: 'deviceInfo' },
+        {
+          key: 'activationStatus',
+          label: 'Activation',
+          source: 'computed',
+          computedKey: 'activationStatus',
+        },
+        { key: 'biosMode', label: 'BIOS Mode', source: 'computed', computedKey: 'biosMode' },
+      ],
+    },
+    {
+      type: 'network',
+      title: 'Mạng & Kết nối',
+      icon: 'Wifi',
+      iconColor: 'text-sky-600',
+      fields: [
+        { key: 'ip', label: 'IP Address', source: 'deviceInfo' },
+        { key: 'mac', label: 'MAC Address', source: 'deviceInfo' },
+      ],
+    },
+  ],
+  [DEVICE_TYPES.LAPTOP]: [
+    {
+      type: 'hardware',
+      title: 'Phần cứng',
+      icon: 'Cpu',
+      iconColor: 'text-orange-600',
+      fields: [
+        { key: 'cpu', label: 'Processor', source: 'deviceInfo' },
+        { key: 'ram', label: 'Memory', source: 'deviceInfo' },
+        { key: 'gpu', label: 'Graphics', source: 'computed', computedKey: 'gpu' },
+        { key: 'storage', label: 'Storage', source: 'computed', computedKey: 'storage' },
+      ],
+    },
+    {
+      type: 'display',
+      title: 'Màn hình',
+      icon: 'Monitor',
+      iconColor: 'text-cyan-600',
+      fields: [
+        { key: 'screenSize', label: 'Screen Size', source: 'deviceInfo' },
+        { key: 'resolution', label: 'Resolution', source: 'deviceInfo' },
+      ],
+    },
+    {
+      type: 'os',
+      title: 'Hệ điều hành',
+      icon: 'HardDrive',
+      iconColor: 'text-purple-600',
+      fields: [
+        { key: 'os', label: 'OS', source: 'deviceInfo' },
+        { key: 'architecture', label: 'Architecture', source: 'deviceInfo' },
+        {
+          key: 'activationStatus',
+          label: 'Activation',
+          source: 'computed',
+          computedKey: 'activationStatus',
+        },
+        { key: 'biosMode', label: 'BIOS Mode', source: 'computed', computedKey: 'biosMode' },
+      ],
+    },
+    {
+      type: 'network',
+      title: 'Mạng & Kết nối',
+      icon: 'Wifi',
+      iconColor: 'text-sky-600',
+      fields: [
+        { key: 'ip', label: 'IP Address', source: 'deviceInfo' },
+        { key: 'mac', label: 'MAC Address', source: 'deviceInfo' },
+      ],
+    },
+  ],
+  [DEVICE_TYPES.MONITOR]: [
+    {
+      type: 'display',
+      title: 'Thông số màn hình',
+      icon: 'Monitor',
+      iconColor: 'text-cyan-600',
+      fields: [
+        { key: 'screenSize', label: 'Kích thước', source: 'deviceInfo' },
+        { key: 'resolution', label: 'Độ phân giải', source: 'deviceInfo' },
+      ],
+    },
+  ],
+  [DEVICE_TYPES.PRINTER]: [
+    {
+      type: 'connection',
+      title: 'Kết nối',
+      icon: 'Printer',
+      iconColor: 'text-orange-600',
+      fields: [{ key: 'connectionType', label: 'Loại kết nối', source: 'deviceInfo' }],
+    },
+    {
+      type: 'network',
+      title: 'Mạng',
+      icon: 'Wifi',
+      iconColor: 'text-sky-600',
+      fields: [
+        { key: 'ip', label: 'IP Address', source: 'deviceInfo' },
+        { key: 'mac', label: 'MAC Address', source: 'deviceInfo' },
+      ],
+    },
+  ],
+  [DEVICE_TYPES.PHONE]: [
+    {
+      type: 'os',
+      title: 'Hệ điều hành',
+      icon: 'Smartphone',
+      iconColor: 'text-blue-600',
+      fields: [
+        { key: 'os', label: 'OS', source: 'deviceInfo' },
+        { key: 'ram', label: 'RAM', source: 'deviceInfo' },
+      ],
+    },
+    {
+      type: 'network',
+      title: 'Mạng',
+      icon: 'Wifi',
+      iconColor: 'text-sky-600',
+      fields: [
+        { key: 'ip', label: 'IP Address', source: 'deviceInfo' },
+        { key: 'mac', label: 'MAC Address', source: 'deviceInfo' },
+      ],
+    },
+  ],
+  [DEVICE_TYPES.TABLET]: [
+    {
+      type: 'os',
+      title: 'Hệ điều hành',
+      icon: 'Tablet',
+      iconColor: 'text-emerald-600',
+      fields: [
+        { key: 'os', label: 'OS', source: 'deviceInfo' },
+        { key: 'ram', label: 'RAM', source: 'deviceInfo' },
+      ],
+    },
+    {
+      type: 'display',
+      title: 'Màn hình',
+      icon: 'Monitor',
+      iconColor: 'text-cyan-600',
+      fields: [{ key: 'screenSize', label: 'Kích thước', source: 'deviceInfo' }],
+    },
+    {
+      type: 'network',
+      title: 'Mạng',
+      icon: 'Wifi',
+      iconColor: 'text-sky-600',
+      fields: [
+        { key: 'ip', label: 'IP Address', source: 'deviceInfo' },
+        { key: 'mac', label: 'MAC Address', source: 'deviceInfo' },
+      ],
+    },
+  ],
+  [DEVICE_TYPES.NETWORK]: [
+    {
+      type: 'connection',
+      title: 'Kết nối',
+      icon: 'Network',
+      iconColor: 'text-amber-600',
+      fields: [{ key: 'connectionType', label: 'Loại kết nối', source: 'deviceInfo' }],
+    },
+    {
+      type: 'network',
+      title: 'Mạng',
+      icon: 'Wifi',
+      iconColor: 'text-sky-600',
+      fields: [
+        { key: 'ip', label: 'IP Address', source: 'deviceInfo' },
+        { key: 'mac', label: 'MAC Address', source: 'deviceInfo' },
+      ],
+    },
+  ],
+  [DEVICE_TYPES.OTHER]: [
+    {
+      type: 'hardware',
+      title: 'Thông tin thiết bị',
+      icon: 'Cpu',
+      iconColor: 'text-gray-600',
+      fields: [
+        { key: 'os', label: 'OS', source: 'deviceInfo' },
+        { key: 'cpu', label: 'Processor', source: 'deviceInfo' },
+        { key: 'ram', label: 'Memory', source: 'deviceInfo' },
+      ],
+    },
+    {
+      type: 'network',
+      title: 'Mạng',
+      icon: 'Wifi',
+      iconColor: 'text-sky-600',
+      fields: [
+        { key: 'ip', label: 'IP Address', source: 'deviceInfo' },
+        { key: 'mac', label: 'MAC Address', source: 'deviceInfo' },
+      ],
+    },
+  ],
+}
