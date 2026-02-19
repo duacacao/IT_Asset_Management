@@ -79,3 +79,59 @@ export const SHEET_NAMES = {
 } as const
 
 export type SheetNameKey = keyof typeof SHEET_NAMES
+
+// ============================================
+// Overview Data Types (từ XLSX import)
+// ============================================
+export interface RamSlot {
+  slot: string
+  size: string
+  type: string
+  speed: string
+  manufacturer: string
+}
+
+export interface OverviewData {
+  import_source?: 'xlsx' | 'manual'
+  device_type?: DeviceType
+
+  // OS
+  os_name?: string
+  architecture?: string
+  bios_mode?: string
+  activation_status?: string
+  bios_version?: string
+  bios_date?: string
+
+  // CPU / Hardware
+  processor?: string
+  device_manufacturer?: string
+  device_model?: string
+  device_serial?: string
+
+  // GPU
+  gpu_integrated?: string
+  gpu_discrete?: string
+
+  // Storage
+  storage_c_raw?: string
+  storage_d_raw?: string
+  disk_model?: string
+  disk_type?: string
+  disk_health?: string
+  disk_wear?: string
+  disk_temperature?: string
+  disk_hours?: string
+
+  // RAM
+  ram_total?: string
+  ram_slots?: RamSlot[]
+
+  // Network
+  ip_address?: string
+  mac_address?: string
+
+  // Software
+  software_count?: number
+  driver_count?: number
+}

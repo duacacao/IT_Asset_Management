@@ -111,36 +111,55 @@ export const DEVICE_DETAIL_CARDS: Record<string, DetailCardConfig[]> = {
   [DEVICE_TYPES.PC]: [
     {
       type: 'hardware',
-      title: 'Phần cứng',
+      title: 'CPU',
       icon: 'Cpu',
       iconColor: 'text-orange-600',
+      fields: [{ key: 'cpu', label: 'Processor', source: 'deviceInfo' }],
+    },
+    {
+      type: 'hardware',
+      title: 'Bộ nhớ',
+      icon: 'HardDrive',
+      iconColor: 'text-blue-600',
       fields: [
-        { key: 'cpu', label: 'Processor', source: 'deviceInfo' },
-        { key: 'ram', label: 'Memory', source: 'deviceInfo' },
-        { key: 'gpu', label: 'Graphics', source: 'computed', computedKey: 'gpu' },
+        { key: 'ram', label: 'RAM', source: 'deviceInfo' },
         { key: 'storage', label: 'Storage', source: 'computed', computedKey: 'storage' },
       ],
+    },
+    {
+      type: 'hardware',
+      title: 'GPU',
+      icon: 'Monitor',
+      iconColor: 'text-purple-600',
+      fields: [{ key: 'gpu', label: 'Graphics', source: 'computed', computedKey: 'gpu' }],
     },
     {
       type: 'os',
       title: 'Hệ điều hành',
       icon: 'HardDrive',
-      iconColor: 'text-purple-600',
+      iconColor: 'text-green-600',
       fields: [
         { key: 'os', label: 'OS', source: 'deviceInfo' },
         { key: 'architecture', label: 'Architecture', source: 'deviceInfo' },
+      ],
+    },
+    {
+      type: 'os',
+      title: 'Kích hoạt',
+      icon: 'CheckCircle2',
+      iconColor: 'text-emerald-600',
+      fields: [
         {
           key: 'activationStatus',
           label: 'Activation',
           source: 'computed',
           computedKey: 'activationStatus',
         },
-        { key: 'biosMode', label: 'BIOS Mode', source: 'computed', computedKey: 'biosMode' },
       ],
     },
     {
       type: 'network',
-      title: 'Mạng & Kết nối',
+      title: 'Mạng',
       icon: 'Wifi',
       iconColor: 'text-sky-600',
       fields: [
@@ -152,15 +171,27 @@ export const DEVICE_DETAIL_CARDS: Record<string, DetailCardConfig[]> = {
   [DEVICE_TYPES.LAPTOP]: [
     {
       type: 'hardware',
-      title: 'Phần cứng',
+      title: 'CPU',
       icon: 'Cpu',
       iconColor: 'text-orange-600',
+      fields: [{ key: 'cpu', label: 'Processor', source: 'deviceInfo' }],
+    },
+    {
+      type: 'hardware',
+      title: 'Bộ nhớ',
+      icon: 'HardDrive',
+      iconColor: 'text-blue-600',
       fields: [
-        { key: 'cpu', label: 'Processor', source: 'deviceInfo' },
-        { key: 'ram', label: 'Memory', source: 'deviceInfo' },
-        { key: 'gpu', label: 'Graphics', source: 'computed', computedKey: 'gpu' },
+        { key: 'ram', label: 'RAM', source: 'deviceInfo' },
         { key: 'storage', label: 'Storage', source: 'computed', computedKey: 'storage' },
       ],
+    },
+    {
+      type: 'hardware',
+      title: 'GPU',
+      icon: 'Monitor',
+      iconColor: 'text-purple-600',
+      fields: [{ key: 'gpu', label: 'Graphics', source: 'computed', computedKey: 'gpu' }],
     },
     {
       type: 'display',
@@ -176,22 +207,29 @@ export const DEVICE_DETAIL_CARDS: Record<string, DetailCardConfig[]> = {
       type: 'os',
       title: 'Hệ điều hành',
       icon: 'HardDrive',
-      iconColor: 'text-purple-600',
+      iconColor: 'text-green-600',
       fields: [
         { key: 'os', label: 'OS', source: 'deviceInfo' },
         { key: 'architecture', label: 'Architecture', source: 'deviceInfo' },
+      ],
+    },
+    {
+      type: 'os',
+      title: 'Kích hoạt',
+      icon: 'CheckCircle2',
+      iconColor: 'text-emerald-600',
+      fields: [
         {
           key: 'activationStatus',
           label: 'Activation',
           source: 'computed',
           computedKey: 'activationStatus',
         },
-        { key: 'biosMode', label: 'BIOS Mode', source: 'computed', computedKey: 'biosMode' },
       ],
     },
     {
       type: 'network',
-      title: 'Mạng & Kết nối',
+      title: 'Mạng',
       icon: 'Wifi',
       iconColor: 'text-sky-600',
       fields: [

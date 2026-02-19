@@ -1,5 +1,4 @@
 import { Device } from '@/types/device'
-import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import {
   Cpu,
@@ -9,7 +8,6 @@ import {
   Loader2,
   User,
   MoreVertical,
-  Activity,
   ChevronRight,
   Wifi,
   HardDrive,
@@ -58,6 +56,7 @@ const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   Smartphone,
   Tablet,
   Network,
+  CheckCircle2,
 }
 
 interface DeviceOverviewTabProps {
@@ -199,10 +198,10 @@ export function DeviceOverviewTab({ device, onExport, onDelete, onClose }: Devic
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
         <DetailCard
           title="Người sử dụng"
-          icon={<User className="text-primary h-5 w-5" />}
+          icon={<User className="h-5 w-5" />}
           actionLabel={device.assignment ? 'Quản lý' : 'Gán thiết bị'}
           onAction={() => setAssignmentDialogOpen(true)}
         >
@@ -225,7 +224,7 @@ export function DeviceOverviewTab({ device, onExport, onDelete, onClose }: Devic
 
         {cardConfigs.map((config) => (
           <DynamicDetailCard
-            key={config.type}
+            key={config.title}
             config={config}
             device={device}
             computedData={computedData}
@@ -285,31 +284,33 @@ function DetailCard({
   onAction?: () => void
 }) {
   return (
-    <Card className="border-border/60 hover:border-border/80 flex flex-col overflow-hidden shadow-sm transition-colors">
-      <CardContent className="flex flex-1 flex-col p-5">
-        <div className="mb-4 flex items-center gap-2.5">
-          <div className="bg-muted/40 flex h-8 w-8 items-center justify-center rounded-md p-1.5">
+    <div className="group relative overflow-hidden rounded-sm border border-gray-200 bg-white p-4 transition-all duration-300 hover:border-gray-300 hover:shadow-md">
+      <div className="absolute top-0 left-0 h-1 w-full bg-gray-900 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+
+      <div className="mb-3 flex items-center gap-2.5">
+        <div className="flex h-8 w-8 items-center justify-center rounded-sm bg-gray-100 transition-colors duration-300 group-hover:bg-gray-900">
+          <span className="text-gray-600 transition-colors duration-300 group-hover:text-white">
             {icon}
-          </div>
-          <span className="text-muted-foreground text-sm font-medium">{title}</span>
+          </span>
         </div>
+        <span className="text-xs font-medium tracking-wide text-gray-500 uppercase">{title}</span>
+      </div>
 
-        <div className="flex-1">{children}</div>
+      <div className="min-h-[40px]">{children}</div>
 
-        {actionLabel && (
-          <div className="mt-5 pt-0">
-            <button
-              onClick={onAction}
-              className="group flex items-center text-xs font-semibold text-blue-600 transition-colors hover:text-blue-700"
-              type="button"
-            >
-              {actionLabel}
-              <ChevronRight className="ml-0.5 h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
-            </button>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+      {actionLabel && (
+        <div className="mt-3 border-t border-gray-100 pt-2">
+          <button
+            onClick={onAction}
+            className="group/btn flex items-center text-xs font-semibold text-gray-900 transition-all hover:translate-x-1"
+            type="button"
+          >
+            {actionLabel}
+            <ChevronRight className="ml-1 h-3 w-3 transition-transform group-hover/btn:translate-x-1" />
+          </button>
+        </div>
+      )}
+    </div>
   )
 }
 
@@ -324,87 +325,86 @@ function DynamicDetailCard({
 }) {
   const IconComponent = ICON_MAP[config.icon] || Cpu
 
-  return (
-    <DetailCard
-      title={config.title}
-      icon={<IconComponent className={cn('h-5 w-5', config.iconColor)} />}
-    >
-      <div className="grid grid-cols-2 gap-4">
-        {config.fields.map((field) => {
-          let value: string | null = null
+  const getFieldValue = (field: DetailCardConfig['fields'][0]): string | null => {
+    if (field.source === 'deviceInfo') {
+      const info = device.deviceInfo as unknown as Record<string, unknown>
+      return info[field.key] as string | null
+    } else if (field.source === 'computed' && field.computedKey) {
+      const key = field.computedKey as keyof ComputedDeviceData
+      return computedData[key] as string | null
+    }
+    return null
+  }
 
-          if (field.source === 'deviceInfo') {
-            const info = device.deviceInfo as unknown as Record<string, unknown>
-            value = info[field.key] as string | null
-          } else if (field.source === 'computed' && field.computedKey) {
-            const key = field.computedKey as keyof ComputedDeviceData
-            value = computedData[key] as string | null
-          }
+  const hasActivationStatus = config.fields.some((f) => f.key === 'activationStatus')
+  const activationValue = hasActivationStatus ? computedData.activationStatus : null
+
+  return (
+    <div className="group relative overflow-hidden rounded-sm border border-gray-200 bg-white p-4 transition-all duration-300 hover:border-gray-300 hover:shadow-md">
+      <div className="absolute top-0 left-0 h-1 w-full bg-gray-900 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+
+      <div className="mb-2 flex items-center gap-2.5">
+        <div className="flex h-8 w-8 items-center justify-center rounded-sm bg-gray-100 transition-colors duration-300 group-hover:bg-gray-900">
+          <IconComponent
+            className={cn(
+              'h-4 w-4 text-gray-600 group-hover:text-white',
+              config.iconColor?.replace('text-', '')
+            )}
+          />
+        </div>
+        <span className="text-xs font-medium tracking-wide text-gray-500 uppercase">
+          {config.title}
+        </span>
+      </div>
+
+      <div className="space-y-1.5">
+        {config.fields.map((field) => {
+          const value = getFieldValue(field)
 
           if (!value || value === 'Unknown') {
             return (
-              <div key={field.key} className="flex flex-col overflow-hidden">
-                <span className="text-muted-foreground mb-0.5 text-[10px] font-semibold tracking-wider uppercase">
+              <div key={field.key} className="flex flex-col">
+                <span className="text-[10px] font-semibold tracking-wider text-gray-400 uppercase">
                   {field.label}
                 </span>
-                <span className="text-muted-foreground truncate text-sm">N/A</span>
-              </div>
-            )
-          }
-
-          if (field.key === 'activationStatus') {
-            return (
-              <div key={field.key} className="col-span-2 flex flex-col gap-1">
-                <div className="flex items-center justify-between">
-                  <span className="text-base font-medium">{device.deviceInfo.os}</span>
-                  {value !== 'Unknown' && (
-                    <Badge
-                      variant="outline"
-                      className={cn(
-                        'flex h-5 items-center gap-1 px-1.5 py-0 text-[10px] font-normal',
-                        value === 'Actived'
-                          ? 'border-green-200 bg-green-50 text-green-700'
-                          : 'border-red-200 bg-red-50 text-red-700'
-                      )}
-                    >
-                      {value === 'Actived' ? (
-                        <CheckCircle2 className="h-3 w-3" />
-                      ) : (
-                        <XCircle className="h-3 w-3" />
-                      )}
-                      {value}
-                    </Badge>
-                  )}
-                </div>
-                <span className="text-muted-foreground text-sm">
-                  {device.deviceInfo.architecture}
-                </span>
+                <span className="text-sm text-gray-400">N/A</span>
               </div>
             )
           }
 
           return (
-            <div key={field.key} className="flex flex-col overflow-hidden">
-              <span className="text-muted-foreground mb-0.5 text-[10px] font-semibold tracking-wider uppercase">
+            <div key={field.key} className="flex flex-col">
+              <span className="text-[10px] font-semibold tracking-wider text-gray-400 uppercase">
                 {field.label}
               </span>
-              <span className="text-foreground truncate text-sm font-medium" title={value}>
+              <span className="text-sm font-medium text-gray-900" title={value}>
                 {value}
               </span>
             </div>
           )
         })}
-      </div>
 
-      {config.type === 'os' && computedData.biosMode && (
-        <div className="bg-muted/30 border-border/50 mt-4 flex items-center justify-between rounded-md border p-2">
-          <span className="text-muted-foreground flex items-center gap-1 text-[10px] font-semibold uppercase">
-            <Activity className="h-3 w-3" /> BIOS Mode
-          </span>
-          <span className="font-mono text-xs font-medium">{computedData.biosMode}</span>
-        </div>
-      )}
-    </DetailCard>
+        {hasActivationStatus && activationValue && activationValue !== 'Unknown' && (
+          <div className="mt-2 flex items-center gap-2">
+            <span
+              className={cn(
+                'flex items-center gap-1 px-2 py-0.5 text-[10px] font-medium tracking-wide uppercase',
+                activationValue === 'Actived'
+                  ? 'bg-green-100 text-green-700'
+                  : 'bg-red-100 text-red-700'
+              )}
+            >
+              {activationValue === 'Actived' ? (
+                <CheckCircle2 className="h-3 w-3" />
+              ) : (
+                <XCircle className="h-3 w-3" />
+              )}
+              {activationValue}
+            </span>
+          </div>
+        )}
+      </div>
+    </div>
   )
 }
 

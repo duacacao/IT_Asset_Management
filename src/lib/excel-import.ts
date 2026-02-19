@@ -79,6 +79,9 @@ export const parseExcelForImport = async (
         const deviceName =
           firstRow['Ten may'] || firstRow['Tên máy'] || extractDeviceNameFromFile(file.name)
 
+        // Normalize overview data từ tất cả sheets
+        const overviewData = normalizeOverviewData(sheets)
+
         const deviceData = toSupabaseDeviceInsert(
           {
             name: deviceName,
@@ -96,6 +99,12 @@ export const parseExcelForImport = async (
             totalRows,
           }
         )
+
+        // Merge overview_data vào specs
+        deviceData.specs = {
+          ...deviceData.specs,
+          ...overviewData,
+        }
 
         resolve({ deviceData, sheets })
       } catch (error) {
@@ -147,4 +156,137 @@ const formatFileSize = (bytes: number): string => {
   if (bytes < 1024) return bytes + ' B'
   if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB'
   return (bytes / (1024 * 1024)).toFixed(1) + ' MB'
+}
+
+// ============================================
+// Normalize overview data từ nhiều sheets
+// Dùng cho Device Overview Tab
+// ============================================
+export interface OverviewData {
+  import_source: 'xlsx'
+  device_type: 'PC' | 'Laptop'
+
+  // OS
+  os_name?: string
+  architecture?: string
+  bios_mode?: string
+  activation_status?: string
+  bios_version?: string
+  bios_date?: string
+
+  // CPU / Hardware
+  processor?: string
+  device_manufacturer?: string
+  device_model?: string
+  device_serial?: string
+
+  // GPU
+  gpu_integrated?: string
+  gpu_discrete?: string
+
+  // Storage
+  storage_c_raw?: string
+  storage_d_raw?: string
+  disk_model?: string
+  disk_type?: string
+  disk_health?: string
+  disk_wear?: string
+  disk_temperature?: string
+  disk_hours?: string
+
+  // RAM
+  ram_total?: string
+  ram_slots?: Array<{
+    slot: string
+    size: string
+    type: string
+    speed: string
+    manufacturer: string
+  }>
+
+  // Network
+  ip_address?: string
+  mac_address?: string
+
+  // Software
+  software_count?: number
+  driver_count?: number
+}
+
+export const normalizeOverviewData = (sheets: ParsedExcelData['sheets']): OverviewData => {
+  const getSheet = (name: string) => sheets.find((s) => s.sheet_name === name)
+
+  const cauHinhSheet = getSheet('cau_hinh')
+  const cauHinhRow = cauHinhSheet?.sheet_data?.[0] || {}
+
+  const licenseSheet = getSheet('license')
+  const licenseRow = licenseSheet?.sheet_data?.[0] || {}
+
+  const oCungSheet = getSheet('o_cung')
+  const oCungRow = oCungSheet?.sheet_data?.[0] || {}
+
+  const ramSheet = getSheet('ram')
+  const ramRows = ramSheet?.sheet_data || []
+
+  const biosSheet = getSheet('bios_info')
+  const biosRow = biosSheet?.sheet_data?.[0] || {}
+
+  const phanMemSheet = getSheet('phan_mem')
+  const driverSheet = getSheet('driver')
+
+  // Detect device type from file name or default to PC
+  const deviceType: 'PC' | 'Laptop' = 'PC' // default
+
+  return {
+    import_source: 'xlsx',
+    device_type: deviceType,
+
+    // OS từ Cau hinh + License
+    os_name: cauHinhRow['He dieu hanh'] || '',
+    architecture: cauHinhRow['Kien truc'] || '',
+    bios_mode: cauHinhRow['Che do BIOS'] || '',
+    activation_status: licenseRow['Trang thai'] || '',
+
+    // CPU từ Cau hinh + BIOS Info
+    processor: cauHinhRow['CPU'] || '',
+    device_manufacturer: biosRow['Hang SX'] || '',
+    device_model: biosRow['Model'] || '',
+    device_serial: biosRow['Serial'] || '',
+
+    // BIOS từ BIOS Info
+    bios_version: biosRow['Phien ban BIOS'] || '',
+    bios_date: biosRow['Ngay BIOS'] || '',
+
+    // GPU từ Cau hinh
+    gpu_integrated: cauHinhRow['GPU Tich hop'] || '',
+    gpu_discrete: cauHinhRow['GPU Roi'] || '',
+
+    // Storage từ Cau hinh + O cung
+    storage_c_raw: cauHinhRow['O C'] || '',
+    storage_d_raw: cauHinhRow['O D'] || '',
+    disk_model: oCungRow['Ten'] || '',
+    disk_type: oCungRow['Loai'] || '',
+    disk_health: oCungRow['Suc khoe'] || '',
+    disk_wear: oCungRow['Muc hao mon'] || '',
+    disk_temperature: oCungRow['Nhiet do'] || '',
+    disk_hours: oCungRow['Gio hoat dong'] || '',
+
+    // RAM từ Cau hinh + RAM sheet
+    ram_total: cauHinhRow['RAM'] || '',
+    ram_slots: ramRows.map((row: any) => ({
+      slot: row['Slot'] || '',
+      size: row['Dung luong'] || '',
+      type: row['Loai'] || '',
+      speed: row['Toc do'] || '',
+      manufacturer: row['Hang SX'] || '',
+    })),
+
+    // Network từ Cau hinh
+    ip_address: cauHinhRow['IP'] || '',
+    mac_address: cauHinhRow['MAC'] || '',
+
+    // Software counts
+    software_count: phanMemSheet?.sheet_data?.length || 0,
+    driver_count: driverSheet?.sheet_data?.length || 0,
+  }
 }
