@@ -47,24 +47,13 @@ export async function updateSession(request: NextRequest) {
     request.nextUrl.pathname.startsWith('/sign-in') ||
     request.nextUrl.pathname.startsWith('/sign-up')
 
-  // Debug Logging
-  console.log(`[Middleware] ${request.method} ${request.nextUrl.pathname}`, {
-    hasUser: !!user,
-    userId: user?.id,
-    isPublicRoute,
-    isAuthRoute,
-    error: error?.message,
-  })
-
   // Chưa login + truy cập protected route → redirect về sign-in
   if (!isPublicRoute && !user) {
-    console.log(`[Middleware] Redirecting to /sign-in (Not public & No user)`)
     return NextResponse.redirect(new URL('/sign-in', request.url))
   }
 
   // Đã login + truy cập auth route → redirect về devices
   if (isAuthRoute && user) {
-    console.log(`[Middleware] Redirecting to /devices (Auth route & User exists)`)
     return NextResponse.redirect(new URL('/devices', request.url))
   }
 

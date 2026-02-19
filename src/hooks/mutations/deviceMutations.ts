@@ -21,6 +21,7 @@ import {
 } from '@/app/actions/device-sheets'
 import { toSupabaseDeviceInsert, toSupabaseDeviceUpdate } from '@/lib/supabase-adapter'
 import type { DeviceInfo, DeviceStatus, DeviceType } from '@/types/device'
+import { mergeDeviceSpecs } from '@/types/device'
 import { deviceKeys } from '../queries/deviceQueries'
 
 export function useCreateDeviceMutation() {
@@ -92,18 +93,46 @@ export function useUpdateDeviceMutation() {
     }) => {
       // Logic đã move vào server action: fetch device -> merge updates
       // Client chỉ cần gửi updates
-      const payload = toSupabaseDeviceUpdate(null, params.updates) // currentSpecs không quan trọng ở bước này
+      const payload = toSupabaseDeviceUpdate(params.updates) // currentSpecs removed
       const { data, error } = await updateDeviceAction(params.deviceId, payload)
       if (error || !data) throw new Error(error || 'Lỗi cập nhật')
       return data
     },
+    onMutate: async (vars) => {
+      // Cancel queries
+      await queryClient.cancelQueries({ queryKey: deviceKeys.detail(vars.deviceId) })
+      await queryClient.cancelQueries({ queryKey: deviceKeys.list() })
+
+      // Snapshot previous value
+      const previousDevice = queryClient.getQueryData(deviceKeys.detail(vars.deviceId))
+
+      // Optimistic update
+      queryClient.setQueryData(deviceKeys.detail(vars.deviceId), (old: any) => {
+        if (!old || !old.device) return old
+        return {
+          ...old,
+          device: {
+            ...old.device,
+            deviceInfo: mergeDeviceSpecs(old.device.deviceInfo, vars.updates),
+          },
+        }
+      })
+
+      return { previousDevice }
+    },
     onSuccess: (_data, vars) => {
-      queryClient.invalidateQueries({ queryKey: deviceKeys.list() })
-      queryClient.invalidateQueries({ queryKey: deviceKeys.detail(vars.deviceId) })
       toast.success('Cập nhật thiết bị thành công')
     },
-    onError: (err) => {
+    onError: (err, vars, context) => {
+      // Rollback
+      if (context?.previousDevice) {
+        queryClient.setQueryData(deviceKeys.detail(vars.deviceId), context.previousDevice)
+      }
       toast.error('Lỗi cập nhật thiết bị', { description: err.message })
+    },
+    onSettled: (_data, _error, vars) => {
+      queryClient.invalidateQueries({ queryKey: deviceKeys.detail(vars.deviceId) })
+      queryClient.invalidateQueries({ queryKey: deviceKeys.list() })
     },
   })
 }

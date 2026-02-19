@@ -135,3 +135,15 @@ export interface OverviewData {
   software_count?: number
   driver_count?: number
 }
+
+// Helper: Optimistic merge logic
+export function mergeDeviceSpecs(
+  currentSpecs: DeviceInfo,
+  updates: Partial<DeviceInfo>
+): DeviceInfo {
+  return {
+    ...currentSpecs,
+    ...updates,
+    lastUpdate: new Date().toISOString(),
+  }
+}

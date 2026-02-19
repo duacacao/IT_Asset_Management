@@ -31,14 +31,6 @@ interface DeviceSpecs {
 // ============================================
 // Supabase Row → Frontend Device (không có sheets)
 // Dùng cho list view — không cần load sheets
-// ============================================
-// ============================================
-// Supabase Row → Frontend Device (không có sheets)
-// Dùng cho list view — không cần load sheets
-// ============================================
-// ============================================
-// Supabase Row → Frontend Device (không có sheets)
-// Dùng cho list view — không cần load sheets
 // Update: Accepts raw assignments array for unification
 // ============================================
 export function toFrontendDevice(dbDevice: DbDevice, assignments: any[] = []): Device {
@@ -173,17 +165,9 @@ export function toFrontendDeviceWithSheets(
 
 // ============================================
 // Frontend DeviceInfo → Supabase update payload
-// Merge specs cũ + updates mới → tránh mất dữ liệu
-// Update: Logic merge chủ yếu diễn ra ở server action, helper này chỉ định dạng payload
+// Update: Client prepares keys, server handles merging
 // ============================================
-export function toSupabaseDeviceUpdate(
-  currentSpecs: DeviceSpecs | null,
-  updates: Partial<DeviceInfo>
-) {
-  // Nếu currentSpecs là null (client gọi), ta assume server handles merge
-  // Hoặc ta trả về object update, server sẽ merge sau
-  const prevSpecs = currentSpecs || {}
-
+export function toSupabaseDeviceUpdate(updates: Partial<DeviceInfo>) {
   // Tách fields riêng: name, type, lastUpdate
   const { name, type, lastUpdate, ...specFields } = updates
 
@@ -191,9 +175,9 @@ export function toSupabaseDeviceUpdate(
     updated_at: new Date().toISOString(),
   }
 
-  // Nếu có specs fields, gom vào 'specs' jsonb
+  // Nếu có specs fields, gom vào 'specs' chỉ chứa updates
   if (Object.keys(specFields).length > 0) {
-    result.specs = { ...prevSpecs, ...specFields }
+    result.specs = specFields
   }
 
   if (name !== undefined) result.name = name
