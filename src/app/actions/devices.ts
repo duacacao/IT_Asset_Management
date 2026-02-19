@@ -167,9 +167,35 @@ export async function createDevice(
 export async function updateDevice(deviceId: string, updates: DeviceUpdate) {
   const supabase = await createClient()
 
+  // 1. Fetch current device data to get existing specs
+  const { data: currentDevice, error: fetchError } = await supabase
+    .from('devices')
+    .select('specs')
+    .eq('id', deviceId)
+    .single()
+
+  if (fetchError || !currentDevice) {
+    console.error('Lỗi lấy thông tin device trước khi update:', fetchError?.message)
+    return { data: null, error: fetchError?.message || 'Không tìm thấy thiết bị' }
+  }
+
+  // 2. Prepare payload
+  // If 'specs' is in updates, merge it with currentSpecs
+  let finalUpdates = { ...updates }
+
+  if (updates.specs) {
+    const currentSpecs = (currentDevice.specs as Record<string, any>) || {}
+    const newSpecs = (updates.specs as Record<string, any>) || {}
+    finalUpdates.specs = {
+      ...currentSpecs,
+      ...newSpecs,
+    }
+  }
+
+  // 3. Execute update
   const { data, error } = await supabase
     .from('devices')
-    .update(updates)
+    .update(finalUpdates)
     .eq('id', deviceId)
     .select()
     .single()

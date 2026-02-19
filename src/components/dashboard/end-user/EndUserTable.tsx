@@ -1,6 +1,17 @@
 'use client'
 
-import { memo, useCallback } from 'react'
+import { memo, useMemo, useState } from 'react'
+import {
+  useReactTable,
+  getCoreRowModel,
+  getSortedRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  flexRender,
+  SortingState,
+  ColumnFiltersState,
+  VisibilityState,
+} from '@tanstack/react-table'
 import {
   Table,
   TableBody,
@@ -9,31 +20,11 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import {
-  MoreHorizontal,
-  Pencil,
-  Trash,
-  Eye,
-  Laptop,
-  Smartphone,
-  Tablet,
-  Monitor,
-} from 'lucide-react'
-
+import { createEndUserColumns } from './end-user-columns'
 import { EndUserWithDevice } from '@/types/end-user'
-import { getDepartmentColor, getPositionColor } from '@/constants/end-user'
+import { EmptyState } from '@/components/EmptyState'
+import { Users2 } from 'lucide-react'
 
 interface EndUserTableProps {
   data: EndUserWithDevice[]
@@ -45,24 +36,6 @@ interface EndUserTableProps {
   onView: (id: string) => void
 }
 
-// Move helper outside component to prevent recreation
-const getDeviceIcon = (type: string | null) => {
-  switch (type?.toLowerCase()) {
-    case 'laptop':
-      return <Laptop className="h-3 w-3" />
-    case 'smartphone':
-    case 'mobile':
-      return <Smartphone className="h-3 w-3" />
-    case 'tablet':
-      return <Tablet className="h-3 w-3" />
-    case 'monitor':
-    case 'desktop':
-      return <Monitor className="h-3 w-3" />
-    default:
-      return <Laptop className="h-3 w-3" />
-  }
-}
-
 export const EndUserTable = memo(function EndUserTable({
   data,
   selectedIds,
@@ -72,156 +45,141 @@ export const EndUserTable = memo(function EndUserTable({
   onDelete,
   onView,
 }: EndUserTableProps) {
-  const allSelected = data.length > 0 && selectedIds.length === data.length
-  const someSelected = selectedIds.length > 0 && selectedIds.length < data.length
+  const [sorting, setSorting] = useState<SortingState>([])
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
+
+  const columns = useMemo(
+    () => createEndUserColumns({ onEdit, onDelete, onView }),
+    [onEdit, onDelete, onView]
+  )
+
+  const table = useReactTable({
+    data,
+    columns,
+    getRowId: (row) => row.id,
+    state: {
+      sorting,
+      columnFilters,
+      columnVisibility,
+      rowSelection: selectedIds.reduce((acc, id) => ({ ...acc, [id]: true }), {}),
+    },
+    onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    onColumnVisibilityChange: setColumnVisibility,
+    enableRowSelection: true,
+    onRowSelectionChange: (updater) => {
+      // Handle functional update
+      const currentSelection = selectedIds.reduce((acc, id) => ({ ...acc, [id]: true }), {})
+      const nextSelection = typeof updater === 'function' ? updater(currentSelection) : updater
+
+      const nextSelectedIds = Object.keys(nextSelection)
+
+      // If all selected (or close to all, considering potential deselects)
+      if (nextSelectedIds.length === data.length && data.length > 0) {
+        onSelectAll(true)
+        return
+      }
+
+      if (nextSelectedIds.length === 0) {
+        onSelectAll(false)
+        return
+      }
+
+      // Identify differences
+      const added = nextSelectedIds.filter(id => !selectedIds.includes(id))
+      const removed = selectedIds.filter(id => !nextSelectedIds.includes(id))
+
+      added.forEach(id => onSelectId(id, true))
+      removed.forEach(id => onSelectId(id, false))
+    },
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+  })
 
   return (
-    <div className="rounded-md border">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-[40px]">
-              <Checkbox
-                checked={allSelected ? true : someSelected ? 'indeterminate' : false}
-                onCheckedChange={(checked) => onSelectAll(checked === true)}
-              />
-            </TableHead>
-            <TableHead className="w-[30%] min-w-[250px]">Tên</TableHead>
-            <TableHead className="w-[12%] whitespace-nowrap">Phòng ban</TableHead>
-            <TableHead className="w-[12%] whitespace-nowrap">Chức vụ</TableHead>
-            <TableHead className="w-[25%]">Thiết bị</TableHead>
-            <TableHead className="w-[120px]">Thao tác</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {data.length === 0 ? (
-            <TableRow>
-              <TableCell colSpan={6} className="h-24 text-center">
-                Không có dữ liệu.
-              </TableCell>
-            </TableRow>
-          ) : (
-            data.map((user) => (
-              <TableRow
-                key={user.id}
-                data-state={selectedIds.includes(user.id) ? 'selected' : undefined}
-              >
-                <TableCell>
-                  <Checkbox
-                    checked={selectedIds.includes(user.id)}
-                    onCheckedChange={(checked) => onSelectId(user.id, checked === true)}
+    <div className="space-y-4">
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => {
+                  let widthClass = ''
+                  const id = header.id
+                  if (id === 'select') widthClass = 'w-[40px]'
+                  else if (id === 'full_name') widthClass = 'w-[30%] min-w-[250px]'
+                  else if (id === 'department') widthClass = 'w-[12%] whitespace-nowrap'
+                  else if (id === 'position') widthClass = 'w-[12%] whitespace-nowrap'
+                  else if (id === 'devices') widthClass = 'w-[25%]'
+                  else if (id === 'actions') widthClass = 'w-[120px]'
+
+                  return (
+                    <TableHead key={header.id} className={widthClass}>
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(header.column.columnDef.header, header.getContext())}
+                    </TableHead>
+                  )
+                })}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows?.length ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && 'selected'}
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={columns.length} className="h-48">
+                  <EmptyState
+                    icon={Users2}
+                    title="Không có dữ liệu"
+                    description="Không tìm thấy người dùng nào phù hợp với bộ lọc."
+                    iconSize={48}
                   />
                 </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-3 py-1 pr-12">
-                    <Avatar className="h-10 w-10">
-                      <AvatarFallback className="font-medium">
-                        {user.full_name
-                          .split(' ')
-                          .map((n) => n[0])
-                          .join('')
-                          .toUpperCase()
-                          .slice(0, 2)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex flex-col">
-                      <span className="text-foreground text-sm font-medium">{user.full_name}</span>
-                      {user.email && (
-                        <span className="text-muted-foreground text-xs">{user.email}</span>
-                      )}
-                    </div>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <Badge variant="outline" className={getDepartmentColor(user.department || '')}>
-                    {user.department || 'N/A'}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <Badge variant="secondary" className={getPositionColor(user.position || '')}>
-                    {user.position || 'N/A'}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  {user.devices && user.devices.length > 0 ? (
-                    <div className="flex flex-wrap items-center gap-2">
-                      {/* Show first device fully */}
-                      <div className="bg-muted/50 flex items-center gap-2 rounded-md border px-2 py-1">
-                        {getDeviceIcon(user.devices[0].type)}
-                        <span className="text-xs font-medium">{user.devices[0].name}</span>
-                      </div>
-
-                      {/* Show +N for others */}
-                      {user.devices.length > 1 && (
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Badge
-                                variant="secondary"
-                                className="h-auto cursor-help px-2 py-1 text-xs"
-                              >
-                                +{user.devices.length - 1}
-                              </Badge>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <div className="flex flex-col gap-1 p-1">
-                                {user.devices.slice(1).map((d) => (
-                                  <div key={d.id} className="flex items-center gap-2 text-xs">
-                                    {getDeviceIcon(d.type)}
-                                    <span>{d.name}</span>
-                                  </div>
-                                ))}
-                              </div>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      )}
-                    </div>
-                  ) : (
-                    <span className="text-muted-foreground text-sm">-</span>
-                  )}
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-1">
-                    <Button
-                      variant="ghost"
-                      className="h-8 w-8 p-0"
-                      onClick={() => onView(user.id)}
-                      title="Xem chi tiết"
-                    >
-                      <Eye className="text-muted-foreground h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      className="h-8 w-8 p-0"
-                      onClick={() => onEdit(user)}
-                      title="Sửa"
-                    >
-                      <Pencil className="text-muted-foreground h-4 w-4" />
-                    </Button>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                          <MoreHorizontal className="text-muted-foreground h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          onClick={() => onDelete(user.id)}
-                          className="text-destructive focus:text-destructive cursor-pointer"
-                        >
-                          <Trash className="mr-2 h-4 w-4" />
-                          Xóa
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                </TableCell>
               </TableRow>
-            ))
-          )}
-        </TableBody>
-      </Table>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+
+      <div className="flex items-center justify-between">
+        <div className="text-muted-foreground text-sm">
+          {table.getFilteredRowModel().rows.length} người dùng
+        </div>
+        <div className="flex items-center space-x-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}
+          >
+            Trước
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
+          >
+            Sau
+          </Button>
+        </div>
+      </div>
     </div>
   )
 })

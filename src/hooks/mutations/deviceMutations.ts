@@ -89,9 +89,10 @@ export function useUpdateDeviceMutation() {
     mutationFn: async (params: {
       deviceId: string
       updates: Partial<DeviceInfo>
-      currentSpecs?: any
     }) => {
-      const payload = toSupabaseDeviceUpdate(params.currentSpecs, params.updates)
+      // Logic đã move vào server action: fetch device -> merge updates
+      // Client chỉ cần gửi updates
+      const payload = toSupabaseDeviceUpdate(null, params.updates) // currentSpecs không quan trọng ở bước này
       const { data, error } = await updateDeviceAction(params.deviceId, payload)
       if (error || !data) throw new Error(error || 'Lỗi cập nhật')
       return data
@@ -99,6 +100,7 @@ export function useUpdateDeviceMutation() {
     onSuccess: (_data, vars) => {
       queryClient.invalidateQueries({ queryKey: deviceKeys.list() })
       queryClient.invalidateQueries({ queryKey: deviceKeys.detail(vars.deviceId) })
+      toast.success('Cập nhật thiết bị thành công')
     },
     onError: (err) => {
       toast.error('Lỗi cập nhật thiết bị', { description: err.message })

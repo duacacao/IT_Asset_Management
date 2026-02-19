@@ -46,6 +46,9 @@ import {
 } from '@/components/ui/alert-dialog'
 import { cn } from '@/lib/utils'
 import type { DetailCardConfig } from '@/constants/device'
+import { useUpdateDeviceMutation, useUpdateStatusMutation } from '@/hooks/useDevicesQuery'
+import { DeviceStatus, DeviceType } from '@/types/device'
+import { DEVICE_TYPES } from '@/constants/device'
 
 const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   Cpu,
@@ -70,7 +73,31 @@ export function DeviceOverviewTab({ device, onExport, onDelete, onClose }: Devic
   const queryClient = useQueryClient()
   const [assignmentDialogOpen, setAssignmentDialogOpen] = useState(false)
   const [returnDialogOpen, setReturnDialogOpen] = useState(false)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [isReturning, setIsReturning] = useState(false)
+
+  const updateStatusMutation = useUpdateStatusMutation()
+  const updateDeviceMutation = useUpdateDeviceMutation()
+
+  const handleStatusChange = (newStatus: DeviceStatus) => {
+    updateStatusMutation.mutate(
+      { deviceId: device.id, status: newStatus },
+      {
+        onSuccess: () => toast.success('Đã cập nhật trạng thái'),
+        onError: () => toast.error('Lỗi cập nhật trạng thái'),
+      }
+    )
+  }
+
+  const handleTypeChange = (newType: DeviceType) => {
+    updateDeviceMutation.mutate(
+      { deviceId: device.id, updates: { type: newType } },
+      {
+        onSuccess: () => toast.success('Đã cập nhật loại thiết bị'),
+      }
+      // Error is handled globally in useUpdateDeviceMutation
+    )
+  }
 
   const handleReturn = async () => {
     if (!device.assignment?.id) return
@@ -102,57 +129,101 @@ export function DeviceOverviewTab({ device, onExport, onDelete, onClose }: Devic
     <div className="mx-auto max-w-7xl space-y-6 p-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div className="space-y-1.5">
-          <div className="flex items-center gap-3">
-            <h2 className="text-foreground text-2xl font-bold tracking-tight">
-              {device.deviceInfo.name}
-            </h2>
-            <div
-              className={cn(
-                'flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium',
-                statusConfig.softColor === 'success'
-                  ? 'border-green-200 bg-green-50 text-green-700'
-                  : statusConfig.softColor === 'error'
-                    ? 'border-red-200 bg-red-50 text-red-700'
-                    : 'border-amber-200 bg-amber-50 text-amber-700'
-              )}
-            >
-              <span
-                className={cn(
-                  'h-1.5 w-1.5 rounded-full',
-                  statusConfig.softColor === 'success'
-                    ? 'bg-green-600'
-                    : statusConfig.softColor === 'error'
-                      ? 'bg-red-600'
-                      : 'bg-amber-600'
-                )}
-              />
-              {statusConfig.label}
-            </div>
-          </div>
+          <h2 className="text-foreground text-2xl font-bold tracking-tight">
+            {device.deviceInfo.name}
+          </h2>
 
           <div className="text-muted-foreground flex flex-wrap items-center gap-3 text-sm">
-            <div className="flex items-center gap-1.5">
-              <Monitor className="h-4 w-4" />
-              <span>{DEVICE_TYPE_LABELS[device.type]}</span>
-            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-muted-foreground hover:text-foreground -ml-2 h-auto px-2 py-1 font-normal"
+                >
+                  <Monitor className="mr-1.5 h-4 w-4" />
+                  <span>{DEVICE_TYPE_LABELS[device.type]}</span>
+                  <ChevronRight className="ml-1 h-3 w-3 rotate-90 opacity-50" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start">
+                <DropdownMenuLabel>Đổi loại thiết bị</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {Object.values(DEVICE_TYPES).map((type) => {
+                  const Icon = ICON_MAP[DEVICE_DETAIL_CARDS[type]?.[0]?.icon || 'Monitor'] || Monitor
+                  return (
+                    <DropdownMenuItem
+                      key={type}
+                      onClick={() => handleTypeChange(type)}
+                      className="gap-2"
+                    >
+                      <Icon className="h-4 w-4" />
+                      {DEVICE_TYPE_LABELS[type]}
+                      {device.type === type && <CheckCircle2 className="ml-auto h-4 w-4" />}
+                    </DropdownMenuItem>
+                  )
+                })}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <div className="h-4 w-px bg-border/50" />
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <div
+                  className={cn(
+                    'flex cursor-pointer items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium transition-colors hover:opacity-80',
+                    statusConfig.softColor === 'success'
+                      ? 'border-green-200 bg-green-50 text-green-700'
+                      : statusConfig.softColor === 'error'
+                        ? 'border-red-200 bg-red-50 text-red-700'
+                        : 'border-amber-200 bg-amber-50 text-amber-700'
+                  )}
+                >
+                  <span
+                    className={cn(
+                      'h-1.5 w-1.5 rounded-full',
+                      statusConfig.softColor === 'success'
+                        ? 'bg-green-600'
+                        : statusConfig.softColor === 'error'
+                          ? 'bg-red-600'
+                          : 'bg-amber-600'
+                    )}
+                  />
+                  {statusConfig.label}
+                  <ChevronRight className="h-3 w-3 rotate-90 opacity-50" />
+                </div>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start">
+                <DropdownMenuLabel>Đổi trạng thái</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {Object.entries(DEVICE_STATUS_CONFIG).map(([status, config]) => (
+                  <DropdownMenuItem
+                    key={status}
+                    onClick={() => handleStatusChange(status as DeviceStatus)}
+                    className="gap-2"
+                  >
+                    <div
+                      className={cn(
+                        'h-2 w-2 rounded-full',
+                        status === 'active'
+                          ? 'bg-green-600'
+                          : status === 'broken'
+                            ? 'bg-red-600'
+                            : 'bg-amber-600'
+                      )}
+                    />
+                    {config.label}
+                    {device.status === status && <CheckCircle2 className="ml-auto h-4 w-4" />}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={onExport} className="h-9">
-            <Download className="mr-2 h-4 w-4" /> Xuất
-          </Button>
-
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-destructive hover:bg-destructive/10 hover:text-destructive h-9"
-              >
-                <Trash2 className="mr-2 h-4 w-4" /> Xóa
-              </Button>
-            </AlertDialogTrigger>
+          <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
             <AlertDialogContent>
               <AlertDialogHeader>
                 <AlertDialogTitle>Xác nhận xóa thiết bị?</AlertDialogTitle>
@@ -189,7 +260,7 @@ export function DeviceOverviewTab({ device, onExport, onDelete, onClose }: Devic
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 className="text-destructive focus:text-destructive"
-                onClick={() => {}}
+                onClick={() => setDeleteDialogOpen(true)}
               >
                 <Trash2 className="mr-2 h-4 w-4" /> Xóa thiết bị
               </DropdownMenuItem>
@@ -235,7 +306,7 @@ export function DeviceOverviewTab({ device, onExport, onDelete, onClose }: Devic
       <DeviceAssignmentDialog
         isOpen={assignmentDialogOpen}
         onClose={() => setAssignmentDialogOpen(false)}
-        onSuccess={() => {}}
+        onSuccess={() => { }}
         deviceId={device.id}
         deviceName={device.deviceInfo.name}
       />

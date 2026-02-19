@@ -49,12 +49,12 @@ export function toFrontendDevice(dbDevice: DbDevice, assignments: any[] = []): D
 
   const mappedAssignment = assignment
     ? {
-        id: assignment.id,
-        end_user_id: assignment.end_user_id,
-        assignee_name: assignment.end_users?.full_name || assignment.end_users?.[0]?.full_name,
-        assignee_email: assignment.end_users?.email || assignment.end_users?.[0]?.email,
-        assigned_at: assignment.assigned_at,
-      }
+      id: assignment.id,
+      end_user_id: assignment.end_user_id,
+      assignee_name: assignment.end_users?.full_name || assignment.end_users?.[0]?.full_name,
+      assignee_email: assignment.end_users?.email || assignment.end_users?.[0]?.email,
+      assigned_at: assignment.assigned_at,
+    }
     : undefined
 
   return {
@@ -174,27 +174,30 @@ export function toFrontendDeviceWithSheets(
 // ============================================
 // Frontend DeviceInfo → Supabase update payload
 // Merge specs cũ + updates mới → tránh mất dữ liệu
+// Update: Logic merge chủ yếu diễn ra ở server action, helper này chỉ định dạng payload
 // ============================================
 export function toSupabaseDeviceUpdate(
   currentSpecs: DeviceSpecs | null,
   updates: Partial<DeviceInfo>
 ) {
+  // Nếu currentSpecs là null (client gọi), ta assume server handles merge
+  // Hoặc ta trả về object update, server sẽ merge sau
   const prevSpecs = currentSpecs || {}
-  // Tách name ra khỏi specs (name là column riêng)
+
+  // Tách fields riêng: name, type, lastUpdate
   const { name, type, lastUpdate, ...specFields } = updates
 
   const result: Record<string, any> = {
-    specs: { ...prevSpecs, ...specFields },
     updated_at: new Date().toISOString(),
   }
 
-  // Name là column riêng trong devices table
-  if (name !== undefined) {
-    result.name = name
+  // Nếu có specs fields, gom vào 'specs' jsonb
+  if (Object.keys(specFields).length > 0) {
+    result.specs = { ...prevSpecs, ...specFields }
   }
-  if (type !== undefined) {
-    result.type = type
-  }
+
+  if (name !== undefined) result.name = name
+  if (type !== undefined) result.type = type
 
   return result
 }
