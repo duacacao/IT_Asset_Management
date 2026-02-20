@@ -87,11 +87,11 @@ export const EndUserTable = memo(function EndUserTable({
       }
 
       // Identify differences
-      const added = nextSelectedIds.filter(id => !selectedIds.includes(id))
-      const removed = selectedIds.filter(id => !nextSelectedIds.includes(id))
+      const added = nextSelectedIds.filter((id) => !selectedIds.includes(id))
+      const removed = selectedIds.filter((id) => !nextSelectedIds.includes(id))
 
-      added.forEach(id => onSelectId(id, true))
-      removed.forEach(id => onSelectId(id, false))
+      added.forEach((id) => onSelectId(id, true))
+      removed.forEach((id) => onSelectId(id, false))
     },
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
@@ -101,7 +101,7 @@ export const EndUserTable = memo(function EndUserTable({
 
   return (
     <div className="space-y-4">
-      <div className="rounded-md border relative">
+      <div className="relative rounded-md border">
         <Table containerClassName="h-[calc(100vh-220px)] overflow-auto">
           <TableHeader className="bg-background sticky top-0 z-10 shadow-sm">
             {table.getHeaderGroups().map((headerGroup) => (
@@ -111,7 +111,8 @@ export const EndUserTable = memo(function EndUserTable({
                   const id = header.id
                   if (id === 'select') widthClass = 'w-[40px] align-middle'
                   else if (id === 'full_name') widthClass = 'w-[25%] min-w-[250px]'
-                  else if (id === 'department') widthClass = 'w-[15%] min-w-[140px] whitespace-nowrap'
+                  else if (id === 'department')
+                    widthClass = 'w-[15%] min-w-[140px] whitespace-nowrap'
                   else if (id === 'position') widthClass = 'w-[15%] min-w-[140px] whitespace-nowrap'
                   else if (id === 'devices') widthClass = 'w-[30%] min-w-[350px]'
                   else if (id === 'actions') widthClass = 'w-[120px] text-right pr-4'
@@ -130,10 +131,7 @@ export const EndUserTable = memo(function EndUserTable({
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && 'selected'}
-                >
+                <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}

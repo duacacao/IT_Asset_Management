@@ -20,7 +20,7 @@ import {
   XCircle,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { DEVICE_STATUS_CONFIG, DEVICE_TYPE_LABELS, DEVICE_DETAIL_CARDS } from '@/constants/device'
+import { DEVICE_STATUS_CONFIG, DEVICE_TYPE_LABELS, DEVICE_DETAIL_CARDS, DEVICE_TYPES, STATUS_DOT_COLORS } from '@/constants/device'
 import { useState, useMemo } from 'react'
 import { toast } from 'sonner'
 import { useQueryClient } from '@tanstack/react-query'
@@ -49,7 +49,7 @@ import { cn } from '@/lib/utils'
 import type { DetailCardConfig } from '@/constants/device'
 import { useUpdateDeviceMutation, useUpdateStatusMutation } from '@/hooks/useDevicesQuery'
 import { DeviceStatus, DeviceType } from '@/types/device'
-import { DEVICE_TYPES } from '@/constants/device'
+
 
 const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   Cpu,
@@ -137,7 +137,7 @@ export function DeviceOverviewTab({ device, onExport, onDelete, onClose }: Devic
                 <Button
                   variant="outline"
                   size="sm"
-                  className="text-muted-foreground hover:text-foreground flex h-auto w-36 items-center justify-between rounded-full px-3 py-1 text-xs font-medium"
+                  className="text-muted-foreground hover:text-foreground flex h-auto w-48 items-center justify-between rounded-full px-3 py-1 text-xs font-medium"
                 >
                   <div className="flex items-center gap-1.5 overflow-hidden">
                     {(() => {
@@ -176,7 +176,7 @@ export function DeviceOverviewTab({ device, onExport, onDelete, onClose }: Devic
               <DropdownMenuTrigger asChild>
                 <div
                   className={cn(
-                    'flex w-36 cursor-pointer items-center justify-between rounded-full border px-3 py-1 text-xs font-medium transition-colors hover:opacity-80',
+                    'flex w-40 cursor-pointer items-center justify-between rounded-full border px-3 py-1 text-xs font-medium transition-colors hover:opacity-80',
                     statusConfig.softColor === 'success'
                       ? 'border-green-200 bg-green-50 text-green-700'
                       : statusConfig.softColor === 'error'
@@ -212,11 +212,7 @@ export function DeviceOverviewTab({ device, onExport, onDelete, onClose }: Devic
                     <div
                       className={cn(
                         'h-2 w-2 rounded-full',
-                        status === 'active'
-                          ? 'bg-green-600'
-                          : status === 'broken'
-                            ? 'bg-red-600'
-                            : 'bg-amber-600'
+                        STATUS_DOT_COLORS[status as DeviceStatus]
                       )}
                     />
                     {config.label}

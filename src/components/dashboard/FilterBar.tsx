@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/select'
 import { SearchBar } from './SearchBar'
 import { DeviceStatus, DeviceType } from '@/types/device'
-import { DEVICE_STATUS_CONFIG, DEVICE_TYPE_LABELS } from '@/constants/device'
+import { DEVICE_STATUS_CONFIG, DEVICE_TYPE_LABELS, STATUS_DOT_COLORS } from '@/constants/device'
 
 export interface DeviceFilters {
   search?: string
@@ -94,12 +94,7 @@ export function FilterBar({ onFilterChange, onReset, className, children }: Filt
               <SelectItem key={key} value={key}>
                 <div className="flex items-center gap-2">
                   <div
-                    className={`h-2 w-2 rounded-full ${key === 'active'
-                      ? 'bg-emerald-500'
-                      : key === 'broken'
-                        ? 'bg-red-500'
-                        : 'bg-amber-500'
-                      }`}
+                    className={`h-2 w-2 rounded-full ${STATUS_DOT_COLORS[key as DeviceStatus]}`}
                   />
                   {config.label}
                 </div>
@@ -142,9 +137,7 @@ export function FilterBar({ onFilterChange, onReset, className, children }: Filt
           </div>
         )}
         {/* Action Slot */}
-        <div className="ml-auto flex items-center gap-2">
-          {children}
-        </div>
+        <div className="ml-auto flex items-center gap-2">{children}</div>
       </div>
     </div>
   )

@@ -101,13 +101,12 @@ export function RecentActivity({ devices, endUsers }: RecentActivityProps) {
                               <>
                                 <Icon className="text-muted-foreground group-hover:text-primary h-4 w-4 transition-colors" />
                                 <span
-                                  className={`ring-background absolute right-0 bottom-0 h-2.5 w-2.5 rounded-full ring-2 ${
-                                    item.status === 'active'
-                                      ? 'bg-emerald-500'
+                                  className={`ring-background absolute right-0 bottom-0 h-2.5 w-2.5 rounded-full ring-2 ${item.status === 'active'
+                                      ? 'bg-amber-500'
                                       : item.status === 'broken'
                                         ? 'bg-red-500'
-                                        : 'bg-amber-500'
-                                  }`}
+                                        : 'bg-emerald-500'
+                                    }`}
                                 />
                               </>
                             )
@@ -133,13 +132,12 @@ export function RecentActivity({ devices, endUsers }: RecentActivityProps) {
                     {item.type === 'device' && item.status && (
                       <Badge
                         variant="outline"
-                        className={`shrink-0 rounded-md border px-2 py-0.5 text-[10px] font-medium ${
-                          item.status === 'active'
-                            ? 'border-emerald-200 bg-emerald-50/50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-400'
+                        className={`shrink-0 rounded-md border px-2 py-0.5 text-[10px] font-medium ${item.status === 'active'
+                            ? 'border-amber-200 bg-amber-50/50 text-amber-700 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-400'
                             : item.status === 'broken'
                               ? 'border-red-200 bg-red-50/50 text-red-700 dark:border-red-800 dark:bg-red-950/30 dark:text-red-400'
-                              : 'border-amber-200 bg-amber-50/50 text-amber-700 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-400'
-                        }`}
+                              : 'border-emerald-200 bg-emerald-50/50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-400'
+                          }`}
                       >
                         {DEVICE_STATUS_CONFIG[item.status].label}
                       </Badge>

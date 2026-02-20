@@ -193,6 +193,7 @@ export async function updateDevice(deviceId: string, updates: DeviceUpdate) {
   }
 
   // 3. Execute update
+  console.log('[DEBUG] updateDeviceAction - deviceId:', deviceId, 'updates:', JSON.stringify(finalUpdates))
   const { data, error } = await supabase
     .from('devices')
     .update(finalUpdates)
@@ -201,7 +202,7 @@ export async function updateDevice(deviceId: string, updates: DeviceUpdate) {
     .single()
 
   if (error) {
-    console.error('Lỗi cập nhật device:', error.message)
+    console.error('[DEBUG] Lỗi cập nhật device:', error.message, error.details)
     return { data: null, error: error.message }
   }
 

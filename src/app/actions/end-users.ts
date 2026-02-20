@@ -320,7 +320,7 @@ export async function getAvailableDevices(): Promise<{
     .from('devices')
     .select('id, name, type')
     .eq('owner_id', user.id)
-    .is('deleted_at', null)
+    .eq('status', 'inactive')
     .order('name')
 
   if (error) {
@@ -333,7 +333,6 @@ export async function getAvailableDevices(): Promise<{
 
   return { data: availableDevices, error: null }
 }
-
 
 // ============================================
 // Lấy thống kê end-users cho sidebar

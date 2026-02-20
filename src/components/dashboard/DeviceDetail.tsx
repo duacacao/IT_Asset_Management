@@ -443,9 +443,9 @@ export function DeviceDetail({
                     <AlertDialogHeader>
                       <AlertDialogTitle>Xác nhận thu hồi thiết bị</AlertDialogTitle>
                       <AlertDialogDescription>
-                        Thiết bị <strong>"{fullDevice.deviceInfo.name}"</strong> đang được sử dụng bởi{' '}
-                        <strong>{fullDevice.assignment.assignee_name}</strong>.
-                        Thu hồi sẽ gỡ gán thiết bị khỏi người này.
+                        Thiết bị <strong>"{fullDevice.deviceInfo.name}"</strong> đang được sử dụng
+                        bởi <strong>{fullDevice.assignment.assignee_name}</strong>. Thu hồi sẽ gỡ
+                        gán thiết bị khỏi người này.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -716,19 +716,19 @@ export function DeviceDetail({
                             onDelete={
                               allSheetKeys.length > 1
                                 ? () => {
-                                  if (confirm(`Xóa sheet "${getDisplayName(sheetName)}"?`)) {
-                                    const sheetId = sheetIdMap[sheetName]
-                                    if (sheetId) {
-                                      deleteSheetMutation.mutate({
-                                        deviceId: fullDevice.id,
-                                        sheetId: sheetId,
-                                      })
-                                      if (activeSheet === sheetName) setActiveSheet(null)
-                                    } else {
-                                      console.error('Missing sheetId for delete')
+                                    if (confirm(`Xóa sheet "${getDisplayName(sheetName)}"?`)) {
+                                      const sheetId = sheetIdMap[sheetName]
+                                      if (sheetId) {
+                                        deleteSheetMutation.mutate({
+                                          deviceId: fullDevice.id,
+                                          sheetId: sheetId,
+                                        })
+                                        if (activeSheet === sheetName) setActiveSheet(null)
+                                      } else {
+                                        console.error('Missing sheetId for delete')
+                                      }
                                     }
                                   }
-                                }
                                 : undefined
                             }
                           />

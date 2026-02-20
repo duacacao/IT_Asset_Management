@@ -222,8 +222,7 @@ export default function DevicesPage() {
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     onClick={() => {
-                      const devicesToExport =
-                        selectedDevices.length > 0 ? selectedDevices : devices
+                      const devicesToExport = selectedDevices.length > 0 ? selectedDevices : devices
                       exportDevicesToCSV(devicesToExport)
                     }}
                   >
@@ -269,8 +268,6 @@ export default function DevicesPage() {
         files={pendingFiles}
         onConfirm={handleSheetConfirm}
       />
-
-
 
       {/* Create Device Dialog */}
       <CreateDeviceDialog

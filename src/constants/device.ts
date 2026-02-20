@@ -18,9 +18,9 @@ export const DEVICE_TYPES = {
 } as const
 
 export const DEVICE_STATUS_CONFIG = {
-  [DEVICE_STATUSES.ACTIVE]: { label: 'Đang sử dụng', softColor: 'success' },
+  [DEVICE_STATUSES.ACTIVE]: { label: 'Đang sử dụng', softColor: 'warning' },
   [DEVICE_STATUSES.BROKEN]: { label: 'Hư hỏng', softColor: 'error' },
-  [DEVICE_STATUSES.INACTIVE]: { label: 'Không sử dụng', softColor: 'warning' },
+  [DEVICE_STATUSES.INACTIVE]: { label: 'Sẵn sàng', softColor: 'success' },
 } as const
 
 export const DEVICE_TYPE_LABELS: Record<string, string> = {
@@ -78,9 +78,9 @@ export const DEVICE_TYPE_COLORS: Record<string, { bg: string; text: string; bord
 }
 
 export const STATUS_DOT_COLORS: Record<DeviceStatus, string> = {
-  active: 'bg-emerald-500',
+  active: 'bg-amber-500',
   broken: 'bg-red-500',
-  inactive: 'bg-amber-500',
+  inactive: 'bg-emerald-500',
 }
 
 export const SHEET_TABLE_COLUMNS = {

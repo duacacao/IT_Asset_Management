@@ -60,11 +60,9 @@ export default function EndUsersPage() {
         user.email?.toLowerCase().includes(filters.search.toLowerCase()) ||
         user.phone?.includes(filters.search)
 
-      const matchDept =
-        filters.department === 'ALL' || user.department_id === filters.department
+      const matchDept = filters.department === 'ALL' || user.department_id === filters.department
 
-      const matchPos =
-        filters.position === 'ALL' || user.position_id === filters.position
+      const matchPos = filters.position === 'ALL' || user.position_id === filters.position
 
       return matchSearch && matchDept && matchPos
     })
@@ -75,18 +73,16 @@ export default function EndUsersPage() {
     if (!availableDevices) return []
     return availableDevices
       .filter((d) => {
-        // Device is available if status is 'active' AND it has no assignment
-        const isAvailable = d.status === 'active' && !d.assignment
+        // Device is available if status is 'inactive' (Sẵn sàng) AND it has no assignment
+        const isAvailable = d.status === 'inactive' && !d.assignment
         // If editing, allow devices currently assigned to this user
-        const isAssignedToCurrentUser = editingUser?.devices?.some(
-          (ud) => ud.id === d.id
-        )
+        const isAssignedToCurrentUser = editingUser?.devices?.some((ud) => ud.id === d.id)
         return isAvailable || isAssignedToCurrentUser
       })
-      .map(d => ({
+      .map((d) => ({
         id: d.id,
         name: d.name,
-        type: d.type
+        type: d.type,
       }))
   }, [availableDevices, editingUser])
 
@@ -150,7 +146,7 @@ export default function EndUsersPage() {
   if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <Loader2 className="text-primary h-8 w-8 animate-spin" />
       </div>
     )
   }
@@ -218,8 +214,8 @@ export default function EndUsersPage() {
             <AlertDialogDescription>
               {deleteId === 'BULK'
                 ? `Hành động này sẽ xóa ${selectedIds.length} người dùng đã chọn.`
-                : 'Hành động này sẽ xóa người dùng này khỏi hệ thống.'}
-              {' '}Việc này không thể hoàn tác.
+                : 'Hành động này sẽ xóa người dùng này khỏi hệ thống.'}{' '}
+              Việc này không thể hoàn tác.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

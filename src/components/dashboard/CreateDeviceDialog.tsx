@@ -122,7 +122,7 @@ const INITIAL_VALUES: FormValues = {
   architecture: '',
   ip: '',
   mac: '',
-  status: 'active',
+  status: 'inactive',
   screenSize: '',
   resolution: '',
   connectionType: '',

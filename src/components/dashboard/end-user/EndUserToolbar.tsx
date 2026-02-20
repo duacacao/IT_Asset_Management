@@ -125,7 +125,13 @@ export function EndUserToolbar({
             Xóa ({selectedCount})
           </Button>
         )}
-        <Button variant="outline" onClick={onAdd} size="icon" title="Thêm mới" className="cursor-pointer">
+        <Button
+          variant="outline"
+          onClick={onAdd}
+          size="icon"
+          title="Thêm mới"
+          className="cursor-pointer"
+        >
           <Plus className="h-4 w-4" />
         </Button>
       </div>

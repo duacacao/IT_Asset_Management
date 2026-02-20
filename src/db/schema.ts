@@ -52,7 +52,7 @@ export const devices = pgTable('devices', {
   code: text('code').unique(), // Asset Code (e.g. LAP-001)
   name: text('name').notNull(),
   type: text('type').notNull(), // Laptop, PC, Monitor...
-  status: text('status').notNull().default('active'),
+  status: text('status').notNull().default('inactive'),
   specs: jsonb('specs').default({}), // Flexible JSON for varied hardware specs
   ownerId: uuid('owner_id').references(() => profiles.id), // Assigned to user
   location: text('location'),

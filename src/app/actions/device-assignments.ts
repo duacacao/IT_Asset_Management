@@ -37,12 +37,14 @@ export async function assignDevice(
   // B1: Kiểm tra device đã được assign cho ai chưa
   const { data: existingDeviceAssignment } = await supabase
     .from('device_assignments')
-    .select(`
+    .select(
+      `
       id,
       end_users:end_user_id (
         full_name
       )
-    `)
+    `
+    )
     .eq('device_id', deviceId)
     .is('returned_at', null)
     .maybeSingle()
@@ -81,6 +83,12 @@ export async function assignDevice(
     console.error('Lỗi gán thiết bị:', error.message)
     return { success: false, error: error.message }
   }
+
+  // Update device status to 'active' (Đang sử dụng)
+  await supabase
+    .from('devices')
+    .update({ status: 'active', updated_at: new Date().toISOString() })
+    .eq('id', deviceId)
 
   // B4: Log activity
   await supabase.from('activity_logs').insert({
@@ -125,6 +133,12 @@ export async function returnDevice(
   }
 
   if (assignment) {
+    // Update device status back to 'inactive' (Sẵn sàng) upon return
+    await supabase
+      .from('devices')
+      .update({ status: 'inactive', updated_at: new Date().toISOString() })
+      .eq('id', assignment.device_id)
+
     await supabase.from('activity_logs').insert({
       device_id: assignment.device_id,
       user_id: user.id,

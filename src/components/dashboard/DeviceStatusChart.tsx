@@ -22,15 +22,15 @@ const chartConfig = {
   },
   active: {
     label: 'Đang sử dụng',
-    color: 'hsl(160, 84%, 39%)',
+    color: 'hsl(43, 96%, 56%)',
   },
   broken: {
     label: 'Hư hỏng',
     color: 'hsl(0, 84%, 60%)',
   },
   inactive: {
-    label: 'Không sử dụng',
-    color: 'hsl(43, 96%, 56%)',
+    label: 'Sẵn sàng',
+    color: 'hsl(160, 84%, 39%)',
   },
 } satisfies ChartConfig
 
