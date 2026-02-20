@@ -16,6 +16,7 @@ import {
   Tablet,
   Network,
   CheckCircle2,
+  Check,
   XCircle,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -128,29 +129,32 @@ export function DeviceOverviewTab({ device, onExport, onDelete, onClose }: Devic
   return (
     <div className="mx-auto max-w-7xl space-y-6 p-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-        <div className="space-y-1.5">
-          <h2 className="text-foreground text-2xl font-bold tracking-tight">
-            {device.deviceInfo.name}
-          </h2>
+        <div className="space-y-1.5 pt-2">
 
           <div className="text-muted-foreground flex flex-wrap items-center gap-3 text-sm">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
-                  variant="ghost"
+                  variant="outline"
                   size="sm"
-                  className="text-muted-foreground hover:text-foreground -ml-2 h-auto px-2 py-1 font-normal"
+                  className="text-muted-foreground hover:text-foreground flex h-auto w-36 items-center justify-between rounded-full px-3 py-1 text-xs font-medium"
                 >
-                  <Monitor className="mr-1.5 h-4 w-4" />
-                  <span>{DEVICE_TYPE_LABELS[device.type]}</span>
-                  <ChevronRight className="ml-1 h-3 w-3 rotate-90 opacity-50" />
+                  <div className="flex items-center gap-1.5 overflow-hidden">
+                    {(() => {
+                      const TypeIcon = ICON_MAP[cardConfigs[0]?.icon || 'Monitor'] || Monitor
+                      return <TypeIcon className="h-4 w-4 shrink-0" />
+                    })()}
+                    <span className="truncate">{DEVICE_TYPE_LABELS[device.type]}</span>
+                  </div>
+                  <ChevronRight className="ml-1 h-3 w-3 shrink-0 rotate-90 opacity-50" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start">
+              <DropdownMenuContent align="start" className="w-48">
                 <DropdownMenuLabel>Đổi loại thiết bị</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 {Object.values(DEVICE_TYPES).map((type) => {
-                  const Icon = ICON_MAP[DEVICE_DETAIL_CARDS[type]?.[0]?.icon || 'Monitor'] || Monitor
+                  const Icon =
+                    ICON_MAP[DEVICE_DETAIL_CARDS[type]?.[0]?.icon || 'Monitor'] || Monitor
                   return (
                     <DropdownMenuItem
                       key={type}
@@ -159,20 +163,20 @@ export function DeviceOverviewTab({ device, onExport, onDelete, onClose }: Devic
                     >
                       <Icon className="h-4 w-4" />
                       {DEVICE_TYPE_LABELS[type]}
-                      {device.type === type && <CheckCircle2 className="ml-auto h-4 w-4" />}
+                      {device.type === type && <Check className="ml-auto h-4 w-4" />}
                     </DropdownMenuItem>
                   )
                 })}
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <div className="h-4 w-px bg-border/50" />
+            <div className="bg-border/50 h-4 w-px" />
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <div
                   className={cn(
-                    'flex cursor-pointer items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium transition-colors hover:opacity-80',
+                    'flex w-36 cursor-pointer items-center justify-between rounded-full border px-3 py-1 text-xs font-medium transition-colors hover:opacity-80',
                     statusConfig.softColor === 'success'
                       ? 'border-green-200 bg-green-50 text-green-700'
                       : statusConfig.softColor === 'error'
@@ -180,21 +184,23 @@ export function DeviceOverviewTab({ device, onExport, onDelete, onClose }: Devic
                         : 'border-amber-200 bg-amber-50 text-amber-700'
                   )}
                 >
-                  <span
-                    className={cn(
-                      'h-1.5 w-1.5 rounded-full',
-                      statusConfig.softColor === 'success'
-                        ? 'bg-green-600'
-                        : statusConfig.softColor === 'error'
-                          ? 'bg-red-600'
-                          : 'bg-amber-600'
-                    )}
-                  />
-                  {statusConfig.label}
-                  <ChevronRight className="h-3 w-3 rotate-90 opacity-50" />
+                  <div className="flex items-center gap-1.5 overflow-hidden">
+                    <span
+                      className={cn(
+                        'h-1.5 w-1.5 shrink-0 rounded-full',
+                        statusConfig.softColor === 'success'
+                          ? 'bg-green-600'
+                          : statusConfig.softColor === 'error'
+                            ? 'bg-red-600'
+                            : 'bg-amber-600'
+                      )}
+                    />
+                    <span className="truncate">{statusConfig.label}</span>
+                  </div>
+                  <ChevronRight className="ml-1 h-3 w-3 shrink-0 rotate-90 opacity-50" />
                 </div>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start">
+              <DropdownMenuContent align="start" className="w-48">
                 <DropdownMenuLabel>Đổi trạng thái</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 {Object.entries(DEVICE_STATUS_CONFIG).map(([status, config]) => (
@@ -214,7 +220,7 @@ export function DeviceOverviewTab({ device, onExport, onDelete, onClose }: Devic
                       )}
                     />
                     {config.label}
-                    {device.status === status && <CheckCircle2 className="ml-auto h-4 w-4" />}
+                    {device.status === status && <Check className="ml-auto h-4 w-4" />}
                   </DropdownMenuItem>
                 ))}
               </DropdownMenuContent>
