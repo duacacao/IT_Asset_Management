@@ -66,7 +66,7 @@ export function EndUserToolbar({
     filters.search !== '' || filters.department !== 'ALL' || filters.position !== 'ALL'
 
   return (
-    <div className="flex flex-col gap-4 py-4 md:flex-row md:items-center md:justify-between">
+    <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
       <div className="flex flex-1 flex-col gap-4 md:flex-row md:items-center">
         {/* Search */}
         <div className="relative w-full md:w-72">
@@ -125,7 +125,7 @@ export function EndUserToolbar({
             Xóa ({selectedCount})
           </Button>
         )}
-        <Button onClick={onAdd} size="icon" title="Thêm mới" className="cursor-pointer">
+        <Button variant="outline" onClick={onAdd} size="icon" title="Thêm mới" className="cursor-pointer">
           <Plus className="h-4 w-4" />
         </Button>
       </div>

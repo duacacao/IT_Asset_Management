@@ -67,19 +67,6 @@ export function FilterBar({ onFilterChange, onReset, className, children }: Filt
     onReset()
   }
 
-  // Keyboard shortcut for search
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
-        e.preventDefault()
-        document.querySelector<HTMLInputElement>('input[type="text"]')?.focus()
-      }
-    }
-
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [])
-
   return (
     <div className={`flex flex-col gap-4 ${className}`}>
       <div className="flex flex-wrap items-center gap-3">
@@ -108,10 +95,10 @@ export function FilterBar({ onFilterChange, onReset, className, children }: Filt
                 <div className="flex items-center gap-2">
                   <div
                     className={`h-2 w-2 rounded-full ${key === 'active'
-                        ? 'bg-emerald-500'
-                        : key === 'broken'
-                          ? 'bg-red-500'
-                          : 'bg-amber-500'
+                      ? 'bg-emerald-500'
+                      : key === 'broken'
+                        ? 'bg-red-500'
+                        : 'bg-amber-500'
                       }`}
                   />
                   {config.label}

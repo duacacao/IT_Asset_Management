@@ -161,7 +161,7 @@ export const createEndUserColumns = ({
             cell: ({ row }) => {
                 const user = row.original
                 return (
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center justify-end gap-1 pr-1">
                         <Button
                             variant="ghost"
                             className="h-8 w-8 p-0"

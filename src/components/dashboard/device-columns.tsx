@@ -176,7 +176,7 @@ export function createDeviceColumns({
       id: 'actions',
       header: 'Thao tác',
       cell: ({ row }) => (
-        <div className="flex items-center gap-1" data-no-row-click>
+        <div className="flex items-center justify-end gap-1 pr-1" data-no-row-click>
           <Button
             variant="ghost"
             size="icon"

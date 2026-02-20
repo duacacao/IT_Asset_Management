@@ -101,20 +101,20 @@ export const EndUserTable = memo(function EndUserTable({
 
   return (
     <div className="space-y-4">
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
+      <div className="rounded-md border relative">
+        <Table containerClassName="h-[calc(100vh-220px)] overflow-auto">
+          <TableHeader className="bg-background sticky top-0 z-10 shadow-sm">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
                   let widthClass = ''
                   const id = header.id
-                  if (id === 'select') widthClass = 'w-[40px]'
-                  else if (id === 'full_name') widthClass = 'w-[30%] min-w-[250px]'
-                  else if (id === 'department') widthClass = 'w-[12%] whitespace-nowrap'
-                  else if (id === 'position') widthClass = 'w-[12%] whitespace-nowrap'
-                  else if (id === 'devices') widthClass = 'w-[25%]'
-                  else if (id === 'actions') widthClass = 'w-[120px]'
+                  if (id === 'select') widthClass = 'w-[40px] align-middle'
+                  else if (id === 'full_name') widthClass = 'w-[25%] min-w-[250px]'
+                  else if (id === 'department') widthClass = 'w-[15%] min-w-[140px] whitespace-nowrap'
+                  else if (id === 'position') widthClass = 'w-[15%] min-w-[140px] whitespace-nowrap'
+                  else if (id === 'devices') widthClass = 'w-[30%] min-w-[350px]'
+                  else if (id === 'actions') widthClass = 'w-[120px] text-right pr-4'
 
                   return (
                     <TableHead key={header.id} className={widthClass}>
