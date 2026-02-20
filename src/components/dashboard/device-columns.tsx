@@ -8,7 +8,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { SoftLabel } from '@/components/ui/soft-label'
 import { Device, DeviceStatus } from '@/types/device'
 import {
   DEVICE_STATUS_CONFIG,
@@ -17,8 +16,27 @@ import {
   DEVICE_TYPES,
 } from '@/constants/device'
 import { Badge } from '@/components/ui/badge'
-import { Laptop, Smartphone, Tablet, Monitor, Server, Printer, Network } from 'lucide-react'
+import { Laptop, Smartphone, Tablet, Monitor, Server, Printer, Network, AlertCircleIcon, CheckCircleIcon, XCircleIcon } from 'lucide-react'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+
+// Style config cho status badge
+const STATUS_STYLES: Record<DeviceStatus, {
+  colorClass: string
+  icon: React.ElementType
+}> = {
+  active: {
+    colorClass: 'border-emerald-600 text-emerald-600 dark:border-emerald-400 dark:text-emerald-400 [a&]:hover:bg-emerald-600/10 [a&]:hover:text-emerald-600/90 dark:[a&]:hover:bg-emerald-400/10 dark:[a&]:hover:text-emerald-400/90',
+    icon: CheckCircleIcon
+  },
+  broken: {
+    colorClass: 'border-red-600 text-red-600 dark:border-red-400 dark:text-red-400 [a&]:hover:bg-red-600/10 [a&]:hover:text-red-600/90 dark:[a&]:hover:bg-red-400/10 dark:[a&]:hover:text-red-400/90',
+    icon: XCircleIcon
+  },
+  inactive: {
+    colorClass: 'border-amber-600 text-amber-600 dark:border-amber-400 dark:text-amber-400 [a&]:hover:bg-amber-600/10 [a&]:hover:text-amber-600/90 dark:[a&]:hover:bg-amber-400/10 dark:[a&]:hover:text-amber-400/90',
+    icon: AlertCircleIcon
+  }
+}
 
 const getDeviceIcon = (type: string | null) => {
   switch (type?.toLowerCase()) {
@@ -50,13 +68,20 @@ export const STATUS_DOT_COLORS: Record<DeviceStatus, string> = {
   inactive: 'bg-amber-500',
 }
 
-// Label hiển thị trạng thái thiết bị — dùng SoftLabel cho giao diện đẹp hơn
+// Label hiển thị trạng thái thiết bị
 export function StatusLabel({ status }: { status: DeviceStatus }) {
   const config = DEVICE_STATUS_CONFIG[status]
+  const style = STATUS_STYLES[status] || STATUS_STYLES.inactive
+  const Icon = style.icon
+
   return (
-    <SoftLabel color={config.softColor} size="sm">
+    <Badge
+      variant="outline"
+      className={`rounded-sm ${style.colorClass} gap-1.5`}
+    >
+      <Icon className="size-3" />
       {config.label}
-    </SoftLabel>
+    </Badge>
   )
 }
 
@@ -134,7 +159,10 @@ export function createDeviceColumns({
         const type = row.original.type
         const colors = DEVICE_TYPE_COLORS[type] || DEVICE_TYPE_COLORS[DEVICE_TYPES.OTHER]
         return (
-          <Badge variant="secondary" className={`${colors.bg} ${colors.text} border-0 font-medium`}>
+          <Badge
+            variant="outline"
+            className={`${colors.bg} ${colors.text} ${colors.border} hover:bg-opacity-80 font-medium`}
+          >
             {DEVICE_TYPE_LABELS[type] || type}
           </Badge>
         )
