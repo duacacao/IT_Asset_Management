@@ -2,7 +2,6 @@
 
 import { ImportDevice } from '@/components/dashboard/ImportDevice'
 import { DeviceList } from '@/components/dashboard/DeviceList'
-import { DeviceDetailModal } from '@/components/dashboard/detail/DeviceDetailModal'
 import { SheetSelectionDialog } from '@/components/dashboard/SheetSelectionDialog'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
@@ -14,6 +13,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Upload, Plus, Loader2, MoreHorizontal, FileDown } from 'lucide-react'
 import { useState, useCallback, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import {
   Dialog,
   DialogContent,
@@ -36,6 +36,8 @@ import { parseExcelForImport, exportDeviceToExcel } from '@/lib/excel-import'
 import { exportDevicesToCSV } from '@/lib/export-utils'
 
 export default function DevicesPage() {
+  const router = useRouter()
+
   // Data từ Supabase qua React Query
   const { data: devices = [], isLoading } = useDevicesQuery()
 
@@ -46,8 +48,6 @@ export default function DevicesPage() {
   // UI state
   const { highlightId, setHighlightId, isImporting, setImporting } = useUIStore()
 
-  const [isDetailOpen, setIsDetailOpen] = useState(false)
-  const [selectedDevice, setSelectedDevice] = useState<Device | null>(null)
   const [isImportOpen, setIsImportOpen] = useState(false)
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [selectedDevices, setSelectedDevices] = useState<Device[]>([])
@@ -71,19 +71,13 @@ export default function DevicesPage() {
     }
   }, [highlightId, setHighlightId])
 
+  // Chuyển hướng sang trang chi tiết thiết bị
   const handleViewDevice = (device: Device) => {
-    setSelectedDevice(device)
-    setIsDetailOpen(true)
+    router.push(`/device/${device.id}`)
   }
 
   const handleUpdateDevice = (device: Device) => {
-    setSelectedDevice(device)
-    setIsDetailOpen(true)
-  }
-
-  const handleCloseDetail = () => {
-    setIsDetailOpen(false)
-    setSelectedDevice(null)
+    router.push(`/device/${device.id}`)
   }
 
   // Export device — cần resolve sheets từ detail query
@@ -276,13 +270,7 @@ export default function DevicesPage() {
         onConfirm={handleSheetConfirm}
       />
 
-      <DeviceDetailModal
-        device={selectedDevice}
-        isOpen={isDetailOpen}
-        onClose={handleCloseDetail}
-        onExport={handleExportDevice}
-        onDelete={handleDeleteDevice}
-      />
+
 
       {/* Create Device Dialog */}
       <CreateDeviceDialog
