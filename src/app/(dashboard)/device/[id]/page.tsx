@@ -79,16 +79,16 @@ export default function DeviceDetailPage({ params }: DeviceDetailPageProps) {
                     </div>
 
                     {/* RIGHT: Tabs Toggle */}
-                    <TabsList className="grid w-[240px] grid-cols-2 bg-muted/50 p-1">
+                    <TabsList className="grid w-[180px] grid-cols-2 h-8 items-center rounded-lg bg-muted p-0.5 text-muted-foreground">
                         <TabsTrigger
                             value="overview"
-                            className="rounded-sm px-3 py-1.5 text-sm font-medium transition-all data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+                            className="inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-xs font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm h-7"
                         >
                             Tổng quan
                         </TabsTrigger>
                         <TabsTrigger
                             value="sheets"
-                            className="rounded-sm px-3 py-1.5 text-sm font-medium transition-all data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+                            className="inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-xs font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm h-7"
                         >
                             Dữ liệu
                         </TabsTrigger>
