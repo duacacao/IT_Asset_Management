@@ -137,7 +137,7 @@ export function DeviceOverviewTab({ device, onExport, onDelete, onClose }: Devic
                 <Button
                   variant="outline"
                   size="sm"
-                  className="text-muted-foreground hover:text-foreground flex h-auto w-48 items-center justify-between rounded-full px-3 py-1 text-xs font-medium"
+                  className="text-muted-foreground hover:text-foreground flex h-auto w-48 items-center justify-between rounded-full px-3 py-2 text-xs font-medium"
                 >
                   <div className="flex items-center gap-1.5 overflow-hidden">
                     {(() => {
@@ -176,7 +176,7 @@ export function DeviceOverviewTab({ device, onExport, onDelete, onClose }: Devic
               <DropdownMenuTrigger asChild>
                 <div
                   className={cn(
-                    'flex w-40 cursor-pointer items-center justify-between rounded-full border px-3 py-1 text-xs font-medium transition-colors hover:opacity-80',
+                    'flex w-40 cursor-pointer items-center justify-between rounded-full border px-3 py-2 text-xs font-medium transition-colors hover:opacity-80',
                     statusConfig.softColor === 'success'
                       ? 'border-green-200 bg-green-50 text-green-700'
                       : statusConfig.softColor === 'error'
