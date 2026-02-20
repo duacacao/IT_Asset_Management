@@ -76,6 +76,16 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+
+  /* Soft Toast Colors */
+  --color-green-400: oklch(0.792 0.209 151.711);
+  --color-green-600: oklch(0.577 0.245 137.050);
+  --color-red-400: oklch(0.704 0.191 22.216);
+  --color-red-600: oklch(0.577 0.245 27.325);
+  --color-amber-400: oklch(0.828 0.189 84.429);
+  --color-amber-600: oklch(0.666 0.179 58.318);
+  --color-blue-400: oklch(0.707 0.165 254.624);
+  --color-blue-600: oklch(0.546 0.245 262.881);
 }
 
 .dark {
@@ -159,6 +169,7 @@ html {
 
 /* Custom Scrollbar Styling */
 @layer utilities {
+
   /* Webkit browsers (Chrome, Safari, Edge) */
   ::-webkit-scrollbar {
     width: 8px;
