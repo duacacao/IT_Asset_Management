@@ -337,9 +337,9 @@ export async function importDevice(
     const { error: sheetsError } = await supabase.from('device_sheets').insert(sheetsToInsert)
 
     if (sheetsError) {
-      // Rollback: xóa device nếu tạo sheets thất bại
-      console.error('Lỗi tạo sheets, rollback device:', sheetsError.message)
-      await supabase.from('devices').delete().eq('id', device.id)
+      // Rollback: soft delete device nếu tạo sheets thất bại (đảm bảo tính nhất quán của hệ thống)
+      console.error('Lỗi tạo sheets, rollback device (soft-delete):', sheetsError.message)
+      await supabase.from('devices').update({ deleted_at: new Date().toISOString() }).eq('id', device.id)
       return { data: null, error: 'Lỗi tạo sheets: ' + sheetsError.message }
     }
   }

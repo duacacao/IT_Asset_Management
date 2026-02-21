@@ -320,7 +320,7 @@ export async function getAvailableDevices(): Promise<{
     .from('devices')
     .select('id, name, type')
     .eq('owner_id', user.id)
-    .eq('status', 'inactive')
+    .in('status', ['active', 'inactive'])
     .order('name')
 
   if (error) {

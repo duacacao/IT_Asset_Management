@@ -145,7 +145,7 @@ export function DeviceUpdateForm({ device, onClose }: DeviceUpdateFormProps) {
                         <div className="space-y-4 bg-background rounded-lg border border-border/60 shadow-sm p-5">
                             <div className="flex items-center gap-2 mb-2 pb-2 border-b border-border/40">
                                 <Info className="w-4 h-4 text-primary" />
-                                <h3 className="uppercase text-xs font-bold tracking-widest text-muted-foreground">THÔNG TIN CHUNG</h3>
+                                <h3 className="text-xs font-bold tracking-widest text-muted-foreground">Thông tin chung</h3>
                             </div>
                             <div className="grid grid-cols-1 gap-4">
                                 <FormField
@@ -153,14 +153,14 @@ export function DeviceUpdateForm({ device, onClose }: DeviceUpdateFormProps) {
                                     name="name"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel className="text-xs uppercase font-semibold text-muted-foreground">
-                                                TÊN THIẾT BỊ <span className="text-destructive">*</span>
+                                            <FormLabel className="text-xs font-semibold text-muted-foreground">
+                                                Tên thiết bị <span className="text-destructive">*</span>
                                             </FormLabel>
                                             <FormControl>
                                                 <Input
                                                     placeholder="VD: PC-IT-001"
                                                     autoComplete="off"
-                                                    className="font-mono text-base border-border/80 focus-visible:ring-primary/50 bg-muted/20"
+                                                    className="text-base border-border/80 focus-visible:ring-primary/50 bg-muted/20"
                                                     {...field}
                                                 />
                                             </FormControl>
@@ -176,10 +176,10 @@ export function DeviceUpdateForm({ device, onClose }: DeviceUpdateFormProps) {
                                     name="type"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel className="text-xs uppercase font-semibold text-muted-foreground">LOẠI THIẾT BỊ</FormLabel>
-                                            <Select onValueChange={field.onChange} value={field.value}>
+                                            <FormLabel className="text-xs font-semibold text-muted-foreground">Loại thiết bị</FormLabel>
+                                            <Select onValueChange={field.onChange} value={field.value} disabled>
                                                 <FormControl>
-                                                    <SelectTrigger className="border-border/80 bg-muted/20 font-medium">
+                                                    <SelectTrigger className="border-border/80 bg-muted/20 font-medium opacity-70 cursor-not-allowed">
                                                         <SelectValue placeholder="Chọn loại thiết bị" />
                                                     </SelectTrigger>
                                                 </FormControl>
@@ -201,7 +201,7 @@ export function DeviceUpdateForm({ device, onClose }: DeviceUpdateFormProps) {
                                     name="status"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel className="text-xs uppercase font-semibold text-muted-foreground">TRẠNG THÁI</FormLabel>
+                                            <FormLabel className="text-xs font-semibold text-muted-foreground">Trạng thái</FormLabel>
                                             <Select onValueChange={field.onChange} value={field.value}>
                                                 <FormControl>
                                                     <SelectTrigger className="border-border/80 bg-muted/20 font-medium">
@@ -227,7 +227,7 @@ export function DeviceUpdateForm({ device, onClose }: DeviceUpdateFormProps) {
                         <div className="space-y-4 bg-background rounded-lg border border-border/60 shadow-sm p-5">
                             <div className="flex items-center gap-2 mb-2 pb-2 border-b border-border/40">
                                 <Server className="w-4 h-4 text-primary" />
-                                <h3 className="uppercase text-xs font-bold tracking-widest text-muted-foreground">THÔNG SỐ KỸ THUẬT</h3>
+                                <h3 className="text-xs font-bold tracking-widest text-muted-foreground">Thông số kỹ thuật</h3>
                             </div>
 
                             <div className="grid grid-cols-2 gap-x-6 gap-y-5">
@@ -241,7 +241,7 @@ export function DeviceUpdateForm({ device, onClose }: DeviceUpdateFormProps) {
                                                     OS
                                                 </FormLabel>
                                                 <FormControl>
-                                                    <Input placeholder="Windows 11 Pro" className="font-mono text-sm border-border/80 bg-muted/10 h-9" {...field} />
+                                                    <Input placeholder="Windows 11 Pro" className="text-sm border-border/80 bg-muted/10 h-9" {...field} />
                                                 </FormControl>
                                                 <FormMessage className="text-xs" />
                                             </FormItem>
@@ -257,7 +257,7 @@ export function DeviceUpdateForm({ device, onClose }: DeviceUpdateFormProps) {
                                             <FormItem>
                                                 <FormLabel className="text-xs font-medium text-muted-foreground">ARCH</FormLabel>
                                                 <FormControl>
-                                                    <Input placeholder="x64" className="font-mono text-sm border-border/80 bg-muted/10 h-9" {...field} />
+                                                    <Input placeholder="x64" className="text-sm border-border/80 bg-muted/10 h-9" {...field} />
                                                 </FormControl>
                                                 <FormMessage className="text-xs" />
                                             </FormItem>
@@ -275,7 +275,7 @@ export function DeviceUpdateForm({ device, onClose }: DeviceUpdateFormProps) {
                                                     CPU
                                                 </FormLabel>
                                                 <FormControl>
-                                                    <Input placeholder="Intel i5-12400" className="font-mono text-sm border-border/80 bg-muted/10 h-9" {...field} />
+                                                    <Input placeholder="Intel i5-12400" className="text-sm border-border/80 bg-muted/10 h-9" {...field} />
                                                 </FormControl>
                                                 <FormMessage className="text-xs" />
                                             </FormItem>
@@ -293,7 +293,7 @@ export function DeviceUpdateForm({ device, onClose }: DeviceUpdateFormProps) {
                                                     RAM
                                                 </FormLabel>
                                                 <FormControl>
-                                                    <Input placeholder="16 GB" className="font-mono text-sm border-border/80 bg-muted/10 h-9" {...field} />
+                                                    <Input placeholder="16 GB" className="text-sm border-border/80 bg-muted/10 h-9" {...field} />
                                                 </FormControl>
                                                 <FormMessage className="text-xs" />
                                             </FormItem>
@@ -308,16 +308,16 @@ export function DeviceUpdateForm({ device, onClose }: DeviceUpdateFormProps) {
                                         name="screenSize"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel className="text-xs font-medium text-muted-foreground">KÍCH THƯỚC</FormLabel>
+                                                <FormLabel className="text-xs font-medium text-muted-foreground">Kích thước</FormLabel>
                                                 <Select onValueChange={field.onChange} value={field.value}>
                                                     <FormControl>
-                                                        <SelectTrigger className="font-mono text-sm border-border/80 bg-muted/10 h-9">
+                                                        <SelectTrigger className="text-sm border-border/80 bg-muted/10 h-9">
                                                             <SelectValue placeholder="Chọn cỡ" />
                                                         </SelectTrigger>
                                                     </FormControl>
                                                     <SelectContent>
                                                         {SCREEN_SIZE_OPTIONS.map((option) => (
-                                                            <SelectItem key={option} value={option} className="font-mono text-sm">
+                                                            <SelectItem key={option} value={option} className="text-sm">
                                                                 {option}
                                                             </SelectItem>
                                                         ))}
@@ -335,16 +335,16 @@ export function DeviceUpdateForm({ device, onClose }: DeviceUpdateFormProps) {
                                         name="resolution"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel className="text-xs font-medium text-muted-foreground">ĐỘ PHÂN GIẢI</FormLabel>
+                                                <FormLabel className="text-xs font-medium text-muted-foreground">Độ phân giải</FormLabel>
                                                 <Select onValueChange={field.onChange} value={field.value}>
                                                     <FormControl>
-                                                        <SelectTrigger className="font-mono text-sm border-border/80 bg-muted/10 h-9">
+                                                        <SelectTrigger className="text-sm border-border/80 bg-muted/10 h-9">
                                                             <SelectValue placeholder="Chọn độ phân giải" />
                                                         </SelectTrigger>
                                                     </FormControl>
                                                     <SelectContent>
                                                         {RESOLUTION_OPTIONS.map((option) => (
-                                                            <SelectItem key={option} value={option} className="font-mono text-sm">
+                                                            <SelectItem key={option} value={option} className="text-sm">
                                                                 {option}
                                                             </SelectItem>
                                                         ))}
@@ -362,16 +362,16 @@ export function DeviceUpdateForm({ device, onClose }: DeviceUpdateFormProps) {
                                         name="connectionType"
                                         render={({ field }) => (
                                             <FormItem className="col-span-2">
-                                                <FormLabel className="text-xs font-medium text-muted-foreground">CỔNG KẾT NỐI</FormLabel>
+                                                <FormLabel className="text-xs font-medium text-muted-foreground">Cổng kết nối</FormLabel>
                                                 <Select onValueChange={field.onChange} value={field.value}>
                                                     <FormControl>
-                                                        <SelectTrigger className="font-mono text-sm border-border/80 bg-muted/10 h-9">
+                                                        <SelectTrigger className="text-sm border-border/80 bg-muted/10 h-9">
                                                             <SelectValue placeholder="Chọn kết nối" />
                                                         </SelectTrigger>
                                                     </FormControl>
                                                     <SelectContent>
                                                         {CONNECTION_TYPE_OPTIONS.map((option) => (
-                                                            <SelectItem key={option} value={option} className="font-mono text-sm">
+                                                            <SelectItem key={option} value={option} className="text-sm">
                                                                 {option}
                                                             </SelectItem>
                                                         ))}
@@ -390,7 +390,7 @@ export function DeviceUpdateForm({ device, onClose }: DeviceUpdateFormProps) {
                             <div className="space-y-4 bg-background rounded-lg border border-border/60 shadow-sm p-5">
                                 <div className="flex items-center gap-2 mb-2 pb-2 border-b border-border/40">
                                     <Network className="w-4 h-4 text-primary" />
-                                    <h3 className="uppercase text-xs font-bold tracking-widest text-muted-foreground">TCP/IP & MAC ADDRESS</h3>
+                                    <h3 className="text-xs font-bold tracking-widest text-muted-foreground">TCP/IP & MAC Address</h3>
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-x-6 gap-y-5">
@@ -400,11 +400,11 @@ export function DeviceUpdateForm({ device, onClose }: DeviceUpdateFormProps) {
                                             name="ip"
                                             render={({ field }) => (
                                                 <FormItem>
-                                                    <FormLabel className="text-xs font-medium text-muted-foreground">IPv4 ADDRESS</FormLabel>
+                                                    <FormLabel className="text-xs font-medium text-muted-foreground">IPv4 Address</FormLabel>
                                                     <FormControl>
-                                                        <Input placeholder="192.168.1.xxx" className="font-mono text-sm border-border/80 bg-muted/10 h-9" {...field} />
+                                                        <Input placeholder="192.168.1.xxx" className="text-sm border-border/80 bg-muted/10 h-9" {...field} />
                                                     </FormControl>
-                                                    <FormMessage className="text-xs font-mono" />
+                                                    <FormMessage className="text-xs" />
                                                 </FormItem>
                                             )}
                                         />
@@ -416,11 +416,11 @@ export function DeviceUpdateForm({ device, onClose }: DeviceUpdateFormProps) {
                                             name="mac"
                                             render={({ field }) => (
                                                 <FormItem>
-                                                    <FormLabel className="text-xs font-medium text-muted-foreground">MAC ADDRESS</FormLabel>
+                                                    <FormLabel className="text-xs font-medium text-muted-foreground">MAC Address</FormLabel>
                                                     <FormControl>
-                                                        <Input placeholder="00:00:00:00:00:00" className="font-mono text-sm border-border/80 bg-muted/10 h-9 tracking-widest uppercase uppercase text-center" {...field} />
+                                                        <Input placeholder="00:00:00:00:00:00" className="text-sm border-border/80 bg-muted/10 h-9 tracking-widest text-center" {...field} />
                                                     </FormControl>
-                                                    <FormMessage className="text-xs font-mono" />
+                                                    <FormMessage className="text-xs" />
                                                 </FormItem>
                                             )}
                                         />
@@ -448,7 +448,7 @@ export function DeviceUpdateForm({ device, onClose }: DeviceUpdateFormProps) {
                                     <span>Đang ghi...</span>
                                 </>
                             ) : (
-                                <span>GHI DỮ LIỆU</span>
+                                <span>Ghi dữ liệu</span>
                             )}
                         </Button>
                     </div>

@@ -52,6 +52,8 @@ import {
   Package,
   ArrowLeft,
   Sparkles,
+  Info,
+  Server,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { AppLoader } from '@/components/ui/app-loader'
@@ -259,7 +261,7 @@ export function CreateDeviceDialog({ isOpen, onClose, onCreated }: CreateDeviceD
             </DialogHeader>
 
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 bg-muted/10 p-4 rounded-lg mt-4 custom-scrollbar overflow-y-auto max-h-[60vh]">
                 {templates.length > 0 && (
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
@@ -294,163 +296,57 @@ export function CreateDeviceDialog({ isOpen, onClose, onCreated }: CreateDeviceD
                   </div>
                 )}
 
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex items-center gap-1.5">
-                        <Monitor className="h-3.5 w-3.5" />
-                        Tên thiết bị <span className="text-destructive">*</span>
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="VD: PC-IT-001"
-                          autoComplete="off"
-                          autoFocus={
-                            typeof window !== 'undefined' &&
-                            !/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
-                          }
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                {/* Nhóm 1: Thông tin chung */}
+                <div className="space-y-4 bg-background rounded-lg border border-border/60 shadow-sm p-5">
+                  <div className="flex items-center gap-2 mb-2 pb-2 border-b border-border/40">
+                    <Info className="w-4 h-4 text-primary" />
+                    <h3 className="text-xs font-bold tracking-widest text-muted-foreground">Thông tin chung</h3>
+                  </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                  {fieldConfig?.os?.show && (
+                  <div className="grid grid-cols-1 gap-4">
                     <FormField
                       control={form.control}
-                      name="os"
+                      name="name"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="flex items-center gap-1.5">
-                            <Laptop className="h-3.5 w-3.5" />
-                            OS
+                          <FormLabel className="text-xs font-semibold text-muted-foreground">
+                            Tên thiết bị <span className="text-destructive">*</span>
                           </FormLabel>
                           <FormControl>
-                            <Input placeholder="Windows 11 Pro" autoComplete="off" {...field} />
+                            <Input
+                              placeholder="VD: PC-IT-001"
+                              autoComplete="off"
+                              autoFocus={
+                                typeof window !== 'undefined' &&
+                                !/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+                              }
+                              className="text-base border-border/80 focus-visible:ring-primary/50 bg-muted/20"
+                              {...field}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
-                  )}
+                  </div>
 
-                  {fieldConfig?.architecture?.show && (
+                  <div className="grid grid-cols-1 gap-4">
                     <FormField
                       control={form.control}
-                      name="architecture"
+                      name="status"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Architecture</FormLabel>
-                          <FormControl>
-                            <Input placeholder="x64" autoComplete="off" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  )}
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  {fieldConfig?.cpu?.show && (
-                    <FormField
-                      control={form.control}
-                      name="cpu"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="flex items-center gap-1.5">
-                            <Cpu className="h-3.5 w-3.5" />
-                            CPU
-                          </FormLabel>
-                          <FormControl>
-                            <Input placeholder="Intel i5-12400" autoComplete="off" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  )}
-
-                  {fieldConfig?.ram?.show && (
-                    <FormField
-                      control={form.control}
-                      name="ram"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="flex items-center gap-1.5">
-                            <HardDrive className="h-3.5 w-3.5" />
-                            RAM
-                          </FormLabel>
-                          <FormControl>
-                            <Input placeholder="16 GB" autoComplete="off" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  )}
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  {fieldConfig?.ip?.show && (
-                    <FormField
-                      control={form.control}
-                      name="ip"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>
-                            <Network className="mr-1.5 inline h-3.5 w-3.5" />
-                            IP
-                          </FormLabel>
-                          <FormControl>
-                            <Input placeholder="192.168.1.100" autoComplete="off" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  )}
-
-                  {fieldConfig?.mac?.show && (
-                    <FormField
-                      control={form.control}
-                      name="mac"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>MAC</FormLabel>
-                          <FormControl>
-                            <Input placeholder="AA:BB:CC:DD:EE:FF" autoComplete="off" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  )}
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  {fieldConfig?.screenSize?.show && (
-                    <FormField
-                      control={form.control}
-                      name="screenSize"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Kích thước màn</FormLabel>
+                          <FormLabel className="text-xs font-semibold text-muted-foreground">Trạng thái</FormLabel>
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Chọn kích thước" />
+                              <SelectTrigger className="border-border/80 bg-muted/20 font-medium">
+                                <SelectValue placeholder="Chọn trạng thái" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              {SCREEN_SIZE_OPTIONS.map((option) => (
-                                <SelectItem key={option} value={option}>
-                                  {option}
+                              {Object.entries(DEVICE_STATUS_CONFIG).map(([key, config]) => (
+                                <SelectItem key={key} value={key} className="font-medium">
+                                  {config.label}
                                 </SelectItem>
                               ))}
                             </SelectContent>
@@ -459,87 +355,214 @@ export function CreateDeviceDialog({ isOpen, onClose, onCreated }: CreateDeviceD
                         </FormItem>
                       )}
                     />
-                  )}
-
-                  {fieldConfig?.resolution?.show && (
-                    <FormField
-                      control={form.control}
-                      name="resolution"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Độ phân giải</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Chọn độ phân giải" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {RESOLUTION_OPTIONS.map((option) => (
-                                <SelectItem key={option} value={option}>
-                                  {option}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  )}
+                  </div>
                 </div>
 
-                {fieldConfig?.connectionType?.show && (
-                  <FormField
-                    control={form.control}
-                    name="connectionType"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Kết nối</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Chọn kiểu kết nối" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {CONNECTION_TYPE_OPTIONS.map((option) => (
-                              <SelectItem key={option} value={option}>
-                                {option}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
+                {/* Nhóm 2: Cấu hình phần cứng (Hiển thị có điều kiện) */}
+                <div className="space-y-4 bg-background rounded-lg border border-border/60 shadow-sm p-5">
+                  <div className="flex items-center gap-2 mb-2 pb-2 border-b border-border/40">
+                    <Server className="w-4 h-4 text-primary" />
+                    <h3 className="text-xs font-bold tracking-widest text-muted-foreground">Thông số kỹ thuật</h3>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-x-6 gap-y-5">
+                    {fieldConfig?.os?.show && (
+                      <FormField
+                        control={form.control}
+                        name="os"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                              OS
+                            </FormLabel>
+                            <FormControl>
+                              <Input placeholder="Windows 11 Pro" className="text-sm border-border/80 bg-muted/10 h-9" {...field} />
+                            </FormControl>
+                            <FormMessage className="text-xs" />
+                          </FormItem>
+                        )}
+                      />
                     )}
-                  />
-                )}
 
-                <FormField
-                  control={form.control}
-                  name="status"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Trạng thái</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Chọn trạng thái" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {Object.entries(DEVICE_STATUS_CONFIG).map(([key, config]) => (
-                            <SelectItem key={key} value={key}>
-                              {config.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                    {fieldConfig?.architecture?.show && (
+                      <FormField
+                        control={form.control}
+                        name="architecture"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-xs font-medium text-muted-foreground">ARCH</FormLabel>
+                            <FormControl>
+                              <Input placeholder="x64" className="text-sm border-border/80 bg-muted/10 h-9" {...field} />
+                            </FormControl>
+                            <FormMessage className="text-xs" />
+                          </FormItem>
+                        )}
+                      />
+                    )}
+
+                    {fieldConfig?.cpu?.show && (
+                      <FormField
+                        control={form.control}
+                        name="cpu"
+                        render={({ field }) => (
+                          <FormItem className="col-span-2 sm:col-span-1">
+                            <FormLabel className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                              CPU
+                            </FormLabel>
+                            <FormControl>
+                              <Input placeholder="Intel i5-12400" className="text-sm border-border/80 bg-muted/10 h-9" {...field} />
+                            </FormControl>
+                            <FormMessage className="text-xs" />
+                          </FormItem>
+                        )}
+                      />
+                    )}
+
+                    {fieldConfig?.ram?.show && (
+                      <FormField
+                        control={form.control}
+                        name="ram"
+                        render={({ field }) => (
+                          <FormItem className="col-span-2 sm:col-span-1">
+                            <FormLabel className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                              RAM
+                            </FormLabel>
+                            <FormControl>
+                              <Input placeholder="16 GB" className="text-sm border-border/80 bg-muted/10 h-9" {...field} />
+                            </FormControl>
+                            <FormMessage className="text-xs" />
+                          </FormItem>
+                        )}
+                      />
+                    )}
+
+                    {/* Thông số riêng cho Màn hình */}
+                    {fieldConfig?.screenSize?.show && (
+                      <FormField
+                        control={form.control}
+                        name="screenSize"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-xs font-medium text-muted-foreground">Kích thước</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <FormControl>
+                                <SelectTrigger className="text-sm border-border/80 bg-muted/10 h-9">
+                                  <SelectValue placeholder="Chọn cỡ" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {SCREEN_SIZE_OPTIONS.map((option) => (
+                                  <SelectItem key={option} value={option} className="text-sm">
+                                    {option}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage className="text-xs" />
+                          </FormItem>
+                        )}
+                      />
+                    )}
+
+                    {fieldConfig?.resolution?.show && (
+                      <FormField
+                        control={form.control}
+                        name="resolution"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-xs font-medium text-muted-foreground">Độ phân giải</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <FormControl>
+                                <SelectTrigger className="text-sm border-border/80 bg-muted/10 h-9">
+                                  <SelectValue placeholder="Chọn độ phân giải" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {RESOLUTION_OPTIONS.map((option) => (
+                                  <SelectItem key={option} value={option} className="text-sm">
+                                    {option}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage className="text-xs" />
+                          </FormItem>
+                        )}
+                      />
+                    )}
+
+                    {fieldConfig?.connectionType?.show && (
+                      <FormField
+                        control={form.control}
+                        name="connectionType"
+                        render={({ field }) => (
+                          <FormItem className="col-span-2">
+                            <FormLabel className="text-xs font-medium text-muted-foreground">Cổng kết nối</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <FormControl>
+                                <SelectTrigger className="text-sm border-border/80 bg-muted/10 h-9">
+                                  <SelectValue placeholder="Chọn kết nối" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {CONNECTION_TYPE_OPTIONS.map((option) => (
+                                  <SelectItem key={option} value={option} className="text-sm">
+                                    {option}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage className="text-xs" />
+                          </FormItem>
+                        )}
+                      />
+                    )}
+                  </div>
+                </div>
+
+                {/* Nhóm 3: Mạng & Kết nối (Chỉ hiện nếu config cho phép) */}
+                {(fieldConfig?.ip?.show || fieldConfig?.mac?.show) && (
+                  <div className="space-y-4 bg-background rounded-lg border border-border/60 shadow-sm p-5">
+                    <div className="flex items-center gap-2 mb-2 pb-2 border-b border-border/40">
+                      <Network className="w-4 h-4 text-primary" />
+                      <h3 className="text-xs font-bold tracking-widest text-muted-foreground">TCP/IP & MAC Address</h3>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-x-6 gap-y-5">
+                      {fieldConfig?.ip?.show && (
+                        <FormField
+                          control={form.control}
+                          name="ip"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-xs font-medium text-muted-foreground">IPv4 Address</FormLabel>
+                              <FormControl>
+                                <Input placeholder="192.168.1.xxx" className="text-sm border-border/80 bg-muted/10 h-9" {...field} />
+                              </FormControl>
+                              <FormMessage className="text-xs" />
+                            </FormItem>
+                          )}
+                        />
+                      )}
+
+                      {fieldConfig?.mac?.show && (
+                        <FormField
+                          control={form.control}
+                          name="mac"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-xs font-medium text-muted-foreground">MAC Address</FormLabel>
+                              <FormControl>
+                                <Input placeholder="00:00:00:00:00:00" className="text-sm border-border/80 bg-muted/10 h-9 tracking-widest text-center" {...field} />
+                              </FormControl>
+                              <FormMessage className="text-xs" />
+                            </FormItem>
+                          )}
+                        />
+                      )}
+                    </div>
+                  </div>
+                )}
 
                 <DialogFooter>
                   <Button
