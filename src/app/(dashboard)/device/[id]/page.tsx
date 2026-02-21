@@ -7,8 +7,9 @@ import { DeviceSheetsTab } from '@/components/dashboard/detail/DeviceSheetsTab'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ArrowLeft } from 'lucide-react'
-import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
+import { AppLoader } from '@/components/ui/app-loader'
+import { useRouter } from 'next/navigation'
 
 // Next.js 15+ / 16: params là Promise, cần dùng React.use() để unwrap
 interface DeviceDetailPageProps {
@@ -27,10 +28,7 @@ export default function DeviceDetailPage({ params }: DeviceDetailPageProps) {
   if (isLoading) {
     return (
       <div className="bg-background flex h-screen w-full items-center justify-center">
-        <div className="flex flex-col items-center gap-2">
-          <div className="border-primary h-8 w-8 animate-spin rounded-full border-b-2"></div>
-          <p className="text-muted-foreground text-sm">Đang tải thông tin thiết bị...</p>
-        </div>
+        <AppLoader layout="vertical" text="Đang tải thông tin thiết bị..." />
       </div>
     )
   }

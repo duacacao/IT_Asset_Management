@@ -50,11 +50,11 @@ import {
   Smartphone,
   Tablet,
   Package,
-  Loader2,
   ArrowLeft,
   Sparkles,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { AppLoader } from '@/components/ui/app-loader'
 
 interface CreateDeviceDialogProps {
   isOpen: boolean
@@ -551,7 +551,7 @@ export function CreateDeviceDialog({ isOpen, onClose, onCreated }: CreateDeviceD
                     Hủy
                   </Button>
                   <Button type="submit" disabled={isCreating}>
-                    {isCreating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    {isCreating && <AppLoader layout="horizontal" hideText className="mr-2" />}
                     {isCreating ? 'Đang tạo…' : 'Tạo thiết bị'}
                   </Button>
                 </DialogFooter>

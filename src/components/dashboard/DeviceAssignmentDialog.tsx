@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
-import { Check, ChevronsUpDown, Loader2, AlertTriangle } from 'lucide-react'
+import { Check, ChevronsUpDown, AlertTriangle } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { AppLoader } from '@/components/ui/app-loader'
 import { useQueryClient } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
 import {
@@ -327,7 +328,7 @@ export function DeviceAssignmentDialog({
               onClick={() => handleAssign(true)}
               disabled={isSubmitting}
             >
-              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isSubmitting && <AppLoader layout="horizontal" hideText className="mr-2" />}
               Chuyển thiết bị
             </Button>
           ) : (
@@ -335,7 +336,7 @@ export function DeviceAssignmentDialog({
               onClick={() => handleAssign(false)}
               disabled={isSubmitting || isLoadingData || !selectedUser || !selectedDevice}
             >
-              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isSubmitting && <AppLoader layout="horizontal" hideText className="mr-2" />}
               Xác nhận
             </Button>
           )}

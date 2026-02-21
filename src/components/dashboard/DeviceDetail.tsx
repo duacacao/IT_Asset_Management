@@ -75,8 +75,8 @@ import {
   Tag,
   ArrowLeftRight,
   Undo2,
-  Loader2,
 } from 'lucide-react'
+import { AppLoader } from '@/components/ui/app-loader'
 import { SheetTable } from './SheetTable'
 import { DeviceAssignmentDialog } from './DeviceAssignmentDialog'
 import { returnDevice } from '@/app/actions/device-assignments'
@@ -458,7 +458,7 @@ export function DeviceDetail({
                         disabled={isReturning}
                         className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                       >
-                        {isReturning && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        {isReturning && <AppLoader layout="horizontal" hideText className="mr-2" />}
                         Xác nhận thu hồi
                       </AlertDialogAction>
                     </AlertDialogFooter>
@@ -716,19 +716,19 @@ export function DeviceDetail({
                             onDelete={
                               allSheetKeys.length > 1
                                 ? () => {
-                                    if (confirm(`Xóa sheet "${getDisplayName(sheetName)}"?`)) {
-                                      const sheetId = sheetIdMap[sheetName]
-                                      if (sheetId) {
-                                        deleteSheetMutation.mutate({
-                                          deviceId: fullDevice.id,
-                                          sheetId: sheetId,
-                                        })
-                                        if (activeSheet === sheetName) setActiveSheet(null)
-                                      } else {
-                                        console.error('Missing sheetId for delete')
-                                      }
+                                  if (confirm(`Xóa sheet "${getDisplayName(sheetName)}"?`)) {
+                                    const sheetId = sheetIdMap[sheetName]
+                                    if (sheetId) {
+                                      deleteSheetMutation.mutate({
+                                        deviceId: fullDevice.id,
+                                        sheetId: sheetId,
+                                      })
+                                      if (activeSheet === sheetName) setActiveSheet(null)
+                                    } else {
+                                      console.error('Missing sheetId for delete')
                                     }
                                   }
+                                }
                                 : undefined
                             }
                           />

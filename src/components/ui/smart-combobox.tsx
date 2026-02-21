@@ -3,6 +3,7 @@
 import * as React from 'react'
 import { Check, ChevronsUpDown, MoreHorizontal, Pencil, Plus, Trash2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { AppLoader } from '@/components/ui/app-loader'
 import { Button } from '@/components/ui/button'
 import {
   Command,
@@ -292,7 +293,14 @@ export function SmartCombobox({
               Cancel
             </Button>
             <Button onClick={handleCreate} disabled={isLoading || !tempValue.trim()}>
-              {isLoading ? 'Creating...' : 'Create'}
+              {isLoading ? (
+                <>
+                  <AppLoader layout="horizontal" hideText className="mr-2" />
+                  Creating...
+                </>
+              ) : (
+                'Create'
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -316,7 +324,14 @@ export function SmartCombobox({
               Cancel
             </Button>
             <Button onClick={handleEdit} disabled={isLoading || !tempValue.trim()}>
-              {isLoading ? 'Saving...' : 'Save'}
+              {isLoading ? (
+                <>
+                  <AppLoader layout="horizontal" hideText className="mr-2" />
+                  Saving...
+                </>
+              ) : (
+                'Save'
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -336,7 +351,14 @@ export function SmartCombobox({
               Cancel
             </Button>
             <Button variant="destructive" onClick={handleDelete} disabled={isLoading}>
-              {isLoading ? 'Deleting...' : 'Delete'}
+              {isLoading ? (
+                <>
+                  <AppLoader layout="horizontal" hideText className="mr-2" />
+                  Deleting...
+                </>
+              ) : (
+                'Delete'
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>

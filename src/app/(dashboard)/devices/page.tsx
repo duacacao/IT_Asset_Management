@@ -11,7 +11,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Upload, Plus, Loader2, MoreHorizontal, FileDown } from 'lucide-react'
+import { Upload, Plus, MoreHorizontal, FileDown } from 'lucide-react'
+import { AppLoader } from '@/components/ui/app-loader'
 import { useState, useCallback, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import {
@@ -153,7 +154,6 @@ export default function DevicesPage() {
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Quản lý thiết bị</h2>
         </div>
-        <div />
       </div>
 
       {/* Import progress bar */}
@@ -174,9 +174,8 @@ export default function DevicesPage() {
 
       {/* Loading state — lần đầu fetch từ server */}
       {isLoading ? (
-        <div className="flex flex-col items-center justify-center py-20 text-center">
-          <Loader2 className="text-muted-foreground mb-4 h-10 w-10 animate-spin" />
-          <p className="text-muted-foreground">Đang tải danh sách thiết bị...</p>
+        <div className="flex min-h-[50vh] flex-col items-center justify-center py-20 text-center">
+          <AppLoader layout="vertical" text="Đang tải danh sách thiết bị..." />
         </div>
       ) : devices.length === 0 ? (
         /* Empty state */

@@ -252,26 +252,26 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "end_users_department_id_departments_id_fk"
-            columns: ["department_id"]
+            foreignKeyName: 'end_users_department_id_departments_id_fk'
+            columns: ['department_id']
             isOneToOne: false
-            referencedRelation: "departments"
-            referencedColumns: ["id"]
+            referencedRelation: 'departments'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "end_users_position_id_positions_id_fk"
-            columns: ["position_id"]
+            foreignKeyName: 'end_users_position_id_positions_id_fk'
+            columns: ['position_id']
             isOneToOne: false
-            referencedRelation: "positions"
-            referencedColumns: ["id"]
+            referencedRelation: 'positions'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "end_users_user_id_profiles_user_id_fk"
-            columns: ["user_id"]
+            foreignKeyName: 'end_users_user_id_profiles_user_id_fk'
+            columns: ['user_id']
             isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["user_id"]
-          }
+            referencedRelation: 'profiles'
+            referencedColumns: ['user_id']
+          },
         ]
       }
       departments: {
@@ -331,12 +331,12 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "positions_department_id_departments_id_fk"
-            columns: ["department_id"]
+            foreignKeyName: 'positions_department_id_departments_id_fk'
+            columns: ['department_id']
             isOneToOne: false
-            referencedRelation: "departments"
-            referencedColumns: ["id"]
-          }
+            referencedRelation: 'departments'
+            referencedColumns: ['id']
+          },
         ]
       }
     }

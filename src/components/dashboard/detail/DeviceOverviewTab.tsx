@@ -5,7 +5,6 @@ import {
   Monitor,
   Download,
   Trash2,
-  Loader2,
   User,
   MoreVertical,
   ChevronRight,
@@ -23,6 +22,7 @@ import { Button } from '@/components/ui/button'
 import { DEVICE_STATUS_CONFIG, DEVICE_TYPE_LABELS, DEVICE_DETAIL_CARDS, DEVICE_TYPES, STATUS_DOT_COLORS } from '@/constants/device'
 import { useState, useMemo } from 'react'
 import { toast } from 'sonner'
+import { AppLoader } from '@/components/ui/app-loader'
 import { useQueryClient } from '@tanstack/react-query'
 import { DeviceAssignmentDialog } from '../DeviceAssignmentDialog'
 import { returnDevice } from '@/app/actions/device-assignments'
@@ -137,7 +137,7 @@ export function DeviceOverviewTab({ device, onExport, onDelete, onClose }: Devic
                 <Button
                   variant="outline"
                   size="sm"
-                  className="text-muted-foreground hover:text-foreground flex h-auto w-48 items-center justify-between rounded-full px-3 py-2 text-xs font-medium"
+                  className="text-muted-foreground hover:text-foreground flex h-auto w-40 items-center justify-between rounded-full px-3 py-2 text-xs font-medium"
                 >
                   <div className="flex items-center gap-1.5 overflow-hidden">
                     {(() => {
@@ -170,13 +170,13 @@ export function DeviceOverviewTab({ device, onExport, onDelete, onClose }: Devic
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <div className="bg-border/50 h-4 w-px" />
+            {/* <div className="bg-border/50 h-5 w-px" /> */}
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <div
                   className={cn(
-                    'flex w-40 cursor-pointer items-center justify-between rounded-full border px-3 py-2 text-xs font-medium transition-colors hover:opacity-80',
+                    'flex w-40 items-center justify-between rounded-full border px-3 py-2 text-xs font-medium transition-colors hover:opacity-80',
                     statusConfig.softColor === 'success'
                       ? 'border-green-200 bg-green-50 text-green-700'
                       : statusConfig.softColor === 'error'
@@ -333,7 +333,7 @@ export function DeviceOverviewTab({ device, onExport, onDelete, onClose }: Devic
               disabled={isReturning}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {isReturning && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isReturning && <AppLoader layout="horizontal" hideText className="mr-2" />}
               Xác nhận thu hồi
             </AlertDialogAction>
           </AlertDialogFooter>

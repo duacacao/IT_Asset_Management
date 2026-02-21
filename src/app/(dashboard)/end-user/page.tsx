@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
-import { Loader2 } from 'lucide-react'
+import { AppLoader } from '@/components/ui/app-loader'
 
 import {
   AlertDialog,
@@ -143,14 +143,6 @@ export default function EndUsersPage() {
     }
   }
 
-  if (isLoading) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <Loader2 className="text-primary h-8 w-8 animate-spin" />
-      </div>
-    )
-  }
-
   return (
     <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
       <div className="flex items-center justify-between space-y-2">
@@ -159,29 +151,34 @@ export default function EndUsersPage() {
         </div>
       </div>
 
-      <div className="space-y-4">
-        <EndUserToolbar
-          filters={filters}
-          setFilters={setFilters}
-          departments={deptOptions}
-          positions={posOptions}
-          onAdd={handleOpenCreate}
-          onBulkDelete={() => setDeleteId('BULK')}
-          selectedCount={selectedIds.length}
-          totalCount={endUsers.length}
-          filteredCount={filteredUsers.length}
-        />
-
-        <EndUserTable
-          data={filteredUsers}
-          selectedIds={selectedIds}
-          onSelectId={handleSelectId}
-          onSelectAll={handleSelectAll}
-          onEdit={handleOpenEdit}
-          onDelete={handleDeleteClick}
-          onView={(id) => handleView(id)}
-        />
-      </div>
+      {isLoading ? (
+        <div className="flex min-h-[50vh] items-center justify-center">
+          <AppLoader layout="vertical" text="Đang tải danh sách end-user..." />
+        </div>
+      ) : (
+        <div className="space-y-4">
+          <EndUserToolbar
+            filters={filters}
+            setFilters={setFilters}
+            departments={deptOptions}
+            positions={posOptions}
+            onAdd={handleOpenCreate}
+            onBulkDelete={() => setDeleteId('BULK')}
+            selectedCount={selectedIds.length}
+            totalCount={endUsers.length}
+            filteredCount={filteredUsers.length}
+          />
+          <EndUserTable
+            data={filteredUsers}
+            selectedIds={selectedIds}
+            onSelectId={handleSelectId}
+            onSelectAll={handleSelectAll}
+            onEdit={handleOpenEdit}
+            onDelete={handleDeleteClick}
+            onView={(id) => handleView(id)}
+          />
+        </div>
+      )}
 
       {/* Dialogs */}
       <EndUserDialog
@@ -230,7 +227,7 @@ export default function EndUsersPage() {
             >
               {isDeleting ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <AppLoader layout="horizontal" hideText className="mr-2" />
                   Đang xóa...
                 </>
               ) : (

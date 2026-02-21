@@ -1,7 +1,8 @@
 import { useCallback } from 'react'
 import { useDropzone } from 'react-dropzone'
 import { Card, CardContent } from '@/components/ui/card'
-import { Upload, FileSpreadsheet, Loader2 } from 'lucide-react'
+import { Upload, FileSpreadsheet } from 'lucide-react'
+import { AppLoader } from '@/components/ui/app-loader'
 import { cn } from '@/lib/utils'
 
 interface ImportDeviceProps {
@@ -51,7 +52,7 @@ export function ImportDevice({ onImport, onImportMultiple, isLoading }: ImportDe
           <input {...getInputProps()} />
 
           {isLoading ? (
-            <Loader2 className="text-muted-foreground h-10 w-10 animate-spin" aria-hidden="true" />
+            <AppLoader layout="vertical" text="Đang xử lý file…" />
           ) : (
             <div className="bg-primary/10 rounded-full p-4">
               <Upload className="text-primary h-8 w-8" aria-hidden="true" />

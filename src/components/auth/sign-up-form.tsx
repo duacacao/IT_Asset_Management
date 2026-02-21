@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Loader2 } from 'lucide-react'
+import { AppLoader } from '@/components/ui/app-loader'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -94,7 +94,7 @@ export function SignUpForm({ initialMessage }: { initialMessage?: string }) {
           <Button type="submit" className="w-full" disabled={isPending}>
             {isPending ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <AppLoader layout="horizontal" hideText className="mr-2" />
                 Đang đăng ký...
               </>
             ) : (

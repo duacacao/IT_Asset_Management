@@ -1,7 +1,12 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { getEndUsers, getEndUser, getAvailableDevices, getEndUserStats } from '@/app/actions/end-users'
+import {
+  getEndUsers,
+  getEndUser,
+  getAvailableDevices,
+  getEndUserStats,
+} from '@/app/actions/end-users'
 import { toFrontendEndUser } from '@/lib/supabase-adapter'
 import { getDepartments } from '@/app/actions/departments'
 import { getPositions } from '@/app/actions/positions'
@@ -99,4 +104,3 @@ export function useEndUserStatsQuery() {
     },
   })
 }
-

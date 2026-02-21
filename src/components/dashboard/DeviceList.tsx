@@ -27,7 +27,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { CheckCircle2, SearchX, Loader2, Download, Trash2 } from 'lucide-react'
+import { CheckCircle2, SearchX, Download, Trash2 } from 'lucide-react'
+import { AppLoader } from '@/components/ui/app-loader'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -370,7 +371,7 @@ export function DeviceList({
             <AlertDialogDescription>
               {isCheckingAssignment ? (
                 <span className="flex items-center gap-2">
-                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <AppLoader layout="horizontal" hideText />
                   Đang kiểm tra trạng thái bàn giao...
                 </span>
               ) : assignmentWarning?.endUserName ? (
@@ -402,7 +403,7 @@ export function DeviceList({
             >
               {isDeleting ? (
                 <>
-                  <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
+                  <AppLoader layout="horizontal" hideText className="mr-2" />
                   Đang xóa…
                 </>
               ) : assignmentWarning?.endUserName ? (
@@ -456,7 +457,7 @@ export function DeviceList({
             >
               {isDeleting ? (
                 <>
-                  <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
+                  <AppLoader layout="horizontal" hideText className="mr-2" />
                   Đang xóa…
                 </>
               ) : (

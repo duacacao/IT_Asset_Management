@@ -20,7 +20,8 @@ import {
 } from '@/components/ui/form'
 import { getProfile, updateProfile } from '@/app/actions/profile'
 import { createClient } from '@/utils/supabase/client'
-import { Loader2, User, Calendar, Shield } from 'lucide-react'
+import { User, Calendar, Shield } from 'lucide-react'
+import { AppLoader } from '@/components/ui/app-loader'
 
 const accountFormSchema = z.object({
   full_name: z.string().min(1, 'Tên không được để trống').max(100, 'Tên quá dài'),
@@ -134,7 +135,7 @@ export default function AccountSettings() {
   if (isLoading) {
     return (
       <div className="flex min-h-[400px] items-center justify-center">
-        <Loader2 className="text-muted-foreground h-8 w-8 animate-spin" />
+        <AppLoader layout="vertical" text="Đang tải..." />
       </div>
     )
   }
@@ -211,7 +212,7 @@ export default function AccountSettings() {
             <Button type="submit" disabled={isSaving} className="cursor-pointer">
               {isSaving ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <AppLoader layout="horizontal" hideText className="mr-2" />
                   Đang lưu...
                 </>
               ) : (

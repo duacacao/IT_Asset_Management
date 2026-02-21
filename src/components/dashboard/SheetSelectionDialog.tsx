@@ -13,7 +13,8 @@ import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Loader2, FileSpreadsheet, CheckSquare, Square } from 'lucide-react'
+import { FileSpreadsheet, CheckSquare, Square } from 'lucide-react'
+import { AppLoader } from '@/components/ui/app-loader'
 import { scanSheetNames } from '@/lib/deviceUtils'
 import { SHEET_NAMES } from '@/types/device'
 
@@ -96,8 +97,7 @@ export function SheetSelectionDialog({
 
         {isScanning ? (
           <div className="flex flex-col items-center justify-center gap-3 py-8">
-            <Loader2 className="text-muted-foreground h-8 w-8 animate-spin" />
-            <p className="text-muted-foreground text-sm">Đang quét sheet names…</p>
+            <AppLoader layout="vertical" text="Đang quét sheet names…" />
           </div>
         ) : availableSheets.length === 0 ? (
           <div className="text-muted-foreground py-8 text-center">

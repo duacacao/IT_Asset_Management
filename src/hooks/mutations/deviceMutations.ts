@@ -87,10 +87,7 @@ export function useUpdateDeviceMutation() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (params: {
-      deviceId: string
-      updates: Partial<DeviceInfo>
-    }) => {
+    mutationFn: async (params: { deviceId: string; updates: Partial<DeviceInfo> }) => {
       // Logic đã move vào server action: fetch device -> merge updates
       // Client chỉ cần gửi updates
       const payload = toSupabaseDeviceUpdate(params.updates) // currentSpecs removed
@@ -142,11 +139,15 @@ export function useUpdateStatusMutation() {
 
   return useMutation({
     mutationFn: async (params: { deviceId: string; status: DeviceStatus }) => {
+      console.log('[DEBUG] Updating device status:', params.deviceId, 'to', params.status)
       const { data, error } = await updateDeviceAction(params.deviceId, {
         status: params.status,
         updated_at: new Date().toISOString(),
       })
-      if (error || !data) throw new Error(error || 'Lỗi cập nhật status')
+      if (error || !data) {
+        console.error('[DEBUG] Error updating status:', error)
+        throw new Error(error || 'Lỗi cập nhật status')
+      }
       return data
     },
     onSuccess: (_data, vars) => {
