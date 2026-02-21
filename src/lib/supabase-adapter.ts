@@ -41,12 +41,12 @@ export function toFrontendDevice(dbDevice: DbDevice, assignments: any[] = []): D
 
   const mappedAssignment = assignment
     ? {
-        id: assignment.id,
-        end_user_id: assignment.end_user_id,
-        assignee_name: assignment.end_users?.full_name || assignment.end_users?.[0]?.full_name,
-        assignee_email: assignment.end_users?.email || assignment.end_users?.[0]?.email,
-        assigned_at: assignment.assigned_at,
-      }
+      id: assignment.id,
+      end_user_id: assignment.end_user_id,
+      assignee_name: assignment.end_users?.full_name || assignment.end_users?.[0]?.full_name,
+      assignee_email: assignment.end_users?.email || assignment.end_users?.[0]?.email,
+      assigned_at: assignment.assigned_at,
+    }
     : undefined
 
   return {
@@ -167,9 +167,9 @@ export function toFrontendDeviceWithSheets(
 // Frontend DeviceInfo → Supabase update payload
 // Update: Client prepares keys, server handles merging
 // ============================================
-export function toSupabaseDeviceUpdate(updates: Partial<DeviceInfo>) {
-  // Tách fields riêng: name, type, lastUpdate
-  const { name, type, lastUpdate, ...specFields } = updates
+export function toSupabaseDeviceUpdate(updates: Partial<DeviceInfo> & { status?: DeviceStatus }) {
+  // Tách fields riêng: name, type, lastUpdate, status
+  const { name, type, lastUpdate, status, ...specFields } = updates
 
   const result: Record<string, any> = {
     updated_at: new Date().toISOString(),
@@ -182,6 +182,7 @@ export function toSupabaseDeviceUpdate(updates: Partial<DeviceInfo>) {
 
   if (name !== undefined) result.name = name
   if (type !== undefined) result.type = type
+  if (status !== undefined) result.status = status
 
   return result
 }

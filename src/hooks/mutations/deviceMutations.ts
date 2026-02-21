@@ -87,7 +87,7 @@ export function useUpdateDeviceMutation() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (params: { deviceId: string; updates: Partial<DeviceInfo> }) => {
+    mutationFn: async (params: { deviceId: string; updates: Partial<DeviceInfo> & { status?: DeviceStatus } }) => {
       // Logic đã move vào server action: fetch device -> merge updates
       // Client chỉ cần gửi updates
       const payload = toSupabaseDeviceUpdate(params.updates) // currentSpecs removed
@@ -106,11 +106,16 @@ export function useUpdateDeviceMutation() {
       // Optimistic update
       queryClient.setQueryData(deviceKeys.detail(vars.deviceId), (old: any) => {
         if (!old || !old.device) return old
+
+        // Remove status before merging specs
+        const { status, ...specUpdates } = vars.updates
+
         return {
           ...old,
           device: {
             ...old.device,
-            deviceInfo: mergeDeviceSpecs(old.device.deviceInfo, vars.updates),
+            status: status !== undefined ? status : old.device.status,
+            deviceInfo: mergeDeviceSpecs(old.device.deviceInfo, specUpdates),
           },
         }
       })

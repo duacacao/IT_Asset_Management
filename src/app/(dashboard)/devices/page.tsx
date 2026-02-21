@@ -25,6 +25,7 @@ import {
 import { Device } from '@/types/device'
 import { CreateDeviceDialog } from '@/components/dashboard/CreateDeviceDialog'
 import { toast } from 'sonner'
+import { DeviceUpdateSheet } from './_components/DeviceUpdateSheet'
 
 // Hooks mới — React Query cho data, UIStore cho UI state
 import {
@@ -77,8 +78,11 @@ export default function DevicesPage() {
     router.push(`/device/${device.id}`)
   }
 
+  // Cập nhật thiết bị
+  const [editingDevice, setEditingDevice] = useState<Device | null>(null)
+
   const handleUpdateDevice = (device: Device) => {
-    router.push(`/device/${device.id}`)
+    setEditingDevice(device)
   }
 
   // Export device — cần resolve sheets từ detail query
@@ -275,6 +279,13 @@ export default function DevicesPage() {
         onCreated={(deviceId) => {
           setHighlightId(deviceId)
         }}
+      />
+
+      {/* Sheet cập nhật thiết bị (Lazy Loaded form bên trong) */}
+      <DeviceUpdateSheet
+        isOpen={!!editingDevice}
+        device={editingDevice}
+        onClose={() => setEditingDevice(null)}
       />
     </div>
   )
