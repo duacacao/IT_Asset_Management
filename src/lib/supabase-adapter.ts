@@ -214,6 +214,9 @@ export function toSupabaseDeviceInsert(
       screenSize: info.screenSize || '',
       resolution: info.resolution || '',
       connectionType: info.connectionType || '',
+      gpu: info.gpu || '',
+      storage: info.storage || '',
+      activationStatus: info.activationStatus || '',
     },
   }
 }

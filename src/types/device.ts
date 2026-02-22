@@ -28,6 +28,9 @@ export interface DeviceInfo {
   screenSize?: string
   resolution?: string
   connectionType?: string
+  gpu?: string
+  storage?: string
+  activationStatus?: string
 }
 
 export interface DeviceMetadata {

@@ -41,6 +41,9 @@ export function useCreateDeviceMutation() {
       screenSize?: string
       resolution?: string
       connectionType?: string
+      gpu?: string
+      storage?: string
+      activationStatus?: string
     }) => {
       const insertData = toSupabaseDeviceInsert(info)
       if (info.status) insertData.status = info.status

@@ -166,6 +166,16 @@ export const DEVICE_DETAIL_CARDS: Record<string, DetailCardConfig[]> = {
       ],
     },
     {
+      type: 'display',
+      title: 'Màn hình',
+      icon: 'Monitor',
+      iconColor: 'text-cyan-600',
+      fields: [
+        { key: 'screenSize', label: 'Screen Size', source: 'deviceInfo' },
+        { key: 'resolution', label: 'Resolution', source: 'deviceInfo' },
+      ],
+    },
+    {
       type: 'network',
       title: 'Mạng',
       icon: 'Wifi',
@@ -289,6 +299,16 @@ export const DEVICE_DETAIL_CARDS: Record<string, DetailCardConfig[]> = {
       ],
     },
     {
+      type: 'display',
+      title: 'Màn hình',
+      icon: 'Monitor',
+      iconColor: 'text-cyan-600',
+      fields: [
+        { key: 'screenSize', label: 'Kích thước', source: 'deviceInfo' },
+        { key: 'resolution', label: 'Độ phân giải', source: 'deviceInfo' },
+      ],
+    },
+    {
       type: 'network',
       title: 'Mạng',
       icon: 'Wifi',
@@ -315,7 +335,10 @@ export const DEVICE_DETAIL_CARDS: Record<string, DetailCardConfig[]> = {
       title: 'Màn hình',
       icon: 'Monitor',
       iconColor: 'text-cyan-600',
-      fields: [{ key: 'screenSize', label: 'Kích thước', source: 'deviceInfo' }],
+      fields: [
+        { key: 'screenSize', label: 'Kích thước', source: 'deviceInfo' },
+        { key: 'resolution', label: 'Độ phân giải', source: 'deviceInfo' },
+      ],
     },
     {
       type: 'network',
@@ -358,6 +381,23 @@ export const DEVICE_DETAIL_CARDS: Record<string, DetailCardConfig[]> = {
         { key: 'cpu', label: 'Processor', source: 'deviceInfo' },
         { key: 'ram', label: 'Memory', source: 'deviceInfo' },
       ],
+    },
+    {
+      type: 'display',
+      title: 'Màn hình',
+      icon: 'Monitor',
+      iconColor: 'text-cyan-600',
+      fields: [
+        { key: 'screenSize', label: 'Kích thước', source: 'deviceInfo' },
+        { key: 'resolution', label: 'Độ phân giải', source: 'deviceInfo' },
+      ],
+    },
+    {
+      type: 'connection',
+      title: 'Kết nối',
+      icon: 'Network',
+      iconColor: 'text-amber-600',
+      fields: [{ key: 'connectionType', label: 'Loại kết nối', source: 'deviceInfo' }],
     },
     {
       type: 'network',

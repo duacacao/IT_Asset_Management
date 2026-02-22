@@ -399,9 +399,16 @@ function DynamicDetailCard({
   const IconComponent = ICON_MAP[config.icon] || Cpu
 
   const getFieldValue = (field: DetailCardConfig['fields'][0]): string | null => {
+    const info = device.deviceInfo as unknown as Record<string, unknown>
+    const manualValue = info[field.key] as string | null
+
+    // Nếu người dùng nhập thủ công và có giá trị thì luôn ưu tiên dùng giá trị thủ công
+    if (manualValue && manualValue.trim() !== '' && manualValue !== 'Unknown') {
+      return manualValue
+    }
+
     if (field.source === 'deviceInfo') {
-      const info = device.deviceInfo as unknown as Record<string, unknown>
-      return info[field.key] as string | null
+      return manualValue
     } else if (field.source === 'computed' && field.computedKey) {
       const key = field.computedKey as keyof ComputedDeviceData
       return computedData[key] as string | null
@@ -410,7 +417,15 @@ function DynamicDetailCard({
   }
 
   const hasActivationStatus = config.fields.some((f) => f.key === 'activationStatus')
-  const activationValue = hasActivationStatus ? computedData.activationStatus : null
+  let activationValue: string | null = null
+  if (hasActivationStatus) {
+    const manualAct = (device.deviceInfo as any).activationStatus
+    if (manualAct && manualAct.trim() !== '' && manualAct !== 'Unknown') {
+      activationValue = manualAct
+    } else {
+      activationValue = computedData.activationStatus
+    }
+  }
 
   return (
     <div className="group relative overflow-hidden rounded-sm border border-gray-200 bg-white p-4 transition-all duration-300 hover:border-gray-300 hover:shadow-md">

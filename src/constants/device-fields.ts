@@ -17,6 +17,12 @@ export const DEVICE_FIELDS_CONFIG: Record<DeviceType, Record<string, FieldConfig
     architecture: { show: true, type: 'text' },
     ip: { show: true, type: 'text' },
     mac: { show: true, type: 'text' },
+    screenSize: { show: true, type: 'dropdown' },
+    resolution: { show: true, type: 'dropdown' },
+    connectionType: { show: true, type: 'dropdown' },
+    gpu: { show: true, type: 'text' },
+    storage: { show: true, type: 'text' },
+    activationStatus: { show: true, type: 'dropdown' },
   },
   [DEVICE_TYPES.LAPTOP]: {
     os: { show: true, type: 'text' },
@@ -26,6 +32,11 @@ export const DEVICE_FIELDS_CONFIG: Record<DeviceType, Record<string, FieldConfig
     ip: { show: true, type: 'text' },
     mac: { show: true, type: 'text' },
     screenSize: { show: true, type: 'dropdown' },
+    resolution: { show: true, type: 'dropdown' },
+    connectionType: { show: true, type: 'dropdown' },
+    gpu: { show: true, type: 'text' },
+    storage: { show: true, type: 'text' },
+    activationStatus: { show: true, type: 'dropdown' },
   },
   [DEVICE_TYPES.MONITOR]: {
     os: { show: false },
@@ -36,6 +47,7 @@ export const DEVICE_FIELDS_CONFIG: Record<DeviceType, Record<string, FieldConfig
     mac: { show: false },
     screenSize: { show: true, type: 'dropdown' },
     resolution: { show: true, type: 'dropdown' },
+    connectionType: { show: true, type: 'dropdown' },
   },
   [DEVICE_TYPES.PRINTER]: {
     os: { show: false },
@@ -53,6 +65,8 @@ export const DEVICE_FIELDS_CONFIG: Record<DeviceType, Record<string, FieldConfig
     architecture: { show: false },
     ip: { show: true, type: 'text' },
     mac: { show: true, type: 'text' },
+    screenSize: { show: true, type: 'dropdown' },
+    resolution: { show: true, type: 'dropdown' },
   },
   [DEVICE_TYPES.TABLET]: {
     os: { show: true, type: 'text' },
@@ -62,6 +76,8 @@ export const DEVICE_FIELDS_CONFIG: Record<DeviceType, Record<string, FieldConfig
     ip: { show: true, type: 'text' },
     mac: { show: true, type: 'text' },
     screenSize: { show: true, type: 'dropdown' },
+    resolution: { show: true, type: 'dropdown' },
+    connectionType: { show: true, type: 'dropdown' },
   },
   [DEVICE_TYPES.NETWORK]: {
     os: { show: false },
@@ -79,6 +95,12 @@ export const DEVICE_FIELDS_CONFIG: Record<DeviceType, Record<string, FieldConfig
     architecture: { show: true, type: 'text' },
     ip: { show: true, type: 'text' },
     mac: { show: true, type: 'text' },
+    screenSize: { show: true, type: 'dropdown' },
+    resolution: { show: true, type: 'dropdown' },
+    connectionType: { show: true, type: 'dropdown' },
+    gpu: { show: true, type: 'text' },
+    storage: { show: true, type: 'text' },
+    activationStatus: { show: true, type: 'dropdown' },
   },
 }
 

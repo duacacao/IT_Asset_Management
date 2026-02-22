@@ -57,6 +57,9 @@ const updateDeviceSchema = z
         screenSize: z.string().optional(),
         resolution: z.string().optional(),
         connectionType: z.string().optional(),
+        gpu: z.string().optional(),
+        storage: z.string().optional(),
+        activationStatus: z.string().optional(),
     })
     .superRefine((data, ctx) => {
         if (data.type !== 'Monitor') {
@@ -98,6 +101,9 @@ export function DeviceUpdateForm({ device, onClose }: DeviceUpdateFormProps) {
             screenSize: device.deviceInfo?.screenSize || '',
             resolution: device.deviceInfo?.resolution || '',
             connectionType: device.deviceInfo?.connectionType || '',
+            gpu: device.deviceInfo?.gpu || '',
+            storage: device.deviceInfo?.storage || '',
+            activationStatus: device.deviceInfo?.activationStatus || '',
         },
     })
 
@@ -124,6 +130,9 @@ export function DeviceUpdateForm({ device, onClose }: DeviceUpdateFormProps) {
                     ...(fieldConfig?.screenSize?.show && { screenSize: values.screenSize }),
                     ...(fieldConfig?.resolution?.show && { resolution: values.resolution }),
                     ...(fieldConfig?.connectionType?.show && { connectionType: values.connectionType }),
+                    ...(fieldConfig?.gpu?.show && { gpu: values.gpu }),
+                    ...(fieldConfig?.storage?.show && { storage: values.storage }),
+                    ...(fieldConfig?.activationStatus?.show && { activationStatus: values.activationStatus }),
                 },
             })
             onClose()
@@ -295,6 +304,67 @@ export function DeviceUpdateForm({ device, onClose }: DeviceUpdateFormProps) {
                                                 <FormControl>
                                                     <Input placeholder="16 GB" className="text-sm border-border/80 bg-muted/10 h-9" {...field} />
                                                 </FormControl>
+                                                <FormMessage className="text-xs" />
+                                            </FormItem>
+                                        )}
+                                    />
+                                )}
+
+                                {fieldConfig?.storage?.show && (
+                                    <FormField
+                                        control={form.control}
+                                        name="storage"
+                                        render={({ field }) => (
+                                            <FormItem className="col-span-2 sm:col-span-1">
+                                                <FormLabel className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                                                    Lưu trữ
+                                                </FormLabel>
+                                                <FormControl>
+                                                    <Input placeholder="512 GB SSD" className="text-sm border-border/80 bg-muted/10 h-9" {...field} />
+                                                </FormControl>
+                                                <FormMessage className="text-xs" />
+                                            </FormItem>
+                                        )}
+                                    />
+                                )}
+
+                                {fieldConfig?.gpu?.show && (
+                                    <FormField
+                                        control={form.control}
+                                        name="gpu"
+                                        render={({ field }) => (
+                                            <FormItem className="col-span-2 sm:col-span-1">
+                                                <FormLabel className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                                                    GPU
+                                                </FormLabel>
+                                                <FormControl>
+                                                    <Input placeholder="NVIDIA RTX 4060" className="text-sm border-border/80 bg-muted/10 h-9" {...field} />
+                                                </FormControl>
+                                                <FormMessage className="text-xs" />
+                                            </FormItem>
+                                        )}
+                                    />
+                                )}
+
+                                {fieldConfig?.activationStatus?.show && (
+                                    <FormField
+                                        control={form.control}
+                                        name="activationStatus"
+                                        render={({ field }) => (
+                                            <FormItem className="col-span-2 sm:col-span-1">
+                                                <FormLabel className="text-xs font-medium text-muted-foreground">Kích hoạt Bản quyền OS</FormLabel>
+                                                <Select onValueChange={field.onChange} value={field.value}>
+                                                    <FormControl>
+                                                        <SelectTrigger className="text-sm border-border/80 bg-muted/10 h-9">
+                                                            <SelectValue placeholder="Trạng thái kích hoạt" />
+                                                        </SelectTrigger>
+                                                    </FormControl>
+                                                    <SelectContent>
+                                                        <SelectItem value="Actived" className="text-sm font-medium text-emerald-600">Đã kích hoạt (Actived)</SelectItem>
+                                                        <SelectItem value="Inactived" className="text-sm font-medium text-destructive">Chưa kích hoạt (Inactived)</SelectItem>
+                                                        <SelectItem value="Unknown" className="text-sm">Chưa có thông tin (Unknown)</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
                                                 <FormMessage className="text-xs" />
                                             </FormItem>
                                         )}
