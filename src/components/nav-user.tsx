@@ -30,14 +30,32 @@ function getDisplayName(email: string | undefined): string {
 
 export function NavUser() {
   const { isMobile } = useSidebar()
-  const { user, isLoading, logout } = useAuth()
+  const { user, isLoading, isLoggingOut, logout } = useAuth()
 
   // Lấy thông tin từ Supabase Auth user object
   const displayName = user?.user_metadata?.full_name || getDisplayName(user?.email)
   const displayEmail = user?.email || ''
 
-  // Hiện skeleton cho đến khi có user data thực sự — tránh flash "User" sau redirect
-  if (isLoading || !user) {
+  // Trạng thái đang đăng xuất — hiện text thay vì skeleton
+  if (isLoggingOut) {
+    return (
+      <SidebarMenu>
+        <SidebarMenuItem>
+          <SidebarMenuButton size="lg" disabled>
+            <div className="bg-muted flex h-8 w-8 shrink-0 items-center justify-center rounded-lg">
+              <LogOut className="text-muted-foreground size-4" />
+            </div>
+            <div className="grid flex-1 text-left text-sm leading-tight">
+              <span className="text-muted-foreground truncate font-medium">Đang đăng xuất...</span>
+            </div>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      </SidebarMenu>
+    )
+  }
+
+  // Skeleton chỉ cho initial auth check — tránh flash "User" sau redirect
+  if (isLoading) {
     return (
       <SidebarMenu>
         <SidebarMenuItem>
@@ -51,6 +69,11 @@ export function NavUser() {
         </SidebarMenuItem>
       </SidebarMenu>
     )
+  }
+
+  // Không có user và không loading — middleware sẽ redirect
+  if (!user) {
+    return null
   }
 
   return (

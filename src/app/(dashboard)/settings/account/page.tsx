@@ -19,7 +19,7 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { getProfile, updateProfile } from '@/app/actions/profile'
-import { createClient } from '@/utils/supabase/client'
+import { useAuth } from '@/contexts/AuthContext'
 import { User, Calendar, Shield } from 'lucide-react'
 import { AppLoader } from '@/components/ui/app-loader'
 
@@ -38,6 +38,7 @@ interface UserData {
 }
 
 export default function AccountSettings() {
+  const { user: authUser, isLoading: isAuthLoading } = useAuth()
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [userData, setUserData] = useState<UserData | null>(null)
@@ -50,22 +51,19 @@ export default function AccountSettings() {
     },
   })
 
-  // Fetch user data on mount
+  // Fetch profile data khi auth đã sẵn sàng
   useEffect(() => {
-    const fetchUserData = async () => {
+    // Chờ AuthContext xác định xong user
+    if (isAuthLoading) return
+
+    // Không có user → middleware sẽ redirect, không cần toast lỗi
+    if (!authUser) {
+      setIsLoading(false)
+      return
+    }
+
+    const fetchProfile = async () => {
       try {
-        // Lấy thông tin từ Supabase Auth
-        const supabase = createClient()
-        const {
-          data: { user: authUser },
-        } = await supabase.auth.getUser()
-
-        if (!authUser) {
-          toast.error('Chưa đăng nhập')
-          return
-        }
-
-        // Lấy thông tin từ Profile table
         const { data: profile, error } = await getProfile()
 
         if (error) {
@@ -74,19 +72,19 @@ export default function AccountSettings() {
           return
         }
 
-        const userData: UserData = {
+        const data: UserData = {
           email: authUser.email || '',
           full_name: profile?.full_name || authUser.user_metadata?.full_name || '',
           role: profile?.role || 'user',
           created_at: authUser.created_at || '',
         }
 
-        setUserData(userData)
+        setUserData(data)
 
         // Fill form
         form.reset({
-          email: userData.email,
-          full_name: userData.full_name,
+          email: data.email,
+          full_name: data.full_name,
         })
       } catch (error) {
         console.error('Lỗi fetch user data:', error)
@@ -96,8 +94,8 @@ export default function AccountSettings() {
       }
     }
 
-    fetchUserData()
-  }, [form])
+    fetchProfile()
+  }, [isAuthLoading, authUser, form])
 
   async function onSubmit(data: AccountFormValues) {
     setIsSaving(true)

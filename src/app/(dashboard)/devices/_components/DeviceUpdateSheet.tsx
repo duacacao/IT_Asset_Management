@@ -47,17 +47,10 @@ export function DeviceUpdateSheet({ device, isOpen, onClose }: DeviceUpdateSheet
             <SheetContent side="right" className="flex w-full flex-col sm:max-w-xl">
                 <SheetHeader className="mb-2 space-y-1">
                     <div className="flex items-center space-x-2">
-                        <span className="bg-primary/10 text-primary rounded-md px-2 py-0.5 text-xs font-semibold uppercase tracking-wider">
+                        <span className="bg-primary/10 text-primary rounded-md px-2 py-0.5 text-xs font-semibold tracking-wider">
                             Đang chỉnh sửa
                         </span>
                     </div>
-                    {/* Typographic Brutalism: massive title */}
-                    <SheetTitle className="text-3xl font-black uppercase tracking-tight sm:text-4xl">
-                        {device.deviceInfo?.name || device.name || 'THIẾT BỊ'}
-                    </SheetTitle>
-                    <SheetDescription>
-                        Cập nhật thông tin chi tiết và cấu hình của thiết bị.
-                    </SheetDescription>
                 </SheetHeader>
 
                 <div className="flex-1 overflow-hidden">

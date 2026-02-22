@@ -25,6 +25,11 @@ export function ThemeSyncProvider({ children }: { children: React.ReactNode }) {
   } = useAppearanceStore()
 
   // 1. Initial Sync: Lấy theme từ DB khi user login + auth đã load xong
+  // Reset trạng thái sync khi đổi user để tránh leak dữ liệu từ user trước
+  useEffect(() => {
+    isSyncedRef.current = false
+  }, [user?.id])
+
   useEffect(() => {
     if (isAuthLoading || !isAuthenticated || !user) return
     if (isSyncedRef.current) return

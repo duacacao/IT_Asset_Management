@@ -65,3 +65,20 @@ export async function signUp(formData: FormData) {
     return { error: 'Lỗi hệ thống không mong muốn' }
   }
 }
+
+export async function signOut(): Promise<{ error: string | null }> {
+  try {
+    const supabase = await createClient()
+    const { error } = await supabase.auth.signOut()
+
+    if (error) {
+      console.error('Server signOut error:', error.message)
+      return { error: error.message }
+    }
+
+    return { error: null }
+  } catch (error) {
+    console.error('Server signOut exception:', error)
+    return { error: 'Lỗi đăng xuất' }
+  }
+}

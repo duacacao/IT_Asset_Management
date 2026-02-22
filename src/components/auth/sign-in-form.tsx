@@ -1,27 +1,33 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { useQueryClient } from '@tanstack/react-query'
 import { AppLoader } from '@/components/ui/app-loader'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { signIn } from '@/app/actions/auth'
-import { deviceKeys } from '@/hooks/useDevicesQuery'
+import { useAuth } from '@/contexts/AuthContext'
 
 export function SignInForm({ initialMessage }: { initialMessage?: string }) {
   const router = useRouter()
-  const queryClient = useQueryClient()
-  const [isPending, startTransition] = useTransition()
+  const { refreshAuth } = useAuth()
+  const [isPending, setIsPending] = useState(false)
   const [error, setError] = useState<string | null>(initialMessage || null)
 
-  const handleSubmit = (formData: FormData) => {
+  // KHÔNG dùng useTransition + <form action={...}> vì:
+  // React 19 startTransition() DEFER mọi state update bên trong async function
+  // → refreshAuth() → setUser() bị defer → dashboard render với user=null → NavUser biến mất
+  // Dùng useState(isPending) + <form onSubmit={...}> để setUser() commit ngay lập tức
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const formData = new FormData(e.currentTarget)
     setError(null)
+    setIsPending(true)
 
-    startTransition(async () => {
+    try {
       const result = await signIn(formData)
 
       if (result.error) {
@@ -29,14 +35,21 @@ export function SignInForm({ initialMessage }: { initialMessage?: string }) {
         return
       }
 
-      // Navigate immediately - AuthContext and Middleware will handle the rest
+      // Server action sign-in → cookies set server-side
+      // refreshAuth() → client-side Supabase detect session mới từ cookies
+      // Chạy NGOÀI React transition → setUser() commit ngay → NavUser có user khi dashboard render
+      await refreshAuth()
+
+      // Navigate — AuthContext đã có user, Middleware sẽ allow through
       router.push('/devices')
-    })
+    } finally {
+      setIsPending(false)
+    }
   }
 
   return (
     <div className="grid gap-6 pt-4">
-      <form action={handleSubmit}>
+      <form onSubmit={handleSubmit}>
         <div className="grid gap-4">
           <div className="grid gap-2 text-left">
             <Label htmlFor="username">Tên đăng nhập</Label>
