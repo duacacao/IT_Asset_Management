@@ -3,47 +3,28 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import * as z from 'zod'
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form'
+import { Form } from '@/components/ui/form'
 import { Switch } from '@/components/ui/switch'
-import { DeviceStatus, DeviceType } from '@/types/device'
-import { DEVICE_STATUS_CONFIG, DEVICE_TYPES, DEVICE_TYPE_LABELS } from '@/constants/device'
-import {
-  DEVICE_FIELDS_CONFIG,
-  DEVICE_TEMPLATES,
-  SCREEN_SIZE_OPTIONS,
-  RESOLUTION_OPTIONS,
-  CONNECTION_TYPE_OPTIONS,
-} from '@/constants/device-fields'
+import { DeviceFormFields } from '@/components/dashboard/device-form-fields'
+import { DeviceType, DeviceStatus } from '@/types/device'
+import { DEVICE_TYPES, DEVICE_TYPE_LABELS } from '@/constants/device'
+import { DEVICE_FIELDS_CONFIG, DEVICE_TEMPLATES } from '@/constants/device-fields'
 import { useCreateDeviceMutation } from '@/hooks/useDevicesQuery'
 import {
+  deviceFormSchema,
+  DEVICE_FORM_INITIAL_VALUES,
+  type DeviceFormValues,
+} from '@/lib/validations/device'
+import {
   Monitor,
-  Cpu,
-  HardDrive,
   Laptop,
   Network,
   Printer,
@@ -52,21 +33,16 @@ import {
   Package,
   ArrowLeft,
   Sparkles,
-  Info,
-  Server,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { AppLoader } from '@/components/ui/app-loader'
+import { toast } from 'sonner'
 
-interface CreateDeviceDialogProps {
+interface CreateDeviceSheetProps {
   isOpen: boolean
   onClose: () => void
   onCreated?: (deviceId: string) => void
 }
-
-const IP_REGEX =
-  /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/
-const MAC_REGEX = /^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/
 
 const DEVICE_TYPE_ICONS: Record<DeviceType, React.ComponentType<{ className?: string }>> = {
   [DEVICE_TYPES.PC]: Monitor,
@@ -79,73 +55,16 @@ const DEVICE_TYPE_ICONS: Record<DeviceType, React.ComponentType<{ className?: st
   [DEVICE_TYPES.OTHER]: Package,
 }
 
-const formSchema = z
-  .object({
-    name: z.string().min(1, 'Tên thiết bị là bắt buộc'),
-    type: z.enum(Object.values(DEVICE_TYPES) as [string, ...string[]]),
-    os: z.string().optional(),
-    cpu: z.string().optional(),
-    ram: z.string().optional(),
-    architecture: z.string().optional(),
-    ip: z.string().optional(),
-    mac: z.string().optional(),
-    status: z.enum(['active', 'broken', 'inactive'] as const),
-    screenSize: z.string().optional(),
-    resolution: z.string().optional(),
-    connectionType: z.string().optional(),
-    gpu: z.string().optional(),
-    storage: z.string().optional(),
-    activationStatus: z.string().optional(),
-  })
-  .superRefine((data, ctx) => {
-    if (data.type !== 'Monitor') {
-      if (data.ip && !IP_REGEX.test(data.ip)) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'Địa chỉ IP không hợp lệ (VD: 192.168.1.1)',
-          path: ['ip'],
-        })
-      }
-      if (data.mac && !MAC_REGEX.test(data.mac)) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'Địa chỉ MAC không hợp lệ (VD: AA:BB:CC:DD:EE:FF)',
-          path: ['mac'],
-        })
-      }
-    }
-  })
-
-type FormValues = z.infer<typeof formSchema>
-
-const INITIAL_VALUES: FormValues = {
-  name: '',
-  type: 'PC',
-  os: '',
-  cpu: '',
-  ram: '',
-  architecture: '',
-  ip: '',
-  mac: '',
-  status: 'inactive',
-  screenSize: '',
-  resolution: '',
-  connectionType: '',
-  gpu: '',
-  storage: '',
-  activationStatus: '',
-}
-
-export function CreateDeviceDialog({ isOpen, onClose, onCreated }: CreateDeviceDialogProps) {
+export function CreateDeviceSheet({ isOpen, onClose, onCreated }: CreateDeviceSheetProps) {
   const [step, setStep] = useState<'type' | 'form'>('type')
   const [selectedType, setSelectedType] = useState<DeviceType | null>(null)
   const [showTemplates, setShowTemplates] = useState(false)
   const [isCreating, setIsCreating] = useState(false)
   const createMutation = useCreateDeviceMutation()
 
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: INITIAL_VALUES,
+  const form = useForm<DeviceFormValues>({
+    resolver: zodResolver(deviceFormSchema),
+    defaultValues: DEVICE_FORM_INITIAL_VALUES,
   })
 
   const handleTypeSelect = (type: DeviceType) => {
@@ -157,11 +76,11 @@ export function CreateDeviceDialog({ isOpen, onClose, onCreated }: CreateDeviceD
 
   const handleTemplateSelect = (template: { name: string; values: Record<string, string> }) => {
     Object.entries(template.values).forEach(([key, value]) => {
-      form.setValue(key as keyof FormValues, value)
+      form.setValue(key as keyof DeviceFormValues, value)
     })
   }
 
-  const onSubmit = async (values: FormValues) => {
+  const onSubmit = async (values: DeviceFormValues) => {
     setIsCreating(true)
     try {
       const result = await createMutation.mutateAsync({
@@ -185,6 +104,10 @@ export function CreateDeviceDialog({ isOpen, onClose, onCreated }: CreateDeviceD
       handleReset()
       onClose()
       onCreated?.(result.id)
+    } catch (error) {
+      toast.error('Tạo thiết bị thất bại', {
+        description: error instanceof Error ? error.message : 'Lỗi không xác định',
+      })
     } finally {
       setIsCreating(false)
     }
@@ -194,7 +117,7 @@ export function CreateDeviceDialog({ isOpen, onClose, onCreated }: CreateDeviceD
     setStep('type')
     setSelectedType(null)
     setShowTemplates(false)
-    form.reset(INITIAL_VALUES)
+    form.reset(DEVICE_FORM_INITIAL_VALUES)
   }
 
   const handleOpenChange = (open: boolean) => {
@@ -207,23 +130,28 @@ export function CreateDeviceDialog({ isOpen, onClose, onCreated }: CreateDeviceD
   const handleBack = () => {
     setStep('type')
     setShowTemplates(false)
-    form.reset(INITIAL_VALUES)
+    form.reset(DEVICE_FORM_INITIAL_VALUES)
   }
 
   const fieldConfig = selectedType ? DEVICE_FIELDS_CONFIG[selectedType] : null
   const templates = selectedType ? DEVICE_TEMPLATES[selectedType] : []
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+    <Sheet open={isOpen} onOpenChange={handleOpenChange}>
+      <SheetContent side="right" hideClose className="flex w-full flex-col sm:max-w-xl">
         {step === 'type' ? (
           <>
-            <DialogHeader>
-              <DialogTitle>Tạo thiết bị mới</DialogTitle>
-              <DialogDescription>Bước 1/2: Chọn loại thiết bị</DialogDescription>
-            </DialogHeader>
+            <SheetHeader className="mb-2 space-y-1">
+              <div className="flex items-center space-x-2">
+                <span className="bg-primary/10 text-primary rounded-md px-2 py-0.5 text-xs font-semibold tracking-wider">
+                  Tạo thiết bị mới
+                </span>
+              </div>
+              <SheetTitle>Chọn loại thiết bị</SheetTitle>
+              <SheetDescription>Bước 1/2: Chọn loại thiết bị cần tạo</SheetDescription>
+            </SheetHeader>
 
-            <div className="py-4">
+            <div className="flex-1 overflow-y-auto px-2 py-4">
               <div className="grid grid-cols-4 gap-3">
                 {Object.values(DEVICE_TYPES).map((type) => {
                   const Icon = DEVICE_TYPE_ICONS[type]
@@ -249,8 +177,8 @@ export function CreateDeviceDialog({ isOpen, onClose, onCreated }: CreateDeviceD
           </>
         ) : (
           <>
-            <DialogHeader>
-              <div className="flex items-center gap-2">
+            <SheetHeader className="mb-2 space-y-1">
+              <div className="flex items-center space-x-2">
                 <Button
                   type="button"
                   variant="ghost"
@@ -260,409 +188,86 @@ export function CreateDeviceDialog({ isOpen, onClose, onCreated }: CreateDeviceD
                 >
                   <ArrowLeft className="h-4 w-4" />
                 </Button>
-                <div>
-                  <DialogTitle>
-                    Tạo thiết bị mới - {selectedType && DEVICE_TYPE_LABELS[selectedType]}
-                  </DialogTitle>
-                  <DialogDescription>Bước 2/2: Nhập thông tin thiết bị</DialogDescription>
-                </div>
+                <span className="bg-primary/10 text-primary rounded-md px-2 py-0.5 text-xs font-semibold tracking-wider">
+                  Tạo thiết bị mới
+                </span>
               </div>
-            </DialogHeader>
+              <SheetTitle>{selectedType && DEVICE_TYPE_LABELS[selectedType]}</SheetTitle>
+              <SheetDescription>Bước 2/2: Nhập thông tin thiết bị</SheetDescription>
+            </SheetHeader>
 
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="flex h-full flex-col overflow-hidden bg-muted/10 rounded-lg p-1 mt-4 max-h-[60vh]">
-                <div className="flex-1 overflow-y-auto px-4 py-4 space-y-6 custom-scrollbar">
-                  {templates.length > 0 && (
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Sparkles className="text-muted-foreground h-4 w-4" />
-                          <span className="text-sm font-medium">Quick Templates</span>
+            <div className="flex-1 overflow-hidden">
+              <Form {...form}>
+                <form
+                  onSubmit={form.handleSubmit(onSubmit)}
+                  className="bg-muted/10 flex h-full flex-col overflow-hidden rounded-lg p-1"
+                >
+                  <div className="flex-1 space-y-6 overflow-y-auto px-4 py-4">
+                    {templates.length > 0 && (
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Sparkles className="text-muted-foreground h-4 w-4" />
+                            <span className="text-sm font-medium">Quick Templates</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-muted-foreground text-xs">
+                              {showTemplates ? 'ON' : 'OFF'}
+                            </span>
+                            <Switch checked={showTemplates} onCheckedChange={setShowTemplates} />
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-muted-foreground text-xs">
-                            {showTemplates ? 'ON' : 'OFF'}
-                          </span>
-                          <Switch checked={showTemplates} onCheckedChange={setShowTemplates} />
-                        </div>
-                      </div>
 
-                      {showTemplates && (
-                        <div className="flex flex-wrap gap-2">
-                          {templates.map((template) => (
-                            <Button
-                              key={template.name}
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleTemplateSelect(template)}
-                              className="text-xs"
-                            >
-                              {template.name}
-                            </Button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Nhóm 1: Thông tin chung */}
-                  <div className="space-y-4 bg-background rounded-lg border border-border/60 shadow-sm p-5">
-                    <div className="flex items-center gap-2 mb-2 pb-2 border-b border-border/40">
-                      <Info className="w-4 h-4 text-primary" />
-                      <h3 className="text-xs font-bold tracking-widest text-muted-foreground">Thông tin chung</h3>
-                    </div>
-
-                    <div className="grid grid-cols-1 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="name"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-xs font-semibold text-muted-foreground">
-                              Tên thiết bị <span className="text-destructive">*</span>
-                            </FormLabel>
-                            <FormControl>
-                              <Input
-                                placeholder="VD: PC-IT-001"
-                                autoComplete="off"
-                                autoFocus={
-                                  typeof window !== 'undefined' &&
-                                  !/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
-                                }
-                                className="text-base border-border/80 focus-visible:ring-primary/50 bg-muted/20"
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-1 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="status"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-xs font-semibold text-muted-foreground">Trạng thái</FormLabel>
-                            <Select onValueChange={field.onChange} value={field.value}>
-                              <FormControl>
-                                <SelectTrigger className="border-border/80 bg-muted/20 font-medium">
-                                  <SelectValue placeholder="Chọn trạng thái" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {Object.entries(DEVICE_STATUS_CONFIG).map(([key, config]) => (
-                                  <SelectItem key={key} value={key} className="font-medium">
-                                    {config.label}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Nhóm 2: Cấu hình phần cứng (Hiển thị có điều kiện) */}
-                  <div className="space-y-4 bg-background rounded-lg border border-border/60 shadow-sm p-5">
-                    <div className="flex items-center gap-2 mb-2 pb-2 border-b border-border/40">
-                      <Server className="w-4 h-4 text-primary" />
-                      <h3 className="text-xs font-bold tracking-widest text-muted-foreground">Thông số kỹ thuật</h3>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-x-6 gap-y-5">
-                      {fieldConfig?.os?.show && (
-                        <FormField
-                          control={form.control}
-                          name="os"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-                                OS
-                              </FormLabel>
-                              <FormControl>
-                                <Input placeholder="Windows 11 Pro" className="text-sm border-border/80 bg-muted/10 h-9" {...field} />
-                              </FormControl>
-                              <FormMessage className="text-xs" />
-                            </FormItem>
-                          )}
-                        />
-                      )}
-
-                      {fieldConfig?.architecture?.show && (
-                        <FormField
-                          control={form.control}
-                          name="architecture"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel className="text-xs font-medium text-muted-foreground">ARCH</FormLabel>
-                              <FormControl>
-                                <Input placeholder="x64" className="text-sm border-border/80 bg-muted/10 h-9" {...field} />
-                              </FormControl>
-                              <FormMessage className="text-xs" />
-                            </FormItem>
-                          )}
-                        />
-                      )}
-
-                      {fieldConfig?.cpu?.show && (
-                        <FormField
-                          control={form.control}
-                          name="cpu"
-                          render={({ field }) => (
-                            <FormItem className="col-span-2 sm:col-span-1">
-                              <FormLabel className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-                                CPU
-                              </FormLabel>
-                              <FormControl>
-                                <Input placeholder="Intel i5-12400" className="text-sm border-border/80 bg-muted/10 h-9" {...field} />
-                              </FormControl>
-                              <FormMessage className="text-xs" />
-                            </FormItem>
-                          )}
-                        />
-                      )}
-
-                      {fieldConfig?.ram?.show && (
-                        <FormField
-                          control={form.control}
-                          name="ram"
-                          render={({ field }) => (
-                            <FormItem className="col-span-2 sm:col-span-1">
-                              <FormLabel className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-                                RAM
-                              </FormLabel>
-                              <FormControl>
-                                <Input placeholder="16 GB" className="text-sm border-border/80 bg-muted/10 h-9" {...field} />
-                              </FormControl>
-                              <FormMessage className="text-xs" />
-                            </FormItem>
-                          )}
-                        />
-                      )}
-
-                      {fieldConfig?.storage?.show && (
-                        <FormField
-                          control={form.control}
-                          name="storage"
-                          render={({ field }) => (
-                            <FormItem className="col-span-2 sm:col-span-1">
-                              <FormLabel className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-                                Lưu trữ
-                              </FormLabel>
-                              <FormControl>
-                                <Input placeholder="512 GB SSD" className="text-sm border-border/80 bg-muted/10 h-9" {...field} />
-                              </FormControl>
-                              <FormMessage className="text-xs" />
-                            </FormItem>
-                          )}
-                        />
-                      )}
-
-                      {fieldConfig?.gpu?.show && (
-                        <FormField
-                          control={form.control}
-                          name="gpu"
-                          render={({ field }) => (
-                            <FormItem className="col-span-2 sm:col-span-1">
-                              <FormLabel className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-                                GPU
-                              </FormLabel>
-                              <FormControl>
-                                <Input placeholder="NVIDIA RTX 4060" className="text-sm border-border/80 bg-muted/10 h-9" {...field} />
-                              </FormControl>
-                              <FormMessage className="text-xs" />
-                            </FormItem>
-                          )}
-                        />
-                      )}
-
-                      {fieldConfig?.activationStatus?.show && (
-                        <FormField
-                          control={form.control}
-                          name="activationStatus"
-                          render={({ field }) => (
-                            <FormItem className="col-span-2 sm:col-span-1">
-                              <FormLabel className="text-xs font-medium text-muted-foreground">Kích hoạt Bản quyền OS</FormLabel>
-                              <Select onValueChange={field.onChange} value={field.value}>
-                                <FormControl>
-                                  <SelectTrigger className="text-sm border-border/80 bg-muted/10 h-9">
-                                    <SelectValue placeholder="Trạng thái kích hoạt" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  <SelectItem value="Actived" className="text-sm font-medium text-emerald-600">Đã kích hoạt (Actived)</SelectItem>
-                                  <SelectItem value="Inactived" className="text-sm font-medium text-destructive">Chưa kích hoạt (Inactived)</SelectItem>
-                                  <SelectItem value="Unknown" className="text-sm">Chưa có thông tin (Unknown)</SelectItem>
-                                </SelectContent>
-                              </Select>
-                              <FormMessage className="text-xs" />
-                            </FormItem>
-                          )}
-                        />
-                      )}
-
-                      {/* Thông số riêng cho Màn hình */}
-                      {fieldConfig?.screenSize?.show && (
-                        <FormField
-                          control={form.control}
-                          name="screenSize"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel className="text-xs font-medium text-muted-foreground">Kích thước</FormLabel>
-                              <Select onValueChange={field.onChange} value={field.value}>
-                                <FormControl>
-                                  <SelectTrigger className="text-sm border-border/80 bg-muted/10 h-9">
-                                    <SelectValue placeholder="Chọn cỡ" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  {SCREEN_SIZE_OPTIONS.map((option) => (
-                                    <SelectItem key={option} value={option} className="text-sm">
-                                      {option}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                              <FormMessage className="text-xs" />
-                            </FormItem>
-                          )}
-                        />
-                      )}
-
-                      {fieldConfig?.resolution?.show && (
-                        <FormField
-                          control={form.control}
-                          name="resolution"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel className="text-xs font-medium text-muted-foreground">Độ phân giải</FormLabel>
-                              <Select onValueChange={field.onChange} value={field.value}>
-                                <FormControl>
-                                  <SelectTrigger className="text-sm border-border/80 bg-muted/10 h-9">
-                                    <SelectValue placeholder="Chọn độ phân giải" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  {RESOLUTION_OPTIONS.map((option) => (
-                                    <SelectItem key={option} value={option} className="text-sm">
-                                      {option}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                              <FormMessage className="text-xs" />
-                            </FormItem>
-                          )}
-                        />
-                      )}
-
-                      {fieldConfig?.connectionType?.show && (
-                        <FormField
-                          control={form.control}
-                          name="connectionType"
-                          render={({ field }) => (
-                            <FormItem className="col-span-2">
-                              <FormLabel className="text-xs font-medium text-muted-foreground">Cổng kết nối</FormLabel>
-                              <Select onValueChange={field.onChange} value={field.value}>
-                                <FormControl>
-                                  <SelectTrigger className="text-sm border-border/80 bg-muted/10 h-9">
-                                    <SelectValue placeholder="Chọn kết nối" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  {CONNECTION_TYPE_OPTIONS.map((option) => (
-                                    <SelectItem key={option} value={option} className="text-sm">
-                                      {option}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                              <FormMessage className="text-xs" />
-                            </FormItem>
-                          )}
-                        />
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Nhóm 3: Mạng & Kết nối (Chỉ hiện nếu config cho phép) */}
-                  {(fieldConfig?.ip?.show || fieldConfig?.mac?.show) && (
-                    <div className="space-y-4 bg-background rounded-lg border border-border/60 shadow-sm p-5">
-                      <div className="flex items-center gap-2 mb-2 pb-2 border-b border-border/40">
-                        <Network className="w-4 h-4 text-primary" />
-                        <h3 className="text-xs font-bold tracking-widest text-muted-foreground">TCP/IP & MAC Address</h3>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-x-6 gap-y-5">
-                        {fieldConfig?.ip?.show && (
-                          <FormField
-                            control={form.control}
-                            name="ip"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel className="text-xs font-medium text-muted-foreground">IPv4 Address</FormLabel>
-                                <FormControl>
-                                  <Input placeholder="192.168.1.xxx" className="text-sm border-border/80 bg-muted/10 h-9" {...field} />
-                                </FormControl>
-                                <FormMessage className="text-xs" />
-                              </FormItem>
-                            )}
-                          />
-                        )}
-
-                        {fieldConfig?.mac?.show && (
-                          <FormField
-                            control={form.control}
-                            name="mac"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel className="text-xs font-medium text-muted-foreground">MAC Address</FormLabel>
-                                <FormControl>
-                                  <Input placeholder="00:00:00:00:00:00" className="text-sm border-border/80 bg-muted/10 h-9 tracking-widest text-center" {...field} />
-                                </FormControl>
-                                <FormMessage className="text-xs" />
-                              </FormItem>
-                            )}
-                          />
+                        {showTemplates && (
+                          <div className="flex flex-wrap gap-2">
+                            {templates.map((template) => (
+                              <Button
+                                key={template.name}
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleTemplateSelect(template)}
+                                className="text-xs"
+                              >
+                                {template.name}
+                              </Button>
+                            ))}
+                          </div>
                         )}
                       </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Sticky Footer */}
-                <div className="bg-background px-4 py-4 border-t flex items-center justify-end space-x-3 rounded-b-lg">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    onClick={() => handleOpenChange(false)}
-                    disabled={isCreating}
-                    className="font-semibold text-muted-foreground hover:text-foreground"
-                  >
-                    Hủy bỏ
-                  </Button>
-                  <Button type="submit" disabled={isCreating} className="font-bold min-w-[140px]">
-                    {isCreating ? (
-                      <>
-                        <AppLoader layout="horizontal" hideText className="mr-2 h-4 w-4" />
-                        <span>Đang tạo…</span>
-                      </>
-                    ) : (
-                      <span>Tạo thiết bị</span>
                     )}
-                  </Button>
-                </div>
-              </form>
-            </Form>
+
+                    <DeviceFormFields form={form} fieldConfig={fieldConfig} autoFocusName />
+                  </div>
+
+                  {/* Sticky Footer */}
+                  <div className="bg-background flex items-center justify-end space-x-3 rounded-b-lg border-t px-4 py-4">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={() => handleOpenChange(false)}
+                      disabled={isCreating}
+                      className="text-muted-foreground hover:text-foreground font-semibold"
+                    >
+                      Hủy bỏ
+                    </Button>
+                    <Button type="submit" disabled={isCreating} className="min-w-[140px] font-bold">
+                      {isCreating ? (
+                        <>
+                          <AppLoader layout="horizontal" hideText className="mr-2 h-4 w-4" />
+                          <span>Đang tạo…</span>
+                        </>
+                      ) : (
+                        <span>Tạo thiết bị</span>
+                      )}
+                    </Button>
+                  </div>
+                </form>
+              </Form>
+            </div>
           </>
         )}
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   )
 }

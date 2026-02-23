@@ -26,6 +26,9 @@ interface DeviceSpecs {
   screenSize?: string
   resolution?: string
   connectionType?: string
+  gpu?: string
+  storage?: string
+  activationStatus?: string
 }
 
 // ============================================
@@ -41,12 +44,12 @@ export function toFrontendDevice(dbDevice: DbDevice, assignments: any[] = []): D
 
   const mappedAssignment = assignment
     ? {
-      id: assignment.id,
-      end_user_id: assignment.end_user_id,
-      assignee_name: assignment.end_users?.full_name || assignment.end_users?.[0]?.full_name,
-      assignee_email: assignment.end_users?.email || assignment.end_users?.[0]?.email,
-      assigned_at: assignment.assigned_at,
-    }
+        id: assignment.id,
+        end_user_id: assignment.end_user_id,
+        assignee_name: assignment.end_users?.full_name || assignment.end_users?.[0]?.full_name,
+        assignee_email: assignment.end_users?.email || assignment.end_users?.[0]?.email,
+        assigned_at: assignment.assigned_at,
+      }
     : undefined
 
   return {
@@ -67,6 +70,9 @@ export function toFrontendDevice(dbDevice: DbDevice, assignments: any[] = []): D
       screenSize: specs.screenSize,
       resolution: specs.resolution,
       connectionType: specs.connectionType,
+      gpu: specs.gpu,
+      storage: specs.storage,
+      activationStatus: specs.activationStatus,
     },
     fileName: specs.fileName || '',
     sheets: {},

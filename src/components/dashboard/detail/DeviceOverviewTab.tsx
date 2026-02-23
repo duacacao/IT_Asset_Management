@@ -19,7 +19,13 @@ import {
   XCircle,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { DEVICE_STATUS_CONFIG, DEVICE_TYPE_LABELS, DEVICE_DETAIL_CARDS, DEVICE_TYPES, STATUS_DOT_COLORS } from '@/constants/device'
+import {
+  DEVICE_STATUS_CONFIG,
+  DEVICE_TYPE_LABELS,
+  DEVICE_DETAIL_CARDS,
+  DEVICE_TYPES,
+  STATUS_DOT_COLORS,
+} from '@/constants/device'
 import { useState, useMemo } from 'react'
 import { toast } from 'sonner'
 import { AppLoader } from '@/components/ui/app-loader'
@@ -49,7 +55,6 @@ import { cn } from '@/lib/utils'
 import type { DetailCardConfig } from '@/constants/device'
 import { useUpdateDeviceMutation, useUpdateStatusMutation } from '@/hooks/useDevicesQuery'
 import { DeviceStatus, DeviceType } from '@/types/device'
-
 
 const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   Cpu,
@@ -130,7 +135,6 @@ export function DeviceOverviewTab({ device, onExport, onDelete, onClose }: Devic
     <div className="mx-auto max-w-7xl space-y-6 p-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div className="space-y-1.5 pt-2">
-
           <div className="text-muted-foreground flex flex-wrap items-center gap-3 text-sm">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -308,7 +312,7 @@ export function DeviceOverviewTab({ device, onExport, onDelete, onClose }: Devic
       <DeviceAssignmentDialog
         isOpen={assignmentDialogOpen}
         onClose={() => setAssignmentDialogOpen(false)}
-        onSuccess={() => { }}
+        onSuccess={() => {}}
         deviceId={device.id}
         deviceName={device.deviceInfo.name}
       />
@@ -419,7 +423,7 @@ function DynamicDetailCard({
   const hasActivationStatus = config.fields.some((f) => f.key === 'activationStatus')
   let activationValue: string | null = null
   if (hasActivationStatus) {
-    const manualAct = (device.deviceInfo as any).activationStatus
+    const manualAct = device.deviceInfo.activationStatus
     if (manualAct && manualAct.trim() !== '' && manualAct !== 'Unknown') {
       activationValue = manualAct
     } else {

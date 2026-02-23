@@ -23,7 +23,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Device } from '@/types/device'
-import { CreateDeviceDialog } from '@/components/dashboard/CreateDeviceDialog'
+import { CreateDeviceSheet } from '@/components/dashboard/CreateDeviceDialog'
 import { toast } from 'sonner'
 import { DeviceUpdateSheet } from './_components/DeviceUpdateSheet'
 
@@ -273,7 +273,7 @@ export default function DevicesPage() {
       />
 
       {/* Create Device Dialog */}
-      <CreateDeviceDialog
+      <CreateDeviceSheet
         isOpen={isCreateOpen}
         onClose={() => setIsCreateOpen(false)}
         onCreated={(deviceId) => {
