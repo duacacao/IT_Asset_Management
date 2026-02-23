@@ -91,33 +91,33 @@ export function DeviceUpdateForm({ device, onClose }: DeviceUpdateFormProps) {
           {/* Scrollable Content Area */}
           <div className="flex-1 space-y-6 overflow-y-auto px-4 py-4">
             <DeviceFormFields form={form} fieldConfig={fieldConfig} showTypeField />
-          </div>
 
-          {/* Sticky Footer */}
-          <div className="bg-background flex items-center justify-end space-x-3 rounded-b-lg border-t px-4 py-4">
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={onClose}
-              disabled={isUpdating || form.formState.isSubmitting}
-              className="text-muted-foreground hover:text-foreground font-semibold"
-            >
-              Hủy bỏ
-            </Button>
-            <Button
-              type="submit"
-              disabled={isUpdating || form.formState.isSubmitting}
-              className="min-w-[140px] font-bold"
-            >
-              {isUpdating || form.formState.isSubmitting ? (
-                <>
-                  <AppLoader layout="horizontal" hideText className="mr-2 h-4 w-4" />
-                  <span>Đang ghi...</span>
-                </>
-              ) : (
-                <span>Ghi dữ liệu</span>
-              )}
-            </Button>
+            {/* Inline Footer */}
+            <div className="flex items-center justify-end space-x-3 pt-4 pb-2">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={onClose}
+                disabled={isUpdating || form.formState.isSubmitting}
+                className="text-muted-foreground hover:text-foreground font-semibold"
+              >
+                Hủy bỏ
+              </Button>
+              <Button
+                type="submit"
+                disabled={isUpdating || form.formState.isSubmitting}
+                className="min-w-[120px] font-medium"
+              >
+                {isUpdating || form.formState.isSubmitting ? (
+                  <>
+                    <AppLoader layout="horizontal" hideText className="mr-2 h-4 w-4" />
+                    <span>Đang ghi...</span>
+                  </>
+                ) : (
+                  <span>Ghi dữ liệu</span>
+                )}
+              </Button>
+            </div>
           </div>
         </form>
       </Form>

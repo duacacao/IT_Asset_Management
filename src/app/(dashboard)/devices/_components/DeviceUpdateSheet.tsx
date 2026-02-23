@@ -4,8 +4,6 @@ import {
   Sheet,
   SheetContent,
   SheetHeader,
-  SheetTitle,
-  SheetDescription,
 } from '@/components/ui/sheet'
 import { Device } from '@/types/device'
 import { AppLoader } from '@/components/ui/app-loader'
@@ -37,17 +35,25 @@ export function DeviceUpdateSheet({ device, isOpen, onClose }: DeviceUpdateSheet
   if (!device) {
     return (
       <Sheet open={isOpen} onOpenChange={onClose}>
-        <SheetContent side="right" hideClose className="w-full sm:max-w-xl"></SheetContent>
+        <SheetContent
+          side="right"
+          hideClose
+          className="flex w-full flex-col sm:m-2 sm:h-[calc(100vh-1rem)] sm:max-w-xl sm:rounded-lg sm:border sm:shadow-2xl"
+        ></SheetContent>
       </Sheet>
     )
   }
 
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <SheetContent side="right" hideClose className="flex w-full flex-col sm:max-w-xl">
-        <SheetHeader className="mb-2 space-y-1">
+      <SheetContent
+        side="right"
+        hideClose
+        className="flex w-full flex-col sm:m-2 sm:h-[calc(100vh-1rem)] sm:max-w-xl sm:rounded-lg sm:border sm:shadow-2xl"
+      >
+        <SheetHeader>
           <div className="flex items-center space-x-2">
-            <span className="bg-primary/10 text-primary rounded-md px-2 py-0.5 text-xs font-semibold tracking-wider">
+            <span className="bg-primary/10 text-primary rounded-md px-2 py-0.5 text-xs font-medium tracking-wider">
               Đang chỉnh sửa
             </span>
           </div>

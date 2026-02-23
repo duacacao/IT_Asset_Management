@@ -138,12 +138,16 @@ export function CreateDeviceSheet({ isOpen, onClose, onCreated }: CreateDeviceSh
 
   return (
     <Sheet open={isOpen} onOpenChange={handleOpenChange}>
-      <SheetContent side="right" hideClose className="flex w-full flex-col sm:max-w-xl">
+      <SheetContent
+        side="right"
+        hideClose
+        className="flex w-full flex-col sm:m-2 sm:h-[calc(100vh-1rem)] sm:max-w-xl sm:rounded-lg sm:border sm:shadow-2xl"
+      >
         {step === 'type' ? (
           <>
             <SheetHeader className="mb-2 space-y-1">
               <div className="flex items-center space-x-2">
-                <span className="bg-primary/10 text-primary rounded-md px-2 py-0.5 text-xs font-semibold tracking-wider">
+                <span className="bg-primary/10 text-primary rounded-md px-2 py-0.5 text-xs font-medium tracking-wider">
                   Tạo thiết bị mới
                 </span>
               </div>
@@ -151,8 +155,8 @@ export function CreateDeviceSheet({ isOpen, onClose, onCreated }: CreateDeviceSh
               <SheetDescription>Bước 1/2: Chọn loại thiết bị cần tạo</SheetDescription>
             </SheetHeader>
 
-            <div className="flex-1 overflow-y-auto px-2 py-4">
-              <div className="grid grid-cols-4 gap-3">
+            <div className="flex-1 overflow-y-auto px-6 py-8 sm:px-12">
+              <div className="grid grid-cols-3 gap-4">
                 {Object.values(DEVICE_TYPES).map((type) => {
                   const Icon = DEVICE_TYPE_ICONS[type]
                   return (
@@ -161,8 +165,9 @@ export function CreateDeviceSheet({ isOpen, onClose, onCreated }: CreateDeviceSh
                       type="button"
                       onClick={() => handleTypeSelect(type)}
                       className={cn(
-                        'hover:border-primary hover:bg-primary/5 flex flex-col items-center gap-2 rounded-lg border p-4 transition-all',
-                        'focus:ring-primary focus:ring-2 focus:ring-offset-2 focus:outline-none'
+                        'hover:border-primary hover:bg-primary/5 flex h-28 flex-col items-center justify-center gap-2.5 rounded-xl border p-4 transition-all',
+                        'focus:ring-primary focus:ring-2 focus:ring-offset-2 focus:outline-none',
+                        'hover:-translate-y-0.5 hover:shadow-sm'
                       )}
                     >
                       <Icon className="text-muted-foreground h-6 w-6" />
@@ -238,29 +243,29 @@ export function CreateDeviceSheet({ isOpen, onClose, onCreated }: CreateDeviceSh
                     )}
 
                     <DeviceFormFields form={form} fieldConfig={fieldConfig} autoFocusName />
-                  </div>
 
-                  {/* Sticky Footer */}
-                  <div className="bg-background flex items-center justify-end space-x-3 rounded-b-lg border-t px-4 py-4">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      onClick={() => handleOpenChange(false)}
-                      disabled={isCreating}
-                      className="text-muted-foreground hover:text-foreground font-semibold"
-                    >
-                      Hủy bỏ
-                    </Button>
-                    <Button type="submit" disabled={isCreating} className="min-w-[140px] font-bold">
-                      {isCreating ? (
-                        <>
-                          <AppLoader layout="horizontal" hideText className="mr-2 h-4 w-4" />
-                          <span>Đang tạo…</span>
-                        </>
-                      ) : (
-                        <span>Tạo thiết bị</span>
-                      )}
-                    </Button>
+                    {/* Inline Footer */}
+                    <div className="flex items-center justify-end space-x-3 pt-4 pb-2">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        onClick={() => handleOpenChange(false)}
+                        disabled={isCreating}
+                        className="text-muted-foreground hover:text-foreground font-medium"
+                      >
+                        Hủy bỏ
+                      </Button>
+                      <Button type="submit" disabled={isCreating} className="min-w-[120px] font-medium">
+                        {isCreating ? (
+                          <>
+                            <AppLoader layout="horizontal" hideText className="mr-2 h-4 w-4" />
+                            <span>Đang tạo…</span>
+                          </>
+                        ) : (
+                          <span>Tạo thiết bị</span>
+                        )}
+                      </Button>
+                    </div>
                   </div>
                 </form>
               </Form>
