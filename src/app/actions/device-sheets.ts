@@ -148,20 +148,18 @@ export async function deleteSheet(sheetId: string) {
 
 // ============================================
 // Sắp xếp lại thứ tự sheets (drag & drop)
+// Dùng RPC Postgres function để batch update trong 1 query thay vì N queries
 // ============================================
 export async function reorderSheets(sheetsOrder: { id: string; sort_order: number }[]) {
   const { supabase } = await requireAuth()
 
-  // Update từng sheet với sort_order mới
-  const updates = sheetsOrder.map(({ id, sort_order }) =>
-    supabase.from('device_sheets').update({ sort_order }).eq('id', id)
-  )
+  // 1 round-trip thay vì N UPDATE queries song song
+  const { error } = await supabase.rpc('reorder_sheets', {
+    p_orders: JSON.stringify(sheetsOrder),
+  })
 
-  const results = await Promise.all(updates)
-  const errors = results.filter((r) => r.error)
-
-  if (errors.length > 0) {
-    return { success: false, error: 'Lỗi sắp xếp sheets' }
+  if (error) {
+    return { success: false, error: 'Lỗi sắp xếp sheets: ' + error.message }
   }
 
   return { success: true, error: null }

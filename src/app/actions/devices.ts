@@ -357,24 +357,30 @@ export async function importDevice(
 export async function getDeviceStats() {
   const { supabase, user } = await requireAuth()
 
-  // Lọc theo owner_id để tránh data leak cross-user
-  const { data, error } = await supabase
-    .from('devices')
-    .select('status')
-    .eq('owner_id', user.id)
-    .is('deleted_at', null)
+  // Dùng 4 count queries song song thay vì fetch toàn bộ rows rồi đếm trong JS
+  // Giảm đáng kể data transfer khi số lượng devices lớn
+  const baseQuery = () =>
+    supabase
+      .from('devices')
+      .select('*', { count: 'exact', head: true })
+      .eq('owner_id', user.id)
+      .is('deleted_at', null)
 
-  if (error) {
-    return { total: 0, active: 0, broken: 0, inactive: 0 }
-  }
+  const [totalResult, activeResult, brokenResult, inactiveResult] = await Promise.all([
+    baseQuery(),
+    baseQuery().eq('status', 'active'),
+    baseQuery().eq('status', 'broken'),
+    baseQuery().eq('status', 'inactive'),
+  ])
 
   return {
-    total: data.length,
-    active: data.filter((d) => d.status === 'active').length,
-    broken: data.filter((d) => d.status === 'broken').length,
-    inactive: data.filter((d) => d.status === 'inactive').length,
+    total: totalResult.count ?? 0,
+    active: activeResult.count ?? 0,
+    broken: brokenResult.count ?? 0,
+    inactive: inactiveResult.count ?? 0,
   }
 }
+
 
 // ============================================
 // Cập nhật danh sách sheets hiển thị (visibleSheets)

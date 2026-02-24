@@ -1,10 +1,8 @@
-export interface ThemePreset {
-  label?: string
-  styles: {
-    light: Record<string, string>
-    dark: Record<string, string>
-  }
-}
+// ThemePreset — re-export từ theme.ts (canonical source với ThemeStyles mạnh hơn)
+// Tránh duplicate definition gây conflict type giữa 2 file
+import type { ThemePreset } from './theme'
+export type { ThemePreset } from './theme'
+
 
 export interface ColorTheme {
   name: string

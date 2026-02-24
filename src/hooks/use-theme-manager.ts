@@ -3,7 +3,7 @@
 import React from 'react'
 import { useTheme } from '@/hooks/use-theme'
 import { colorThemes } from '@/config/theme-data'
-import type { ThemePreset } from '@/types/theme-customizer'
+import type { ThemePreset } from '@/types/theme'
 
 export function useThemeManager() {
   const { theme, setTheme } = useTheme()
