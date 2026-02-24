@@ -1,5 +1,14 @@
 import type { NextConfig } from 'next'
 
+const withBundleAnalyzer = (() => {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    return require('@next/bundle-analyzer')({ enabled: process.env.ANALYZE === 'true' })
+  } catch {
+    return (config: NextConfig) => config
+  }
+})()
+
 const nextConfig: NextConfig = {
   output: 'standalone',
   experimental: {
@@ -13,6 +22,14 @@ const nextConfig: NextConfig = {
       '@radix-ui/react-tabs',
       '@radix-ui/react-tooltip',
       'recharts',
+      '@tanstack/react-table',
+      '@tanstack/react-virtual',
+      '@tanstack/react-query',
+      'date-fns',
+      'papaparse',
+      'xlsx',
+      '@dnd-kit/core',
+      '@dnd-kit/sortable',
     ],
   },
 
@@ -59,7 +76,8 @@ const nextConfig: NextConfig = {
           },
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https://ui.shadcn.com https://images.unsplash.com; font-src 'self'; connect-src 'self'; frame-ancestors 'none';",
+            value:
+              "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https://ui.shadcn.com https://images.unsplash.com; font-src 'self'; connect-src 'self'; frame-ancestors 'none';",
           },
         ],
       },
@@ -78,4 +96,4 @@ const nextConfig: NextConfig = {
   },
 }
 
-export default nextConfig
+export default withBundleAnalyzer(nextConfig)

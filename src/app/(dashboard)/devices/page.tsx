@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Upload, Plus, MoreHorizontal, FileDown } from 'lucide-react'
 import { AppLoader } from '@/components/ui/app-loader'
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   Dialog,
@@ -32,10 +32,55 @@ import {
   useDevicesQuery,
   useDeleteDeviceMutation,
   useImportDeviceMutation,
+  useDeviceDetailQuery,
+  deviceKeys,
 } from '@/hooks/useDevicesQuery'
 import { useUIStore } from '@/stores/useUIStore'
 import { parseExcelForImport, exportDeviceToExcel } from '@/lib/excel-import'
 import { exportDevicesToCSV } from '@/lib/export-utils'
+import { createClient as createSupabaseClient } from '@/utils/supabase/client'
+
+// Prefetch device detail on hover (with debounce)
+async function prefetchDeviceDetail(deviceId: string) {
+  const supabase = createSupabaseClient()
+  const { data, error } = await supabase
+    .from('devices')
+    .select(
+      `
+      *,
+      device_sheets (
+        id,
+        sheet_name,
+        sheet_data,
+        sort_order,
+        created_at
+      )
+    `
+    )
+    .eq('id', deviceId)
+    .is('deleted_at', null)
+    .single()
+
+  if (!error && data) {
+    const assignmentResult = await supabase
+      .from('device_assignments')
+      .select(
+        `
+        id,
+        device_id,
+        end_user_id,
+        assigned_at,
+        end_users (full_name, email)
+      `
+      )
+      .eq('device_id', deviceId)
+      .is('returned_at', null)
+      .maybeSingle()
+
+    return { device: data, sheets: data.device_sheets || [], assignment: assignmentResult.data }
+  }
+  return null
+}
 
 export default function DevicesPage() {
   const router = useRouter()
@@ -53,6 +98,25 @@ export default function DevicesPage() {
   const [isImportOpen, setIsImportOpen] = useState(false)
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [selectedDevices, setSelectedDevices] = useState<Device[]>([])
+
+  // Stable callback for selection changes
+  const handleSelectionChange = useCallback((devices: Device[]) => {
+    setSelectedDevices(devices)
+  }, [])
+
+  // Prefetch device detail on hover (debounced)
+  const prefetchTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+
+  const handlePrefetchDevice = useCallback((deviceId: string) => {
+    if (prefetchTimeoutRef.current) {
+      clearTimeout(prefetchTimeoutRef.current)
+    }
+    prefetchTimeoutRef.current = setTimeout(() => {
+      prefetchDeviceDetail(deviceId).catch(() => {
+        // Silently fail - prefetch is best-effort
+      })
+    }, 150) // 150ms debounce to avoid unnecessary fetches while scrolling
+  }, [])
 
   // Files chờ chọn sheet
   const [pendingFiles, setPendingFiles] = useState<File[]>([])
@@ -205,7 +269,8 @@ export default function DevicesPage() {
             onUpdateDevice={handleUpdateDevice}
             onExportDevice={handleExportDevice}
             onDeleteDevice={handleDeleteDevice}
-            onSelectionChange={setSelectedDevices}
+            onSelectionChange={handleSelectionChange}
+            onHoverDevice={handlePrefetchDevice}
             highlightId={highlightId}
             headerAction={
               <DropdownMenu>

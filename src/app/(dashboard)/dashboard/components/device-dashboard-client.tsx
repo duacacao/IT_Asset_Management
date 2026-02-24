@@ -3,7 +3,6 @@
 import dynamic from 'next/dynamic'
 import { Suspense } from 'react'
 import { SectionCards } from './section-cards'
-import { RecentActivity } from '@/components/dashboard/RecentActivity'
 import { useDevicesQuery } from '@/hooks/useDevicesQuery'
 import { useEndUsersQuery } from '@/hooks/useEndUsersQuery'
 import { Button } from '@/components/ui/button'
@@ -11,6 +10,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Upload, LayoutDashboard } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { Skeleton } from '@/components/ui/skeleton'
+
+const RecentActivity = dynamic(
+  () => import('@/components/dashboard/RecentActivity').then((mod) => mod.RecentActivity),
+  { ssr: false, loading: () => <ActivitySkeleton /> }
+)
 
 const DeviceStatusChart = dynamic(
   () => import('@/components/dashboard/DeviceStatusChart').then((mod) => mod.DeviceStatusChart),
@@ -36,6 +40,28 @@ function ChartSkeleton() {
       </CardHeader>
       <CardContent className="flex flex-1 items-center justify-center pb-4">
         <Skeleton className="h-48 w-48 rounded-full" />
+      </CardContent>
+    </Card>
+  )
+}
+
+function ActivitySkeleton() {
+  return (
+    <Card className="flex h-full flex-col">
+      <CardHeader className="pb-2">
+        <Skeleton className="h-5 w-40" />
+        <Skeleton className="h-4 w-24" />
+      </CardHeader>
+      <CardContent className="flex flex-1 flex-col gap-3 pb-4">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="flex gap-3">
+            <Skeleton className="h-8 w-8 rounded-full" />
+            <div className="flex-1 space-y-2">
+              <Skeleton className="h-4 w-3/4" />
+              <Skeleton className="h-3 w-1/2" />
+            </div>
+          </div>
+        ))}
       </CardContent>
     </Card>
   )
@@ -92,7 +118,9 @@ export function DeviceDashboardClient() {
         <Suspense fallback={<ChartSkeleton />}>
           <HardwareOverview devices={devices} />
         </Suspense>
-        <RecentActivity devices={devices} endUsers={endUsers} />
+        <Suspense fallback={<ActivitySkeleton />}>
+          <RecentActivity devices={devices} endUsers={endUsers} />
+        </Suspense>
       </div>
     </div>
   )

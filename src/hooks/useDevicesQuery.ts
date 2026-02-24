@@ -10,6 +10,7 @@ export {
   useImportDeviceMutation,
   useUpdateDeviceMutation,
   useUpdateStatusMutation,
+  useBulkUpdateStatusMutation,
   useUpdateDeviceVisibleSheetsMutation,
   useDeleteDeviceMutation,
   useCreateSheetMutation,

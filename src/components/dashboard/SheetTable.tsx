@@ -144,11 +144,10 @@ function EditableCell({
   useEffect(() => {
     if (isEditing) {
       setEditValue(String(value ?? ''))
-      // Timeout nhỏ để đảm bảo render xong mới focus
-      setTimeout(() => {
+      requestAnimationFrame(() => {
         inputRef.current?.focus()
         inputRef.current?.select()
-      }, 0)
+      })
     }
   }, [isEditing, value])
 

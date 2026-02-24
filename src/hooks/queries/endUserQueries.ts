@@ -20,6 +20,7 @@ export function useEndUsersQuery() {
   return useQuery({
     queryKey: queryKeys.endUsers.list(),
     staleTime: 60 * 1000,
+    gcTime: 10 * 60 * 1000,
     queryFn: async () => {
       const { data, error } = await getEndUsers()
       if (error) throw new Error(error)
@@ -52,6 +53,8 @@ export function useEndUserQuery(id: string | null) {
 export function useDepartmentsQuery() {
   return useQuery({
     queryKey: queryKeys.departments.list(),
+    staleTime: 5 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
     queryFn: async () => {
       const { data, error } = await getDepartments()
       if (error) throw new Error(error)
@@ -67,6 +70,8 @@ export function useDepartmentsQuery() {
 export function usePositionsQuery() {
   return useQuery({
     queryKey: queryKeys.positions.list(),
+    staleTime: 5 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
     queryFn: async () => {
       const { data, error } = await getPositions()
       if (error) throw new Error(error)
@@ -97,7 +102,8 @@ export function useAvailableDevicesQuery() {
 export function useEndUserStatsQuery() {
   return useQuery({
     queryKey: queryKeys.endUsers.stats(),
-    staleTime: 60 * 1000,
+    staleTime: 2 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
     queryFn: async () => {
       const data = await getEndUserStats()
       return data

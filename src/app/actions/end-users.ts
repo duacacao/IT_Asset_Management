@@ -153,15 +153,15 @@ export async function createEndUser(endUser: EndUserInsert): Promise<{
     return { data: null, error: error.message }
   }
 
-  // Nếu có device_ids, gán tất cả thiết bị cho user vừa tạo (1:N)
+  // Nếu có device_ids, gán tất cả thiết bị cho user vừa tạo (1:N) - parallel
   if (data && endUser.device_ids && endUser.device_ids.length > 0) {
-    for (const deviceId of endUser.device_ids) {
-      const assignResult = await assignDevice(deviceId, data.id)
-      if (assignResult.error) {
-        console.error(`Lỗi gán thiết bị ${deviceId}:`, assignResult.error)
-        // Không throw error, vẫn tiếp tục gán các device khác
+    const assignPromises = endUser.device_ids.map((deviceId) => assignDevice(deviceId, data.id))
+    const assignResults = await Promise.all(assignPromises)
+    assignResults.forEach((result, idx) => {
+      if (result.error) {
+        console.error(`Lỗi gán thiết bị ${endUser.device_ids![idx]}:`, result.error)
       }
-    }
+    })
   }
 
   revalidatePath('/end-user')
@@ -215,23 +215,25 @@ export async function updateEndUser(
     const existingDevices = updates.existing_devices || []
     const existingIds = existingDevices.map((d) => d.id)
 
-    // Devices cần thu hồi (có trong existing nhưng không có trong new)
+    // Devices cần thu hồi (có trong existing nhưng không có trong new) - parallel
     const toReturn = existingDevices.filter((d) => !newIds.includes(d.id))
-    for (const device of toReturn) {
-      const returnResult = await returnDevice(device.assignment_id)
-      if (returnResult.error) {
-        console.error(`Lỗi thu hồi thiết bị ${device.name}:`, returnResult.error)
+    const returnPromises = toReturn.map((device) => returnDevice(device.assignment_id))
+    const returnResults = await Promise.all(returnPromises)
+    returnResults.forEach((result, idx) => {
+      if (result.error) {
+        console.error(`Lỗi thu hồi thiết bị ${toReturn[idx].name}:`, result.error)
       }
-    }
+    })
 
-    // Devices cần gán mới (có trong new nhưng không có trong existing)
+    // Devices cần gán mới (có trong new nhưng không có trong existing) - parallel
     const toAssign = newIds.filter((id) => !existingIds.includes(id))
-    for (const deviceId of toAssign) {
-      const assignResult = await assignDevice(deviceId, id)
-      if (assignResult.error) {
-        console.error(`Lỗi gán thiết bị ${deviceId}:`, assignResult.error)
+    const assignPromises = toAssign.map((deviceId) => assignDevice(deviceId, id))
+    const assignResults = await Promise.all(assignPromises)
+    assignResults.forEach((result, idx) => {
+      if (result.error) {
+        console.error(`Lỗi gán thiết bị ${toAssign[idx]}:`, result.error)
       }
-    }
+    })
   }
 
   revalidatePath('/end-user')
@@ -306,21 +308,22 @@ export async function getAvailableDevices(): Promise<{
     return { data: [], error: null }
   }
 
-  // Lấy device_ids đang được assign (returned_at IS NULL)
-  const { data: activeAssignments } = await supabase
-    .from('device_assignments')
-    .select('device_id')
-    .eq('user_id', user.id)
-    .is('returned_at', null)
-
-  const assignedDeviceIds = (activeAssignments || []).map((a) => a.device_id)
-
-  // Lấy tất cả devices của user
+  // Single query: fetch all devices with their active assignment status
+  // LEFT JOIN với device_assignments để lọc trực tiếp trên DB — tránh 2 round-trips
   const { data, error } = await supabase
     .from('devices')
-    .select('id, name, type')
+    .select(
+      `
+      id, name, type,
+      device_assignments!left (
+        id,
+        returned_at
+      )
+      `
+    )
     .eq('owner_id', user.id)
     .in('status', ['active', 'inactive'])
+    .is('deleted_at', null)
     .order('name')
 
   if (error) {
@@ -328,8 +331,14 @@ export async function getAvailableDevices(): Promise<{
     return { data: [], error: null }
   }
 
-  // Lọc bỏ devices đã được assign
-  const availableDevices = (data || []).filter((d) => !assignedDeviceIds.includes(d.id))
+  // Lọc bỏ devices có active assignment (returned_at IS NULL)
+  const availableDevices = (data || [])
+    .filter((d: any) => {
+      const assignments = d.device_assignments || []
+      const hasActiveAssignment = assignments.some((a: any) => a.returned_at === null)
+      return !hasActiveAssignment
+    })
+    .map((d: any) => ({ id: d.id, name: d.name, type: d.type }))
 
   return { data: availableDevices, error: null }
 }

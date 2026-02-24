@@ -41,8 +41,8 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Device, DeviceStatus } from '@/types/device'
 import { DEVICE_STATUS_CONFIG } from '@/constants/device'
-import { useUpdateStatusMutation } from '@/hooks/useDevicesQuery'
-import { checkDeviceAssignment } from '@/app/actions/devices'
+import { useUpdateStatusMutation, useBulkUpdateStatusMutation } from '@/hooks/useDevicesQuery'
+import { checkDeviceAssignment, checkDevicesAssignments } from '@/app/actions/devices'
 import { FilterBar, DeviceFilters } from './FilterBar'
 import { createDeviceColumns, STATUS_DOT_COLORS } from './device-columns'
 
@@ -55,6 +55,7 @@ interface DeviceListProps {
   onExportDevice: (device: Device) => void
   onDeleteDevice: (deviceId: string) => void
   onSelectionChange?: (selectedDevices: Device[]) => void
+  onHoverDevice?: (deviceId: string) => void
   highlightId?: string | null
   headerAction?: React.ReactNode
 }
@@ -66,6 +67,7 @@ export function DeviceList({
   onExportDevice,
   onDeleteDevice,
   onSelectionChange,
+  onHoverDevice,
   highlightId,
   headerAction,
 }: DeviceListProps) {
@@ -121,6 +123,7 @@ export function DeviceList({
   }, [deleteId])
 
   const updateStatusMutation = useUpdateStatusMutation()
+  const bulkUpdateStatusMutation = useBulkUpdateStatusMutation()
 
   // Comprehensive filter logic — tìm theo tên, id, fileName, IP + status + device type
   const filteredDevices = useMemo(() => {
@@ -170,14 +173,18 @@ export function DeviceList({
     getPaginationRowModel: getPaginationRowModel(),
   })
 
+  // Memoize selected devices computation to avoid unnecessary recalculations
+  const selectedDevices = useMemo(() => {
+    const selectedRows = table.getFilteredSelectedRowModel().rows
+    return selectedRows.map((row) => row.original)
+  }, [table, rowSelection])
+
   // Effect: Notify parent of selection changes
   useEffect(() => {
     if (onSelectionChange) {
-      const selectedRows = table.getFilteredSelectedRowModel().rows
-      const selectedDevices = selectedRows.map((row) => row.original)
       onSelectionChange(selectedDevices)
     }
-  }, [rowSelection, table, onSelectionChange])
+  }, [selectedDevices, onSelectionChange])
 
   return (
     <div className="space-y-4">
@@ -191,16 +198,15 @@ export function DeviceList({
         <div className="bg-muted/50 flex items-center gap-3 rounded-lg border p-3">
           <span className="text-sm font-medium">{Object.keys(rowSelection).length} đã chọn</span>
           <div className="ml-auto flex items-center gap-2">
-            {/* Bulk set status */}
+            {/* Bulk set status - now uses single batch request */}
             <Select
               onValueChange={(val) => {
                 const selectedRows = table.getFilteredSelectedRowModel().rows
-                selectedRows.forEach((row) =>
-                  updateStatusMutation.mutate({
-                    deviceId: row.original.id,
-                    status: val as DeviceStatus,
-                  })
-                )
+                const selectedIds = selectedRows.map((row) => row.original.id)
+                bulkUpdateStatusMutation.mutate({
+                  deviceIds: selectedIds,
+                  status: val as DeviceStatus,
+                })
                 setRowSelection({})
               }}
             >
@@ -241,18 +247,16 @@ export function DeviceList({
               size="sm"
               className="h-8"
               onClick={async () => {
-                // Kiểm tra số thiết bị đang bàn giao trong batch
+                // Batch check: 1 request thay vì N requests (fix B1 N+1)
                 const selectedRows = table.getFilteredSelectedRowModel().rows
-                let assignedCount = 0
-                for (const row of selectedRows) {
-                  try {
-                    const result = await checkDeviceAssignment(row.original.id)
-                    if (result.hasAssignment) assignedCount++
-                  } catch {
-                    // Bỏ qua lỗi check, tiếp tục
-                  }
+                const selectedIds = selectedRows.map((row) => row.original.id)
+                try {
+                  const { assignedCount } = await checkDevicesAssignments(selectedIds)
+                  setBulkAssignmentCount(assignedCount)
+                } catch {
+                  // Fallback nếu batch check lỗi
+                  setBulkAssignmentCount(0)
                 }
-                setBulkAssignmentCount(assignedCount)
                 setBulkDeleteOpen(true)
               }}
             >
@@ -303,6 +307,7 @@ export function DeviceList({
                   aria-label={`Device ${row.original.deviceInfo.name}, Status ${row.original.status}, IP ${row.original.deviceInfo.ip || 'Not set'}, OS ${row.original.deviceInfo.os}`}
                   className={`${highlightId === row.original.id ? 'bg-primary/10 transition-colors duration-1000' : ''}`}
                   tabIndex={0}
+                  onMouseEnter={() => onHoverDevice?.(row.original.id)}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>

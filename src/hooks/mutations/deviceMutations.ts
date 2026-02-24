@@ -8,6 +8,7 @@ import {
   deleteDevice as deleteDeviceAction,
   importDevice as importDeviceAction,
   updateDeviceVisibleSheets as updateDeviceVisibleSheetsAction,
+  bulkUpdateDeviceStatus as bulkUpdateDeviceStatusAction,
 } from '@/app/actions/devices'
 import {
   createSheet as createSheetAction,
@@ -90,7 +91,10 @@ export function useUpdateDeviceMutation() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (params: { deviceId: string; updates: Partial<DeviceInfo> & { status?: DeviceStatus } }) => {
+    mutationFn: async (params: {
+      deviceId: string
+      updates: Partial<DeviceInfo> & { status?: DeviceStatus }
+    }) => {
       // Logic đã move vào server action: fetch device -> merge updates
       // Client chỉ cần gửi updates
       const payload = toSupabaseDeviceUpdate(params.updates) // currentSpecs removed
@@ -147,13 +151,11 @@ export function useUpdateStatusMutation() {
 
   return useMutation({
     mutationFn: async (params: { deviceId: string; status: DeviceStatus }) => {
-      console.log('[DEBUG] Updating device status:', params.deviceId, 'to', params.status)
       const { data, error } = await updateDeviceAction(params.deviceId, {
         status: params.status,
         updated_at: new Date().toISOString(),
       })
       if (error || !data) {
-        console.error('[DEBUG] Error updating status:', error)
         throw new Error(error || 'Lỗi cập nhật status')
       }
       return data
@@ -162,6 +164,26 @@ export function useUpdateStatusMutation() {
       queryClient.invalidateQueries({ queryKey: deviceKeys.list() })
       queryClient.invalidateQueries({ queryKey: deviceKeys.detail(vars.deviceId) })
       queryClient.invalidateQueries({ queryKey: deviceKeys.stats() })
+    },
+  })
+}
+
+export function useBulkUpdateStatusMutation() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (params: { deviceIds: string[]; status: DeviceStatus }) => {
+      const { success, error } = await bulkUpdateDeviceStatusAction(params.deviceIds, params.status)
+      if (!success) throw new Error(error || 'Lỗi batch cập nhật status')
+      return params.deviceIds.length
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: deviceKeys.list() })
+      queryClient.invalidateQueries({ queryKey: deviceKeys.stats() })
+      toast.success('Đã cập nhật trạng thái')
+    },
+    onError: (err) => {
+      toast.error('Lỗi cập nhật trạng thái', { description: err.message })
     },
   })
 }

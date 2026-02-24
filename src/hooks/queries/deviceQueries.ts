@@ -19,6 +19,7 @@ export function useDevicesQuery() {
   return useQuery({
     queryKey: deviceKeys.list(),
     staleTime: 60 * 1000,
+    gcTime: 10 * 60 * 1000,
     queryFn: async () => {
       const { data, error } = await getDevices()
       if (error || !data) throw new Error(error || 'Không thể tải danh sách devices')
@@ -34,7 +35,8 @@ export function useDeviceDetailQuery(deviceId: string | null) {
   return useQuery({
     queryKey: deviceKeys.detail(deviceId!),
     enabled: !!deviceId,
-    staleTime: 30 * 1000,
+    staleTime: 60 * 1000,
+    gcTime: 10 * 60 * 1000,
     queryFn: async () => {
       const { data, error } = await getDeviceWithSheets(deviceId!)
       if (error || !data) throw new Error(error || 'Không thể tải device')
@@ -53,6 +55,8 @@ export function useDeviceDetailQuery(deviceId: string | null) {
 export function useDeviceStatsQuery() {
   return useQuery({
     queryKey: deviceKeys.stats(),
+    staleTime: 2 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
     queryFn: () => getDeviceStats(),
   })
 }

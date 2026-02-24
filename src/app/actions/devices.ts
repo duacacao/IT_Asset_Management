@@ -193,7 +193,6 @@ export async function updateDevice(deviceId: string, updates: DeviceUpdate) {
   }
 
   // 3. Execute update
-  console.log('[DEBUG] updateDeviceAction - deviceId:', deviceId, 'updates:', JSON.stringify(finalUpdates))
   const { data, error } = await supabase
     .from('devices')
     .update(finalUpdates)
@@ -202,7 +201,7 @@ export async function updateDevice(deviceId: string, updates: DeviceUpdate) {
     .single()
 
   if (error) {
-    console.error('[DEBUG] Lỗi cập nhật device:', error.message, error.details)
+    console.error('Lỗi cập nhật device:', error.message)
     return { data: null, error: error.message }
   }
 
@@ -243,6 +242,32 @@ export async function checkDeviceAssignment(deviceId: string): Promise<{
     hasAssignment: true,
     endUserName: (data as any).end_users?.full_name || null,
     assignmentId: data.id,
+  }
+}
+
+// ============================================
+// Kiểm tra batch nhiều devices có đang bàn giao không (1 round-trip)
+// Thay thế N lần checkDeviceAssignment trong bulk delete
+// ============================================
+export async function checkDevicesAssignments(deviceIds: string[]): Promise<{
+  assignedCount: number
+  assignedDeviceIds: string[]
+}> {
+  if (!deviceIds.length) return { assignedCount: 0, assignedDeviceIds: [] }
+
+  const supabase = await createClient()
+
+  const { data } = await supabase
+    .from('device_assignments')
+    .select('device_id')
+    .in('device_id', deviceIds)
+    .is('returned_at', null)
+
+  const assignedDeviceIds = (data || []).map((a) => a.device_id as string)
+
+  return {
+    assignedCount: assignedDeviceIds.length,
+    assignedDeviceIds,
   }
 }
 
@@ -339,7 +364,10 @@ export async function importDevice(
     if (sheetsError) {
       // Rollback: soft delete device nếu tạo sheets thất bại (đảm bảo tính nhất quán của hệ thống)
       console.error('Lỗi tạo sheets, rollback device (soft-delete):', sheetsError.message)
-      await supabase.from('devices').update({ deleted_at: new Date().toISOString() }).eq('id', device.id)
+      await supabase
+        .from('devices')
+        .update({ deleted_at: new Date().toISOString() })
+        .eq('id', device.id)
       return { data: null, error: 'Lỗi tạo sheets: ' + sheetsError.message }
     }
   }
@@ -409,6 +437,37 @@ export async function updateDeviceVisibleSheets(deviceId: string, visibleSheets:
   if (writeError) {
     console.error('Lỗi cập nhật visible sheets:', writeError.message)
     return { success: false, error: writeError.message }
+  }
+
+  revalidatePath('/devices')
+  return { success: true, error: null }
+}
+
+// ============================================
+// Batch update status for multiple devices (1 request)
+// Thay thế N individual updateStatusMutation calls
+// ============================================
+export async function bulkUpdateDeviceStatus(deviceIds: string[], status: string) {
+  if (!deviceIds.length) return { success: true, error: null }
+
+  const supabase = await createClient()
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) {
+    return { success: false, error: 'Người dùng chưa đăng nhập' }
+  }
+
+  const { error } = await supabase
+    .from('devices')
+    .update({ status, updated_at: new Date().toISOString() })
+    .in('id', deviceIds)
+    .eq('owner_id', user.id)
+
+  if (error) {
+    console.error('Lỗi batch update status:', error.message)
+    return { success: false, error: error.message }
   }
 
   revalidatePath('/devices')
