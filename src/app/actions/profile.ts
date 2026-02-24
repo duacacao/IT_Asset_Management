@@ -44,44 +44,25 @@ export async function updateProfile(updates: { full_name?: string; avatar_url?: 
   return { data, error: null }
 }
 
+
 // ============================================
-// Cập nhật profile settings (JSONB)
+// Cập nhật profile settings (JSONB) — atomic merge qua RPC
+// Column 'settings' được thêm qua migration: add_profiles_settings_column
 // ============================================
 export async function updateProfileSettings(settings: Record<string, any>) {
   const { supabase, user } = await requireAuth()
 
-  // 1. Get current settings (for merging)
-  const { data: profile, error: fetchError } = await supabase
-    .from('profiles')
-    .select('settings')
-    .eq('id', user.id)
-    .single()
-
-  if (fetchError) {
-    console.error('Lỗi lấy settings cũ:', fetchError.message)
-    return { data: null, error: fetchError.message }
-  }
-
-  const currentSettings = (profile.settings as Record<string, any>) || {}
-  const newSettings = {
-    ...currentSettings,
-    ...settings,
-  }
-
-  // 2. Update with merged settings
-  const { data, error } = await supabase
-    .from('profiles')
-    .update({
-      settings: newSettings,
-    })
-    .eq('id', user.id)
-    .select()
-    .single()
+  // Atomic JSONB merge tại DB level — tránh race condition
+  const { error } = await supabase.rpc('merge_profile_settings', {
+    p_user_id: user.id,
+    p_settings: settings,
+  })
 
   if (error) {
     console.error('Lỗi cập nhật settings:', error.message)
     return { data: null, error: error.message }
   }
 
-  return { data, error: null }
+  return { data: null, error: null }
 }
+

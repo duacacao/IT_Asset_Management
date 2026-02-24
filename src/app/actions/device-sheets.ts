@@ -74,41 +74,21 @@ export async function updateSheetCell(
 ) {
   const { supabase } = await requireAuth()
 
-  // Đọc sheet hiện tại
-  const { data: sheet, error: readError } = await supabase
-    .from('device_sheets')
-    .select('sheet_data')
-    .eq('id', sheetId)
+  // Atomic update tại DB level — tránh race condition read-modify-write
+  const { data, error } = await supabase
+    .rpc('update_sheet_cell', {
+      p_sheet_id: sheetId,
+      p_row_index: rowIndex,
+      p_key: columnKey,
+      p_value: JSON.stringify(value),
+    })
     .single()
 
-  if (readError || !sheet) {
-    return { data: null, error: readError?.message || 'Không tìm thấy sheet' }
+  if (error) {
+    return { data: null, error: error.message }
   }
 
-  // Sửa cell trong sheet_data (JSONB array)
-  const sheetData = (sheet.sheet_data as any[]) || []
-  if (rowIndex >= 0 && rowIndex < sheetData.length) {
-    sheetData[rowIndex] = {
-      ...sheetData[rowIndex],
-      [columnKey]: value,
-    }
-  } else {
-    return { data: null, error: `Row index ${rowIndex} ngoài phạm vi` }
-  }
-
-  // Ghi lại
-  const { data: updated, error: writeError } = await supabase
-    .from('device_sheets')
-    .update({ sheet_data: sheetData })
-    .eq('id', sheetId)
-    .select()
-    .single()
-
-  if (writeError) {
-    return { data: null, error: writeError.message }
-  }
-
-  return { data: updated, error: null }
+  return { data, error: null }
 }
 
 // ============================================
@@ -171,34 +151,19 @@ export async function reorderSheets(sheetsOrder: { id: string; sort_order: numbe
 export async function addSheetRow(sheetId: string, rowData: Record<string, any>) {
   const { supabase } = await requireAuth()
 
-  // Đọc sheet hiện tại
-  const { data: sheet, error: readError } = await supabase
-    .from('device_sheets')
-    .select('sheet_data')
-    .eq('id', sheetId)
+  // Atomic append tại DB level — tránh race condition
+  const { data, error } = await supabase
+    .rpc('add_sheet_row', {
+      p_sheet_id: sheetId,
+      p_row_data: rowData,
+    })
     .single()
 
-  if (readError || !sheet) {
-    return { data: null, error: readError?.message || 'Không tìm thấy sheet' }
+  if (error) {
+    return { data: null, error: error.message }
   }
 
-  // Thêm row mới vào cuối
-  const sheetData = (sheet.sheet_data as any[]) || []
-  sheetData.push(rowData)
-
-  // Ghi lại
-  const { data: updated, error: writeError } = await supabase
-    .from('device_sheets')
-    .update({ sheet_data: sheetData })
-    .eq('id', sheetId)
-    .select()
-    .single()
-
-  if (writeError) {
-    return { data: null, error: writeError.message }
-  }
-
-  return { data: updated, error: null }
+  return { data, error: null }
 }
 
 // ============================================
@@ -207,36 +172,17 @@ export async function addSheetRow(sheetId: string, rowData: Record<string, any>)
 export async function deleteSheetRow(sheetId: string, rowIndex: number) {
   const { supabase } = await requireAuth()
 
-  // Đọc sheet hiện tại
-  const { data: sheet, error: readError } = await supabase
-    .from('device_sheets')
-    .select('sheet_data')
-    .eq('id', sheetId)
+  // Atomic delete tại DB level — tránh race condition
+  const { data, error } = await supabase
+    .rpc('delete_sheet_row', {
+      p_sheet_id: sheetId,
+      p_row_index: rowIndex,
+    })
     .single()
 
-  if (readError || !sheet) {
-    return { data: null, error: readError?.message || 'Không tìm thấy sheet' }
+  if (error) {
+    return { data: null, error: error.message }
   }
 
-  // Xóa row theo index
-  const sheetData = (sheet.sheet_data as any[]) || []
-  if (rowIndex < 0 || rowIndex >= sheetData.length) {
-    return { data: null, error: `Row index ${rowIndex} ngoài phạm vi` }
-  }
-
-  sheetData.splice(rowIndex, 1)
-
-  // Ghi lại
-  const { data: updated, error: writeError } = await supabase
-    .from('device_sheets')
-    .update({ sheet_data: sheetData })
-    .eq('id', sheetId)
-    .select()
-    .single()
-
-  if (writeError) {
-    return { data: null, error: writeError.message }
-  }
-
-  return { data: updated, error: null }
+  return { data, error: null }
 }

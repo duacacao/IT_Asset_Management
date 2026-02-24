@@ -388,33 +388,15 @@ export async function getDeviceStats() {
 export async function updateDeviceVisibleSheets(deviceId: string, visibleSheets: string[]) {
   const { supabase } = await requireAuth()
 
-  // 1. Lấy specs (jsonb) hiện tại
-  const { data: device, error: readError } = await supabase
-    .from('devices')
-    .select('specs')
-    .eq('id', deviceId)
-    .single()
+  // Atomic JSONB merge tại DB level — tránh race condition read-modify-write
+  const { error } = await supabase.rpc('set_device_visible_sheets', {
+    p_device_id: deviceId,
+    p_visible_sheets: JSON.stringify(visibleSheets),
+  })
 
-  if (readError || !device) {
-    return { success: false, error: readError?.message || 'Không tìm thấy device' }
-  }
-
-  // 2. Update visibleSheets trong specs
-  const currentSpecs = (device.specs as Record<string, any>) || {}
-  const newSpecs = {
-    ...currentSpecs,
-    visibleSheets,
-  }
-
-  // 3. Ghi lại vào DB
-  const { error: writeError } = await supabase
-    .from('devices')
-    .update({ specs: newSpecs })
-    .eq('id', deviceId)
-
-  if (writeError) {
-    console.error('Lỗi cập nhật visible sheets:', writeError.message)
-    return { success: false, error: writeError.message }
+  if (error) {
+    console.error('Lỗi cập nhật visible sheets:', error.message)
+    return { success: false, error: error.message }
   }
 
   revalidatePath('/devices')
