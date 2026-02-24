@@ -1,6 +1,6 @@
 'use server'
 
-import { createClient } from '@/utils/supabase/server'
+import { requireAuth } from '@/lib/auth'
 import { revalidatePath } from 'next/cache'
 import type { DeviceSheetInsert, DeviceSheetUpdate } from '@/types/supabase'
 
@@ -9,7 +9,7 @@ import type { DeviceSheetInsert, DeviceSheetUpdate } from '@/types/supabase'
 // RLS tự động filter — chỉ owner device mới xem được sheets
 // ============================================
 export async function getDeviceSheets(deviceId: string) {
-  const supabase = await createClient()
+  const { supabase } = await requireAuth()
 
   const { data, error } = await supabase
     .from('device_sheets')
@@ -29,7 +29,7 @@ export async function getDeviceSheets(deviceId: string) {
 // Tạo sheet mới cho device
 // ============================================
 export async function createSheet(sheetData: Omit<DeviceSheetInsert, 'id' | 'created_at'>) {
-  const supabase = await createClient()
+  const { supabase } = await requireAuth()
 
   const { data, error } = await supabase.from('device_sheets').insert(sheetData).select().single()
 
@@ -45,7 +45,7 @@ export async function createSheet(sheetData: Omit<DeviceSheetInsert, 'id' | 'cre
 // Cập nhật toàn bộ sheet_data (khi edit cells)
 // ============================================
 export async function updateSheetData(sheetId: string, sheetData: any[]) {
-  const supabase = await createClient()
+  const { supabase } = await requireAuth()
 
   const { data, error } = await supabase
     .from('device_sheets')
@@ -72,7 +72,7 @@ export async function updateSheetCell(
   columnKey: string,
   value: any
 ) {
-  const supabase = await createClient()
+  const { supabase } = await requireAuth()
 
   // Đọc sheet hiện tại
   const { data: sheet, error: readError } = await supabase
@@ -115,7 +115,7 @@ export async function updateSheetCell(
 // Rename sheet
 // ============================================
 export async function renameSheet(sheetId: string, newName: string) {
-  const supabase = await createClient()
+  const { supabase } = await requireAuth()
 
   const { data, error } = await supabase
     .from('device_sheets')
@@ -135,7 +135,7 @@ export async function renameSheet(sheetId: string, newName: string) {
 // Xóa sheet
 // ============================================
 export async function deleteSheet(sheetId: string) {
-  const supabase = await createClient()
+  const { supabase } = await requireAuth()
 
   const { error } = await supabase.from('device_sheets').delete().eq('id', sheetId)
 
@@ -150,7 +150,7 @@ export async function deleteSheet(sheetId: string) {
 // Sắp xếp lại thứ tự sheets (drag & drop)
 // ============================================
 export async function reorderSheets(sheetsOrder: { id: string; sort_order: number }[]) {
-  const supabase = await createClient()
+  const { supabase } = await requireAuth()
 
   // Update từng sheet với sort_order mới
   const updates = sheetsOrder.map(({ id, sort_order }) =>
@@ -171,7 +171,7 @@ export async function reorderSheets(sheetsOrder: { id: string; sort_order: numbe
 // Thêm row vào sheet
 // ============================================
 export async function addSheetRow(sheetId: string, rowData: Record<string, any>) {
-  const supabase = await createClient()
+  const { supabase } = await requireAuth()
 
   // Đọc sheet hiện tại
   const { data: sheet, error: readError } = await supabase
@@ -207,7 +207,7 @@ export async function addSheetRow(sheetId: string, rowData: Record<string, any>)
 // Xóa row trong sheet
 // ============================================
 export async function deleteSheetRow(sheetId: string, rowIndex: number) {
-  const supabase = await createClient()
+  const { supabase } = await requireAuth()
 
   // Đọc sheet hiện tại
   const { data: sheet, error: readError } = await supabase

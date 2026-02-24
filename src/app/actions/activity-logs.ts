@@ -1,6 +1,6 @@
 'use server'
 
-import { createClient } from '@/utils/supabase/server'
+import { requireAuth } from '@/lib/auth'
 import type { ActivityLogAction } from '@/constants/activity-log'
 
 // ============================================
@@ -8,7 +8,7 @@ import type { ActivityLogAction } from '@/constants/activity-log'
 // RLS tự động filter theo user_id = auth.uid()
 // ============================================
 export async function getActivityLogs(options?: { deviceId?: string; limit?: number }) {
-  const supabase = await createClient()
+  const { supabase } = await requireAuth()
   const { deviceId, limit = 50 } = options || {}
 
   let query = supabase
@@ -44,16 +44,7 @@ export async function createActivityLog(logData: {
   action: ActivityLogAction
   details?: string
 }) {
-  const supabase = await createClient()
-
-  // Lấy user hiện tại
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser()
-  if (authError || !user) {
-    return { data: null, error: 'Chưa đăng nhập' }
-  }
+  const { supabase, user } = await requireAuth()
 
   const { data, error } = await supabase
     .from('activity_logs')

@@ -1,6 +1,6 @@
 'use server'
 
-import { createClient } from '@/utils/supabase/server'
+import { requireAuth } from '@/lib/auth'
 import { revalidatePath } from 'next/cache'
 import { ACTIVITY_LOG_ACTIONS } from '@/constants/activity-log'
 
@@ -25,14 +25,7 @@ export async function assignDevice(
   endUserId: string,
   forceReassign: boolean = false
 ): Promise<AssignDeviceResult> {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) {
-    return { success: false, error: 'Người dùng chưa đăng nhập' }
-  }
+  const { supabase, user } = await requireAuth()
 
   // B1: Kiểm tra device đã được assign cho ai chưa
   const { data: existingDeviceAssignment } = await supabase
@@ -109,14 +102,7 @@ export async function assignDevice(
 export async function returnDevice(
   assignmentId: string
 ): Promise<{ success: boolean; error: string | null }> {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) {
-    return { success: false, error: 'Người dùng chưa đăng nhập' }
-  }
+  const { supabase, user } = await requireAuth()
 
   const { data: assignment, error } = await supabase
     .from('device_assignments')
@@ -168,14 +154,7 @@ export async function getDeviceHistory(endUserId: string): Promise<{
   | null
   error: string | null
 }> {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) {
-    return { data: [], error: null }
-  }
+  const { supabase, user } = await requireAuth()
 
   const { data, error } = await supabase
     .from('device_assignments')
@@ -226,14 +205,7 @@ export async function getCurrentAssignment(endUserId: string): Promise<{
   } | null
   error: string | null
 }> {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) {
-    return { data: null, error: null }
-  }
+  const { supabase, user } = await requireAuth()
 
   const { data, error } = await supabase
     .from('device_assignments')
@@ -282,14 +254,7 @@ export async function bulkAssignDevices(
 ): Promise<{ success: boolean; error: string | null }> {
   if (!deviceIds.length) return { success: true, error: null }
 
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) {
-    return { success: false, error: 'Người dùng chưa đăng nhập' }
-  }
+  const { supabase, user } = await requireAuth()
 
   // Thu hồi thiết bị gán cũ nếu bất kỳ ID nào đã nằm trong device_assignments khác
   const { data: activeAssignments } = await supabase
@@ -350,14 +315,7 @@ export async function bulkReturnDevices(
 ): Promise<{ success: boolean; error: string | null }> {
   if (!assignmentIds.length) return { success: true, error: null }
 
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) {
-    return { success: false, error: 'Người dùng chưa đăng nhập' }
-  }
+  const { supabase, user } = await requireAuth()
 
   const { data: assignments } = await supabase
     .from('device_assignments')

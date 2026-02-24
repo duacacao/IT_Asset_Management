@@ -1,6 +1,6 @@
 'use server'
 
-import { createClient } from '@/utils/supabase/server'
+import { requireAuth } from '@/lib/auth'
 import { revalidatePath } from 'next/cache'
 import type { EndUser, EndUserInsert, EndUserUpdate, EndUserWithDevice } from '@/types/end-user'
 import { assignDevice, returnDevice, bulkAssignDevices, bulkReturnDevices } from './device-assignments'
@@ -10,14 +10,7 @@ import { assignDevice, returnDevice, bulkAssignDevices, bulkReturnDevices } from
 // Refactor: Trả về raw data để Frontend Query Hook tự xử lý qua adapter
 // ============================================
 export async function getEndUsers() {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) {
-    return { data: { endUsers: [], assignments: [] }, error: null }
-  }
+  const { supabase, user } = await requireAuth()
 
   // Parallel queries with Promise.all for performance
   const [endUsersResult, assignmentsResult] = await Promise.all([
@@ -84,14 +77,7 @@ export async function getEndUser(id: string): Promise<{
   data: EndUser | null
   error: string | null
 }> {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) {
-    return { data: null, error: 'Người dùng chưa đăng nhập' }
-  }
+  const { supabase, user } = await requireAuth()
 
   const { data, error } = await supabase
     .from('end_users')
@@ -117,14 +103,7 @@ export async function createEndUser(endUser: EndUserInsert): Promise<{
   data: EndUser | null
   error: string | null
 }> {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) {
-    return { data: null, error: 'Người dùng chưa đăng nhập' }
-  }
+  const { supabase, user } = await requireAuth()
 
   // Validate bắt buộc
   if (!endUser.department_id) {
@@ -176,14 +155,7 @@ export async function updateEndUser(
   data: EndUser | null
   error: string | null
 }> {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) {
-    return { data: null, error: 'Ngườ dùng chưa đăng nhập' }
-  }
+  const { supabase, user } = await requireAuth()
 
   const { data, error } = await supabase
     .from('end_users')
@@ -240,14 +212,7 @@ export async function deleteEndUser(id: string): Promise<{
   success: boolean
   error: string | null
 }> {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) {
-    return { success: false, error: 'Người dùng chưa đăng nhập' }
-  }
+  const { supabase, user } = await requireAuth()
 
   // B1: Trả TẤT CẢ thiết bị đang được gán (1:N)
   const { data: activeAssignments } = await supabase
@@ -289,14 +254,7 @@ export async function getAvailableDevices(): Promise<{
   data: { id: string; name: string; type: string }[] | null
   error: string | null
 }> {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) {
-    return { data: [], error: null }
-  }
+  const { supabase, user } = await requireAuth()
 
   // Single query: fetch all devices with their active assignment status
   // LEFT JOIN với device_assignments để lọc trực tiếp trên DB — tránh 2 round-trips
@@ -337,14 +295,7 @@ export async function getAvailableDevices(): Promise<{
 // Lấy thống kê end-users cho sidebar
 // ============================================
 export async function getEndUserStats() {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) {
-    return { total: 0 }
-  }
+  const { supabase, user } = await requireAuth()
 
   const { count, error } = await supabase
     .from('end_users')

@@ -40,8 +40,8 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser()
 
   // 🛡️ Whitelist approach — mặc định protect tất cả, chỉ cho public routes
-  // Public Routes: sign-in, sign-up, auth callback, debug-env (dev only)
-  const publicRoutes = ['/sign-in', '/sign-up', '/api/auth', '/auth', '/debug-env']
+  // Đã xóa /debug-env: defense-in-depth — page đã có NODE_ENV guard nhưng middleware thêm lớp bảo vệ
+  const publicRoutes = ['/sign-in', '/sign-up', '/api/auth', '/auth']
   const isPublicRoute = publicRoutes.some((route) => request.nextUrl.pathname.startsWith(route))
   const isAuthRoute =
     request.nextUrl.pathname.startsWith('/sign-in') ||

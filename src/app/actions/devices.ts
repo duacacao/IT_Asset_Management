@@ -1,6 +1,6 @@
 'use server'
 
-import { createClient } from '@/utils/supabase/server'
+import { requireAuth } from '@/lib/auth'
 import { revalidatePath } from 'next/cache'
 import type { DeviceInsert, DeviceUpdate } from '@/types/supabase'
 import { ACTIVITY_LOG_ACTIONS } from '@/constants/activity-log'
@@ -12,15 +12,7 @@ import { returnDevice } from './device-assignments'
 // Refactor: Return raw data { devices, assignments }
 // ============================================
 export async function getDevices() {
-  const supabase = await createClient()
-
-  // Auth check
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) {
-    return { data: { devices: [], assignments: [] }, error: 'Người dùng chưa đăng nhập' }
-  }
+  const { supabase, user } = await requireAuth()
 
   // Parallel queries with Promise.all for performance
   const [devicesResult, assignmentsResult] = await Promise.all([
@@ -72,7 +64,7 @@ export async function getDevices() {
 // RLS đảm bảo chỉ owner mới xem được
 // ============================================
 export async function getDeviceWithSheets(deviceId: string) {
-  const supabase = await createClient()
+  const { supabase } = await requireAuth()
 
   // Parallel: device+sheets and assignment
   const [deviceResult, assignmentResult] = await Promise.all([
@@ -132,16 +124,7 @@ export async function getDeviceWithSheets(deviceId: string) {
 export async function createDevice(
   deviceData: Omit<DeviceInsert, 'owner_id' | 'id' | 'created_at' | 'updated_at'>
 ) {
-  const supabase = await createClient()
-
-  // Lấy user hiện tại để gắn owner_id
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser()
-  if (authError || !user) {
-    return { data: null, error: 'Chưa đăng nhập' }
-  }
+  const { supabase, user } = await requireAuth()
 
   const { data, error } = await supabase
     .from('devices')
@@ -165,7 +148,7 @@ export async function createDevice(
 // Cập nhật device — RLS đảm bảo chỉ owner mới sửa được
 // ============================================
 export async function updateDevice(deviceId: string, updates: DeviceUpdate) {
-  const supabase = await createClient()
+  const { supabase } = await requireAuth()
 
   // 1. Fetch current device data to get existing specs
   const { data: currentDevice, error: fetchError } = await supabase
@@ -218,7 +201,7 @@ export async function checkDeviceAssignment(deviceId: string): Promise<{
   endUserName: string | null
   assignmentId: string | null
 }> {
-  const supabase = await createClient()
+  const { supabase } = await requireAuth()
 
   const { data } = await supabase
     .from('device_assignments')
@@ -255,7 +238,7 @@ export async function checkDevicesAssignments(deviceIds: string[]): Promise<{
 }> {
   if (!deviceIds.length) return { assignedCount: 0, assignedDeviceIds: [] }
 
-  const supabase = await createClient()
+  const { supabase } = await requireAuth()
 
   const { data } = await supabase
     .from('device_assignments')
@@ -276,14 +259,7 @@ export async function checkDevicesAssignments(deviceIds: string[]): Promise<{
 // Pattern nhất quán với deleteEndUser()
 // ============================================
 export async function deleteDevice(deviceId: string) {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) {
-    return { success: false, error: 'Người dùng chưa đăng nhập' }
-  }
+  const { supabase, user } = await requireAuth()
 
   // B1: Thu hồi thiết bị đang bàn giao (nếu có)
   const { data: activeAssignment } = await supabase
@@ -324,16 +300,7 @@ export async function importDevice(
   deviceData: Omit<DeviceInsert, 'owner_id' | 'id' | 'created_at' | 'updated_at'>,
   sheets: { sheet_name: string; sheet_data: any[]; sort_order: number }[]
 ) {
-  const supabase = await createClient()
-
-  // Lấy user hiện tại
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser()
-  if (authError || !user) {
-    return { data: null, error: 'Chưa đăng nhập' }
-  }
+  const { supabase, user } = await requireAuth()
 
   // Bước 1: Tạo device
   const { data: device, error: deviceError } = await supabase
@@ -388,9 +355,14 @@ export async function importDevice(
 // Lấy thống kê devices cho sidebar
 // ============================================
 export async function getDeviceStats() {
-  const supabase = await createClient()
+  const { supabase, user } = await requireAuth()
 
-  const { data, error } = await supabase.from('devices').select('status').is('deleted_at', null)
+  // Lọc theo owner_id để tránh data leak cross-user
+  const { data, error } = await supabase
+    .from('devices')
+    .select('status')
+    .eq('owner_id', user.id)
+    .is('deleted_at', null)
 
   if (error) {
     return { total: 0, active: 0, broken: 0, inactive: 0 }
@@ -408,7 +380,7 @@ export async function getDeviceStats() {
 // Cập nhật danh sách sheets hiển thị (visibleSheets)
 // ============================================
 export async function updateDeviceVisibleSheets(deviceId: string, visibleSheets: string[]) {
-  const supabase = await createClient()
+  const { supabase } = await requireAuth()
 
   // 1. Lấy specs (jsonb) hiện tại
   const { data: device, error: readError } = await supabase
@@ -450,14 +422,7 @@ export async function updateDeviceVisibleSheets(deviceId: string, visibleSheets:
 export async function bulkUpdateDeviceStatus(deviceIds: string[], status: string) {
   if (!deviceIds.length) return { success: true, error: null }
 
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) {
-    return { success: false, error: 'Người dùng chưa đăng nhập' }
-  }
+  const { supabase, user } = await requireAuth()
 
   const { error } = await supabase
     .from('devices')

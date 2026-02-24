@@ -1,6 +1,37 @@
 'use server'
 
 import { createClient } from '@/utils/supabase/server'
+import { z } from 'zod'
+
+// ============================================
+// Schema Zod để validate input auth — tránh `as string` cast không an toàn
+// Validate tại server, không phụ thuộc vào form client
+// ============================================
+const signInSchema = z.object({
+  username: z
+    .string()
+    .min(1, 'Tên đăng nhập không được để trống')
+    .max(100, 'Tên đăng nhập tối đa 100 ký tự'),
+  password: z
+    .string()
+    .min(6, 'Mật khẩu phải ít nhất 6 ký tự')
+    .max(100, 'Mật khẩu tối đa 100 ký tự'),
+})
+
+const signUpSchema = z.object({
+  username: z
+    .string()
+    .min(3, 'Tên đăng nhập phải ít nhất 3 ký tự')
+    .max(100, 'Tên đăng nhập tối đa 100 ký tự')
+    .regex(
+      /^[a-zA-Z0-9_.-]+$/,
+      'Tên đăng nhập chỉ được chứa chữ cái, số, dấu gạch dưới, chấm, gạch ngang'
+    ),
+  password: z
+    .string()
+    .min(6, 'Mật khẩu phải ít nhất 6 ký tự')
+    .max(100, 'Mật khẩu tối đa 100 ký tự'),
+})
 
 // Helper to determine Source configuration
 function getBaseUrl(): string {
@@ -11,8 +42,18 @@ function getBaseUrl(): string {
 
 export async function signIn(formData: FormData) {
   try {
-    const username = formData.get('username') as string
-    const password = formData.get('password') as string
+    // Validate input với Zod — thay thế `as string` cast không an toàn
+    const parsed = signInSchema.safeParse({
+      username: formData.get('username'),
+      password: formData.get('password'),
+    })
+
+    if (!parsed.success) {
+      const firstError = parsed.error.issues[0]
+      return { error: firstError?.message || 'Dữ liệu đăng nhập không hợp lệ' }
+    }
+
+    const { username, password } = parsed.data
     const email = `${username}@it-management.local`
 
     const supabase = await createClient()
@@ -36,8 +77,18 @@ export async function signIn(formData: FormData) {
 
 export async function signUp(formData: FormData) {
   try {
-    const username = formData.get('username') as string
-    const password = formData.get('password') as string
+    // Validate input với Zod — thay thế `as string` cast không an toàn
+    const parsed = signUpSchema.safeParse({
+      username: formData.get('username'),
+      password: formData.get('password'),
+    })
+
+    if (!parsed.success) {
+      const firstError = parsed.error.issues[0]
+      return { error: firstError?.message || 'Dữ liệu đăng ký không hợp lệ' }
+    }
+
+    const { username, password } = parsed.data
     const email = `${username}@it-management.local`
 
     const supabase = await createClient()

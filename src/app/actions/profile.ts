@@ -1,6 +1,6 @@
 'use server'
 
-import { createClient } from '@/utils/supabase/server'
+import { requireAuth } from '@/lib/auth'
 import type { Profile } from '@/types/supabase'
 
 // ============================================
@@ -11,15 +11,7 @@ export async function getProfile(): Promise<{
   data: Profile | null
   error: string | null
 }> {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser()
-  if (authError || !user) {
-    return { data: null, error: 'Chưa đăng nhập' }
-  }
+  const { supabase, user } = await requireAuth()
 
   const { data, error } = await supabase.from('profiles').select('*').eq('id', user.id).single()
 
@@ -35,15 +27,7 @@ export async function getProfile(): Promise<{
 // Cập nhật profile (full_name, avatar_url)
 // ============================================
 export async function updateProfile(updates: { full_name?: string; avatar_url?: string }) {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser()
-  if (authError || !user) {
-    return { data: null, error: 'Chưa đăng nhập' }
-  }
+  const { supabase, user } = await requireAuth()
 
   const { data, error } = await supabase
     .from('profiles')
@@ -59,19 +43,12 @@ export async function updateProfile(updates: { full_name?: string; avatar_url?: 
 
   return { data, error: null }
 }
+
 // ============================================
 // Cập nhật profile settings (JSONB)
 // ============================================
 export async function updateProfileSettings(settings: Record<string, any>) {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser()
-  if (authError || !user) {
-    return { data: null, error: 'Chưa đăng nhập' }
-  }
+  const { supabase, user } = await requireAuth()
 
   // 1. Get current settings (for merging)
   const { data: profile, error: fetchError } = await supabase

@@ -1,6 +1,6 @@
 'use server'
 
-import { createClient } from '@/utils/supabase/server'
+import { requireAuth } from '@/lib/auth'
 import { revalidatePath } from 'next/cache'
 import type { Department, DepartmentInsert } from '@/types/department'
 
@@ -8,14 +8,7 @@ export async function getDepartments(): Promise<{
   data: Department[] | null
   error: string | null
 }> {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) {
-    return { data: null, error: 'Not authenticated' }
-  }
+  const { supabase, user } = await requireAuth()
 
   const { data, error } = await supabase
     .from('departments')
@@ -36,14 +29,7 @@ export async function createDepartment(department: DepartmentInsert): Promise<{
   data: Department | null
   error: string | null
 }> {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) {
-    return { data: null, error: 'Not authenticated' }
-  }
+  const { supabase, user } = await requireAuth()
 
   const { data, error } = await supabase
     .from('departments')
@@ -70,14 +56,7 @@ export async function updateDepartment(
   data: Department | null
   error: string | null
 }> {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) {
-    return { data: null, error: 'Not authenticated' }
-  }
+  const { supabase, user } = await requireAuth()
 
   const { data, error } = await supabase
     .from('departments')
@@ -100,14 +79,7 @@ export async function deleteDepartment(id: string): Promise<{
   success: boolean
   error: string | null
 }> {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) {
-    return { success: false, error: 'Not authenticated' }
-  }
+  const { supabase, user } = await requireAuth()
 
   const { error } = await supabase
     .from('departments')
