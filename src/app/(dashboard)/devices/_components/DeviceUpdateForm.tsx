@@ -135,7 +135,7 @@ export function DeviceUpdateForm({ device, onClose }: DeviceUpdateFormProps) {
         >
           {/* Scrollable Content Area with Fade Mask */}
           <div
-            className="flex-1 overflow-y-auto pl-4 pr-6 sm:pr-8"
+            className="flex-1 overflow-y-auto pl-4 pr-3"
             style={{
               maskImage: 'linear-gradient(to bottom, transparent, black 8px, black calc(100% - 16px), transparent)',
               WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 8px, black calc(100% - 16px), transparent)',
