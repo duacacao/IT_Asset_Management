@@ -312,7 +312,7 @@ export function DeviceOverviewTab({ device, onExport, onDelete, onClose }: Devic
       <DeviceAssignmentDialog
         isOpen={assignmentDialogOpen}
         onClose={() => setAssignmentDialogOpen(false)}
-        onSuccess={() => {}}
+        onSuccess={() => { }}
         deviceId={device.id}
         deviceName={device.deviceInfo.name}
       />
@@ -411,11 +411,16 @@ function DynamicDetailCard({
       return manualValue
     }
 
-    if (field.source === 'deviceInfo') {
-      return manualValue
-    } else if (field.source === 'computed' && field.computedKey) {
+    if (field.source === 'computed' && field.computedKey) {
       const key = field.computedKey as keyof ComputedDeviceData
       return computedData[key] as string | null
+    } else if (field.source === 'deviceInfo') {
+      // Fallback: Tìm trong computed data nếu chưa có
+      const key = field.key as keyof ComputedDeviceData
+      if (key in computedData && computedData[key]) {
+        return computedData[key] as string | null
+      }
+      return manualValue
     }
     return null
   }
@@ -435,7 +440,7 @@ function DynamicDetailCard({
     <div className="group relative overflow-hidden rounded-sm border border-gray-200 bg-white p-4 transition-all duration-300 hover:border-gray-300 hover:shadow-md">
       <div className="absolute top-0 left-0 h-1 w-full bg-gray-900 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
-      <div className="mb-2 flex items-center gap-2.5">
+      <div className="mb-4 flex items-center gap-2.5">
         <div className="flex h-8 w-8 items-center justify-center rounded-sm bg-gray-100 transition-colors duration-300 group-hover:bg-gray-900">
           <IconComponent
             className={cn(
@@ -451,12 +456,43 @@ function DynamicDetailCard({
 
       <div className="space-y-1.5">
         {config.fields.map((field) => {
+          if (field.key === 'activationStatus') {
+            if (activationValue && activationValue !== 'Unknown') {
+              return (
+                <div key={field.key} className="mt-1 flex flex-col items-start">
+                  <span
+                    className={cn(
+                      'flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[11px] font-semibold tracking-wide uppercase',
+                      activationValue === 'Actived'
+                        ? 'bg-green-100 text-green-800'
+                        : 'bg-red-100 text-red-800'
+                    )}
+                  >
+                    {activationValue === 'Actived' ? (
+                      <CheckCircle2 className="h-3.5 w-3.5" />
+                    ) : (
+                      <XCircle className="h-3.5 w-3.5" />
+                    )}
+                    {activationValue}
+                  </span>
+                </div>
+              )
+            }
+            return (
+              <div key={field.key} className="mt-1 flex flex-col items-start">
+                <span className="flex items-center gap-1.5 rounded-md bg-gray-100 px-2.5 py-1 text-[11px] font-semibold tracking-wide text-gray-500 uppercase">
+                  <XCircle className="h-3.5 w-3.5" /> N/A
+                </span>
+              </div>
+            )
+          }
+
           const value = getFieldValue(field)
 
           if (!value || value === 'Unknown') {
             return (
               <div key={field.key} className="flex flex-col">
-                <span className="text-[10px] font-semibold tracking-wider text-gray-400 uppercase">
+                <span className="mb-1 text-[10px] font-semibold tracking-wider text-gray-400 uppercase">
                   {field.label}
                 </span>
                 <span className="text-sm text-gray-400">N/A</span>
@@ -466,7 +502,7 @@ function DynamicDetailCard({
 
           return (
             <div key={field.key} className="flex flex-col">
-              <span className="text-[10px] font-semibold tracking-wider text-gray-400 uppercase">
+              <span className="mb-1 text-[10px] font-semibold tracking-wider text-gray-400 uppercase">
                 {field.label}
               </span>
               <span className="text-sm font-medium text-gray-900" title={value}>
@@ -475,29 +511,45 @@ function DynamicDetailCard({
             </div>
           )
         })}
-
-        {hasActivationStatus && activationValue && activationValue !== 'Unknown' && (
-          <div className="mt-2 flex items-center gap-2">
-            <span
-              className={cn(
-                'flex items-center gap-1 px-2 py-0.5 text-[10px] font-medium tracking-wide uppercase',
-                activationValue === 'Actived'
-                  ? 'bg-green-100 text-green-700'
-                  : 'bg-red-100 text-red-700'
-              )}
-            >
-              {activationValue === 'Actived' ? (
-                <CheckCircle2 className="h-3 w-3" />
-              ) : (
-                <XCircle className="h-3 w-3" />
-              )}
-              {activationValue}
-            </span>
-          </div>
-        )}
       </div>
     </div>
   )
+}
+
+const isInvalidValue = (val: string) => {
+  if (!val) return true
+  const lower = val.toLowerCase().trim()
+  return (
+    lower === 'khong co' ||
+    lower === 'không có' ||
+    lower === 'unknown' ||
+    lower === 'n/a' ||
+    lower === '-' ||
+    lower === '0' ||
+    lower === 'none'
+  )
+}
+
+function extractGeneric(
+  sheets: Record<string, Record<string, unknown>[]>,
+  sheetKeys: string[],
+  keywords: string[]
+): string | null {
+  for (const key of sheetKeys) {
+    const data = sheets[key]
+    if (!Array.isArray(data)) continue
+    for (const row of data) {
+      for (const [k, v] of Object.entries(row)) {
+        const header = k.toLowerCase().replace(/[\s_-]+/g, ' ').trim()
+        const val = String(v).trim()
+        if (isInvalidValue(val)) continue
+        if (keywords.some((kw) => header.includes(kw))) {
+          return val
+        }
+      }
+    }
+  }
+  return null
 }
 
 interface ComputedDeviceData {
@@ -505,6 +557,15 @@ interface ComputedDeviceData {
   storage: string
   activationStatus: 'Actived' | 'Inactived' | 'Unknown'
   biosMode: string | null
+  cpu: string | null
+  ram: string | null
+  os: string | null
+  architecture: string | null
+  ip: string | null
+  mac: string | null
+  screenSize: string | null
+  resolution: string | null
+  connectionType: string | null
 }
 
 function useComputedDeviceData(device: Device): ComputedDeviceData {
@@ -514,6 +575,15 @@ function useComputedDeviceData(device: Device): ComputedDeviceData {
       storage: 'Unknown',
       activationStatus: 'Unknown',
       biosMode: null,
+      cpu: null,
+      ram: null,
+      os: null,
+      architecture: null,
+      ip: null,
+      mac: null,
+      screenSize: null,
+      resolution: null,
+      connectionType: null,
     }
 
     const sheetKeys = Object.keys(device.sheets || {})
@@ -525,6 +595,17 @@ function useComputedDeviceData(device: Device): ComputedDeviceData {
     const osInfo = extractOsInfo(sheets, sheetKeys)
     result.activationStatus = osInfo.activationStatus
     result.biosMode = osInfo.biosMode
+
+    // Tự động rà soát lấy các trường hệ thống tương đương
+    result.cpu = extractGeneric(sheets, sheetKeys, ['cpu', 'processor', 'vi xu ly', 'bộ xử lý'])
+    result.ram = extractGeneric(sheets, sheetKeys, ['ram', 'bo nho trong', 'memory', 'bộ nhớ trong'])
+    result.os = extractGeneric(sheets, sheetKeys, ['tên hệ điều hành', 'os name', 'operating system', 'he dieu hanh', 'hệ điều hành'])
+    result.architecture = extractGeneric(sheets, sheetKeys, ['system type', 'architecture', 'kieu he thong', 'loại hệ thống'])
+    result.ip = extractGeneric(sheets, sheetKeys, ['ip address', 'dia chi ip', 'địa chỉ ip', 'ipv4'])
+    result.mac = extractGeneric(sheets, sheetKeys, ['mac address', 'dia chi mac', 'địa chỉ mac', 'physical address'])
+    result.screenSize = extractGeneric(sheets, sheetKeys, ['screen size', 'kich thuoc man hinh', 'kích thước màn hình'])
+    result.resolution = extractGeneric(sheets, sheetKeys, ['resolution', 'do phan giai', 'độ phân giải'])
+    result.connectionType = extractGeneric(sheets, sheetKeys, ['connection type', 'loai ket noi', 'loại kết nối'])
 
     return result
   }, [device.sheets])
@@ -544,11 +625,11 @@ function extractGpu(
     if (!Array.isArray(data)) continue
     for (const row of data) {
       for (const [k, v] of Object.entries(row)) {
-        const header = k.toLowerCase()
+        const header = k.toLowerCase().replace(/[\s_-]+/g, ' ').trim()
         const val = String(v).trim()
-        if (!val) continue
-        if (header.includes('gpu roi')) gpuRoi = val
-        else if (header.includes('gpu tich hop')) gpuTichHop = val
+        if (isInvalidValue(val)) continue
+        if (header.includes('gpu roi') || header.includes('card rời') || header.includes('discrete')) gpuRoi = val
+        else if (header.includes('gpu tich hop') || header.includes('card onboard') || header.includes('onboard')) gpuTichHop = val
       }
     }
   }
@@ -559,7 +640,9 @@ function extractGpu(
       normalized.includes('video') ||
       normalized.includes('display') ||
       normalized.includes('do hoa') ||
-      normalized.includes('man hinh')
+      normalized.includes('man hinh') ||
+      normalized.includes('gpu') ||
+      normalized.includes('vga')
     )
   })
 
@@ -568,15 +651,17 @@ function extractGpu(
     if (!Array.isArray(data)) continue
     for (const row of data) {
       for (const [k, v] of Object.entries(row)) {
-        const header = k.toLowerCase()
+        const header = k.toLowerCase().replace(/[\s_-]+/g, ' ').trim()
         const value = String(v).trim()
-        if (!value) continue
+        if (isInvalidValue(value)) continue
 
         if (
           header.includes('name') ||
           header.includes('caption') ||
           header.includes('ten') ||
-          header.includes('processor')
+          header.includes('processor') ||
+          header.includes('gpu') ||
+          header.includes('card')
         ) {
           const lowerVal = value.toLowerCase()
           const isDedicated =
@@ -607,10 +692,11 @@ function extractGpu(
       if (!Array.isArray(data)) continue
       for (const row of data) {
         for (const [k, v] of Object.entries(row)) {
-          const header = k.toLowerCase()
+          const header = k.toLowerCase().replace(/[\s_-]+/g, ' ').trim()
           const value = String(v).trim()
+          if (isInvalidValue(value)) continue
           if (
-            header.includes('name') &&
+            (header.includes('name') || header.includes('caption') || header.includes('description')) &&
             (value.toLowerCase().includes('graphics') ||
               value.toLowerCase().includes('nvidia') ||
               value.toLowerCase().includes('amd'))
@@ -663,7 +749,7 @@ function extractStorage(
           .trim()
         const value = String(v).trim()
 
-        if (!value || value.toLowerCase() === 'unknown' || value === '0') continue
+        if (isInvalidValue(value)) continue
 
         const isDungLuong = header.includes('dung') && header.includes('luong')
 
@@ -675,6 +761,30 @@ function extractStorage(
         }
       }
       if (storage) break
+    }
+  }
+
+  // Fallback: Tìm các dòng có chữ hdd, ssd, storage trên tất cả các sheet
+  if (!storage) {
+    for (const key of sheetKeys) {
+      if (storage) break
+      const data = sheets[key]
+      if (!Array.isArray(data)) continue
+      for (const row of data) {
+        for (const [k, v] of Object.entries(row)) {
+          const header = k.toLowerCase().replace(/[\s_-]+/g, ' ').trim()
+          const value = String(v).trim()
+          if (isInvalidValue(value)) continue
+
+          if (header.includes('storage') || header.includes('o cung') || header.includes('hdd') || header.includes('ssd') || header.includes('disk')) {
+            if (/\d/.test(value)) {
+              storage = value
+              break
+            }
+          }
+        }
+        if (storage) break
+      }
     }
   }
 
@@ -703,7 +813,7 @@ function extractOsInfo(
       for (const [key, val] of Object.entries(row)) {
         const header = key.toLowerCase()
         const value = String(val).trim()
-        if (!value) continue
+        if (isInvalidValue(value)) continue
 
         if (activationStatus === 'Unknown') {
           if (

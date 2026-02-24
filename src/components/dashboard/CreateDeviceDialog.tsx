@@ -182,7 +182,7 @@ export function CreateDeviceSheet({ isOpen, onClose, onCreated }: CreateDeviceSh
           </>
         ) : (
           <>
-            <SheetHeader className="mb-2 space-y-1">
+            <SheetHeader className="mb-0 pb-0 space-y-1">
               <div className="flex items-center space-x-2">
                 <Button
                   type="button"
@@ -207,45 +207,56 @@ export function CreateDeviceSheet({ isOpen, onClose, onCreated }: CreateDeviceSh
                   onSubmit={form.handleSubmit(onSubmit)}
                   className="bg-muted/10 flex h-full flex-col overflow-hidden rounded-lg p-1"
                 >
-                  <div className="flex-1 space-y-6 overflow-y-auto px-4 py-4">
-                    {templates.length > 0 && (
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <Sparkles className="text-muted-foreground h-4 w-4" />
-                            <span className="text-sm font-medium">Quick Templates</span>
+                  {/* Scrollable Content Area with Fade Mask */}
+                  <div
+                    className="flex-1 overflow-y-auto pl-4 pr-6 sm:pr-8"
+                    style={{
+                      maskImage: 'linear-gradient(to bottom, transparent, black 8px, black calc(100% - 16px), transparent)',
+                      WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 8px, black calc(100% - 16px), transparent)',
+                    }}
+                  >
+                    <div className="pt-2 pb-6 space-y-6">
+                      {templates.length > 0 && (
+                        <div className="space-y-3 pb-2">
+                          <div className="flex items-center justify-between mx-1">
+                            <div className="flex items-center gap-2">
+                              <Sparkles className="text-muted-foreground h-4 w-4" />
+                              <span className="text-sm font-medium">Quick Templates</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-muted-foreground text-xs">
+                                {showTemplates ? 'ON' : 'OFF'}
+                              </span>
+                              <Switch checked={showTemplates} onCheckedChange={setShowTemplates} />
+                            </div>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-muted-foreground text-xs">
-                              {showTemplates ? 'ON' : 'OFF'}
-                            </span>
-                            <Switch checked={showTemplates} onCheckedChange={setShowTemplates} />
-                          </div>
+
+                          {showTemplates && (
+                            <div className="flex flex-wrap gap-2 pt-1 mx-1">
+                              {templates.map((template) => (
+                                <Button
+                                  key={template.name}
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleTemplateSelect(template)}
+                                  className="text-xs transition-colors hover:border-primary/50"
+                                >
+                                  {template.name}
+                                </Button>
+                              ))}
+                            </div>
+                          )}
                         </div>
+                      )}
 
-                        {showTemplates && (
-                          <div className="flex flex-wrap gap-2">
-                            {templates.map((template) => (
-                              <Button
-                                key={template.name}
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleTemplateSelect(template)}
-                                className="text-xs"
-                              >
-                                {template.name}
-                              </Button>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    )}
+                      <DeviceFormFields form={form} fieldConfig={fieldConfig} autoFocusName />
+                    </div>
+                  </div>
 
-                    <DeviceFormFields form={form} fieldConfig={fieldConfig} autoFocusName />
-
-                    {/* Inline Footer */}
-                    <div className="flex items-center justify-end space-x-3 pt-4 pb-2">
+                  {/* Fixed Sticky Footer */}
+                  <div className="border-border/40 bg-background/50 -mx-1 -mb-1 mt-auto flex-shrink-0 rounded-b-lg border-t px-6 py-3 backdrop-blur-md">
+                    <div className="flex items-center justify-end space-x-3">
                       <Button
                         type="button"
                         variant="ghost"
@@ -255,14 +266,14 @@ export function CreateDeviceSheet({ isOpen, onClose, onCreated }: CreateDeviceSh
                       >
                         Hủy bỏ
                       </Button>
-                      <Button type="submit" disabled={isCreating} className="min-w-[120px] font-medium">
+                      <Button type="submit" disabled={isCreating} className="min-w-[80px] font-medium shadow-md">
                         {isCreating ? (
                           <>
                             <AppLoader layout="horizontal" hideText className="mr-2 h-4 w-4" />
                             <span>Đang tạo…</span>
                           </>
                         ) : (
-                          <span>Tạo thiết bị</span>
+                          <span>Tạo</span>
                         )}
                       </Button>
                     </div>

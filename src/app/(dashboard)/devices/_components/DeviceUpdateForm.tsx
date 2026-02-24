@@ -88,25 +88,35 @@ export function DeviceUpdateForm({ device, onClose }: DeviceUpdateFormProps) {
           onSubmit={form.handleSubmit(onSubmit)}
           className="bg-muted/10 flex h-full flex-col overflow-hidden rounded-lg p-1"
         >
-          {/* Scrollable Content Area */}
-          <div className="flex-1 space-y-6 overflow-y-auto px-4 py-4">
-            <DeviceFormFields form={form} fieldConfig={fieldConfig} showTypeField />
+          {/* Scrollable Content Area with Fade Mask */}
+          <div
+            className="flex-1 overflow-y-auto pl-4 pr-6 sm:pr-8"
+            style={{
+              maskImage: 'linear-gradient(to bottom, transparent, black 8px, black calc(100% - 16px), transparent)',
+              WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 8px, black calc(100% - 16px), transparent)',
+            }}
+          >
+            <div className="pt-2 pb-6 space-y-6">
+              <DeviceFormFields form={form} fieldConfig={fieldConfig} showTypeField />
+            </div>
+          </div>
 
-            {/* Inline Footer */}
-            <div className="flex items-center justify-end space-x-3 pt-4 pb-2">
+          {/* Fixed Sticky Footer */}
+          <div className="border-border/40 bg-background/50 -mx-1 -mb-1 mt-auto flex-shrink-0 rounded-b-lg border-t px-6 py-3 backdrop-blur-md">
+            <div className="flex items-center justify-end space-x-3">
               <Button
                 type="button"
                 variant="ghost"
                 onClick={onClose}
                 disabled={isUpdating || form.formState.isSubmitting}
-                className="text-muted-foreground hover:text-foreground font-semibold"
+                className="text-muted-foreground hover:text-foreground font-medium"
               >
                 Hủy bỏ
               </Button>
               <Button
                 type="submit"
                 disabled={isUpdating || form.formState.isSubmitting}
-                className="min-w-[120px] font-medium"
+                className="min-w-[80px] font-medium shadow-md"
               >
                 {isUpdating || form.formState.isSubmitting ? (
                   <>
@@ -114,7 +124,7 @@ export function DeviceUpdateForm({ device, onClose }: DeviceUpdateFormProps) {
                     <span>Đang ghi...</span>
                   </>
                 ) : (
-                  <span>Ghi dữ liệu</span>
+                  <span>Lưu</span>
                 )}
               </Button>
             </div>

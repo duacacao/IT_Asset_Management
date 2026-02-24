@@ -122,7 +122,10 @@ export const DEVICE_DETAIL_CARDS: Record<string, DetailCardConfig[]> = {
       title: 'CPU',
       icon: 'Cpu',
       iconColor: 'text-orange-600',
-      fields: [{ key: 'cpu', label: 'Processor', source: 'deviceInfo' }],
+      fields: [
+        { key: 'cpu', label: 'Processor', source: 'deviceInfo' },
+        { key: 'architecture', label: 'Architecture', source: 'deviceInfo' },
+      ],
     },
     {
       type: 'hardware',
@@ -148,7 +151,7 @@ export const DEVICE_DETAIL_CARDS: Record<string, DetailCardConfig[]> = {
       iconColor: 'text-green-600',
       fields: [
         { key: 'os', label: 'OS', source: 'deviceInfo' },
-        { key: 'architecture', label: 'Architecture', source: 'deviceInfo' },
+        { key: 'biosMode', label: 'BIOS Mode', source: 'computed', computedKey: 'biosMode' },
       ],
     },
     {
@@ -192,7 +195,10 @@ export const DEVICE_DETAIL_CARDS: Record<string, DetailCardConfig[]> = {
       title: 'CPU',
       icon: 'Cpu',
       iconColor: 'text-orange-600',
-      fields: [{ key: 'cpu', label: 'Processor', source: 'deviceInfo' }],
+      fields: [
+        { key: 'cpu', label: 'Processor', source: 'deviceInfo' },
+        { key: 'architecture', label: 'Architecture', source: 'deviceInfo' },
+      ],
     },
     {
       type: 'hardware',
@@ -228,7 +234,7 @@ export const DEVICE_DETAIL_CARDS: Record<string, DetailCardConfig[]> = {
       iconColor: 'text-green-600',
       fields: [
         { key: 'os', label: 'OS', source: 'deviceInfo' },
-        { key: 'architecture', label: 'Architecture', source: 'deviceInfo' },
+        { key: 'biosMode', label: 'BIOS Mode', source: 'computed', computedKey: 'biosMode' },
       ],
     },
     {
