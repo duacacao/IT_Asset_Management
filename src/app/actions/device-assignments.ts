@@ -272,3 +272,133 @@ export async function getCurrentAssignment(endUserId: string): Promise<{
 
   return { data: formatted, error: null }
 }
+
+// ============================================
+// Gán hàng loạt thiết bị cho end-user (bulk insert)
+// ============================================
+export async function bulkAssignDevices(
+  deviceIds: string[],
+  endUserId: string
+): Promise<{ success: boolean; error: string | null }> {
+  if (!deviceIds.length) return { success: true, error: null }
+
+  const supabase = await createClient()
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) {
+    return { success: false, error: 'Người dùng chưa đăng nhập' }
+  }
+
+  // Thu hồi thiết bị gán cũ nếu bất kỳ ID nào đã nằm trong device_assignments khác
+  const { data: activeAssignments } = await supabase
+    .from('device_assignments')
+    .select('id, device_id')
+    .in('device_id', deviceIds)
+    .is('returned_at', null)
+
+  if (activeAssignments && activeAssignments.length > 0) {
+    const assignmentIdsToReturn = activeAssignments.map((a) => a.id)
+    await supabase
+      .from('device_assignments')
+      .update({ returned_at: new Date().toISOString() })
+      .in('id', assignmentIdsToReturn)
+      .eq('user_id', user.id)
+  }
+
+  // Tạo assignments mới
+  const assignmentsToInsert = deviceIds.map(deviceId => ({
+    device_id: deviceId,
+    end_user_id: endUserId,
+    user_id: user.id
+  }))
+
+  const { error } = await supabase.from('device_assignments').insert(assignmentsToInsert)
+
+  if (error) {
+    console.error('Lỗi bulk assign:', error.message)
+    return { success: false, error: error.message }
+  }
+
+  // Cập nhật status các devices list thành 'active'
+  await supabase
+    .from('devices')
+    .update({ status: 'active', updated_at: new Date().toISOString() })
+    .in('id', deviceIds)
+    .eq('owner_id', user.id)
+
+  const activityLogs = deviceIds.map(deviceId => ({
+    device_id: deviceId,
+    user_id: user.id,
+    action: ACTIVITY_LOG_ACTIONS.ASSIGN,
+    details: `Gán thiết bị cho end-user ${endUserId} (Bulk)`
+  }))
+
+  await supabase.from('activity_logs').insert(activityLogs)
+
+  revalidatePath('/end-user')
+  revalidatePath('/devices')
+  return { success: true, error: null }
+}
+
+// ============================================
+// Thu hồi hàng loạt thiết bị (bulk update returned_at)
+// ============================================
+export async function bulkReturnDevices(
+  assignmentIds: string[]
+): Promise<{ success: boolean; error: string | null }> {
+  if (!assignmentIds.length) return { success: true, error: null }
+
+  const supabase = await createClient()
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) {
+    return { success: false, error: 'Người dùng chưa đăng nhập' }
+  }
+
+  const { data: assignments } = await supabase
+    .from('device_assignments')
+    .select('device_id, id')
+    .in('id', assignmentIds)
+    .eq('user_id', user.id)
+
+  if (!assignments || assignments.length === 0) {
+    return { success: true, error: null }
+  }
+
+  const { error } = await supabase
+    .from('device_assignments')
+    .update({ returned_at: new Date().toISOString() })
+    .in('id', assignmentIds)
+    .eq('user_id', user.id)
+    .is('returned_at', null)
+
+  if (error) {
+    console.error('Lỗi bulk return:', error.message)
+    return { success: false, error: error.message }
+  }
+
+  const deviceIds = assignments.map(a => a.device_id)
+
+  // Cập nhật devices sang 'inactive'
+  await supabase
+    .from('devices')
+    .update({ status: 'inactive', updated_at: new Date().toISOString() })
+    .in('id', deviceIds)
+
+  const activityLogs = assignments.map(a => ({
+    device_id: a.device_id,
+    user_id: user.id,
+    action: ACTIVITY_LOG_ACTIONS.RETURN,
+    details: `Trả thiết bị (Assignment ID: ${a.id}) (Bulk)`
+  }))
+
+  await supabase.from('activity_logs').insert(activityLogs)
+
+  revalidatePath('/end-user')
+  revalidatePath('/devices')
+  return { success: true, error: null }
+}

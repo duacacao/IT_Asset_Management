@@ -3,7 +3,7 @@
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 import type { EndUser, EndUserInsert, EndUserUpdate, EndUserWithDevice } from '@/types/end-user'
-import { assignDevice, returnDevice } from './device-assignments'
+import { assignDevice, returnDevice, bulkAssignDevices, bulkReturnDevices } from './device-assignments'
 
 // ============================================
 // Lấy danh sách end-users + thông tin phòng ban, chức vụ, thiết bị đang assign
@@ -153,15 +153,12 @@ export async function createEndUser(endUser: EndUserInsert): Promise<{
     return { data: null, error: error.message }
   }
 
-  // Nếu có device_ids, gán tất cả thiết bị cho user vừa tạo (1:N) - parallel
+  // Nếu có device_ids, bulk gán thiết bị cho user vừa tạo (1 round-trip)
   if (data && endUser.device_ids && endUser.device_ids.length > 0) {
-    const assignPromises = endUser.device_ids.map((deviceId) => assignDevice(deviceId, data.id))
-    const assignResults = await Promise.all(assignPromises)
-    assignResults.forEach((result, idx) => {
-      if (result.error) {
-        console.error(`Lỗi gán thiết bị ${endUser.device_ids![idx]}:`, result.error)
-      }
-    })
+    const { error: assignError } = await bulkAssignDevices(endUser.device_ids, data.id)
+    if (assignError) {
+      console.error('Lỗi bulk gán thiết bị:', assignError)
+    }
   }
 
   revalidatePath('/end-user')
@@ -215,25 +212,20 @@ export async function updateEndUser(
     const existingDevices = updates.existing_devices || []
     const existingIds = existingDevices.map((d) => d.id)
 
-    // Devices cần thu hồi (có trong existing nhưng không có trong new) - parallel
+    // Devices cần thu hồi (có trong existing nhưng không có trong new)
     const toReturn = existingDevices.filter((d) => !newIds.includes(d.id))
-    const returnPromises = toReturn.map((device) => returnDevice(device.assignment_id))
-    const returnResults = await Promise.all(returnPromises)
-    returnResults.forEach((result, idx) => {
-      if (result.error) {
-        console.error(`Lỗi thu hồi thiết bị ${toReturn[idx].name}:`, result.error)
-      }
-    })
+    const assignmentIdsToReturn = toReturn.map((device) => device.assignment_id)
+    if (assignmentIdsToReturn.length > 0) {
+      const { error: returnError } = await bulkReturnDevices(assignmentIdsToReturn)
+      if (returnError) console.error('Lỗi bulk thu hồi thiết bị:', returnError)
+    }
 
-    // Devices cần gán mới (có trong new nhưng không có trong existing) - parallel
+    // Devices cần gán mới (có trong new nhưng không có trong existing)
     const toAssign = newIds.filter((id) => !existingIds.includes(id))
-    const assignPromises = toAssign.map((deviceId) => assignDevice(deviceId, id))
-    const assignResults = await Promise.all(assignPromises)
-    assignResults.forEach((result, idx) => {
-      if (result.error) {
-        console.error(`Lỗi gán thiết bị ${toAssign[idx]}:`, result.error)
-      }
-    })
+    if (toAssign.length > 0) {
+      const { error: assignError } = await bulkAssignDevices(toAssign, id)
+      if (assignError) console.error('Lỗi bulk gán thiết bị mới:', assignError)
+    }
   }
 
   revalidatePath('/end-user')
@@ -266,12 +258,10 @@ export async function deleteEndUser(id: string): Promise<{
     .is('returned_at', null)
 
   if (activeAssignments && activeAssignments.length > 0) {
-    for (const assignment of activeAssignments) {
-      const returnResult = await returnDevice(assignment.id)
-      // Nếu lỗi trả thiết bị, ta vẫn tiếp tục xóa user nhưng log lại
-      if (!returnResult.success) {
-        console.error(`Lỗi tự động trả thiết bị ${assignment.id} khi xóa user:`, returnResult.error)
-      }
+    const assignmentIds = activeAssignments.map((a) => a.id)
+    const { success, error } = await bulkReturnDevices(assignmentIds)
+    if (!success) {
+      console.error('Lỗi tự động bulk trả thiết bị khi xóa user:', error)
     }
   }
 
