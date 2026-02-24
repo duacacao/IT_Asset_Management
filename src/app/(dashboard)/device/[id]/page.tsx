@@ -4,6 +4,7 @@ import { use, useState } from 'react'
 import { useDeviceDetailQuery } from '@/hooks/useDevicesQuery'
 import { DeviceOverviewTab } from '@/components/dashboard/detail/DeviceOverviewTab'
 import { DeviceSheetsTab } from '@/components/dashboard/detail/DeviceSheetsTab'
+import { DeviceUpdateSheet } from '@/app/(dashboard)/devices/_components/DeviceUpdateSheet'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ArrowLeft } from 'lucide-react'
@@ -21,6 +22,7 @@ export default function DeviceDetailPage({ params }: DeviceDetailPageProps) {
   const { id } = use(params)
   const router = useRouter()
   const [activeTab, setActiveTab] = useState('overview')
+  const [isUpdateOpen, setIsUpdateOpen] = useState(false)
 
   const { data: detailData, isLoading, error } = useDeviceDetailQuery(id)
   const device = detailData?.device
@@ -102,6 +104,7 @@ export default function DeviceDetailPage({ params }: DeviceDetailPageProps) {
               device={device}
               onExport={handleExport}
               onDelete={handleDelete}
+              onUpdate={() => setIsUpdateOpen(true)}
               onClose={() => router.push('/devices')}
             />
           </TabsContent>
@@ -114,6 +117,13 @@ export default function DeviceDetailPage({ params }: DeviceDetailPageProps) {
           </TabsContent>
         </div>
       </Tabs>
+
+      {/* Sheet chỉnh sửa thiết bị — mở từ dropdown "Sửa" */}
+      <DeviceUpdateSheet
+        isOpen={isUpdateOpen}
+        device={isUpdateOpen ? device : null}
+        onClose={() => setIsUpdateOpen(false)}
+      />
     </div>
   )
 }

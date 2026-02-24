@@ -5,13 +5,14 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Device, DeviceStatus, DeviceType } from '@/types/device'
 import { DEVICE_FIELDS_CONFIG } from '@/constants/device-fields'
-import { useUpdateDeviceMutation } from '@/hooks/useDevicesQuery'
+import { useUpdateDeviceMutation, useDeviceDetailQuery } from '@/hooks/useDevicesQuery'
 import { Form } from '@/components/ui/form'
 import { Button } from '@/components/ui/button'
 import { AppLoader } from '@/components/ui/app-loader'
 import { DeviceFormFields } from '@/components/dashboard/device-form-fields'
 import { deviceFormSchema, type DeviceFormValues } from '@/lib/validations/device'
 import { toast } from 'sonner'
+import { useComputedDeviceData } from '@/hooks/useComputedDeviceData'
 
 export interface DeviceUpdateFormProps {
   device: Device
@@ -22,24 +23,68 @@ export function DeviceUpdateForm({ device, onClose }: DeviceUpdateFormProps) {
   const [isUpdating, setIsUpdating] = useState(false)
   const updateMutation = useUpdateDeviceMutation()
 
+  // Fetch device đầy đủ (có sheets) để useComputedDeviceData trích xuất được
+  // GPU, Storage, ActivationStatus từ dữ liệu sheets.
+  // Device truyền từ list view chỉ có sheets: {} (rỗng) → computed data sẽ trả 'Unknown'.
+  const { data: detailData } = useDeviceDetailQuery(device.id)
+  const fullDevice = detailData?.device ?? device
+  const computedData = useComputedDeviceData(fullDevice)
+
+  // Hàm an toàn: ưu tiên deviceInfo, nếu rỗng/rác thì fallback sang computedData
+  const resolveField = (
+    manualValue: string | null | undefined,
+    computedValue: string | null
+  ) => {
+    const val = manualValue?.trim()
+    if (val) {
+      const lower = val.toLowerCase()
+      if (
+        lower !== 'unknown' &&
+        lower !== 'n/a' &&
+        lower !== '-' &&
+        lower !== '0' &&
+        lower !== 'none' &&
+        lower !== 'khong co' &&
+        lower !== 'không có'
+      ) {
+        return val
+      }
+    }
+
+    if (computedValue) {
+      const compLower = computedValue.toLowerCase().trim()
+      if (
+        compLower !== 'unknown' &&
+        compLower !== 'n/a' &&
+        compLower !== '-' &&
+        compLower !== '0' &&
+        compLower !== 'none'
+      ) {
+        return computedValue.trim()
+      }
+    }
+
+    return ''
+  }
+
   const form = useForm<DeviceFormValues>({
     resolver: zodResolver(deviceFormSchema),
-    defaultValues: {
-      name: device.deviceInfo?.name || device.name || '',
-      type: device.type || 'PC',
-      status: device.status || 'inactive',
-      os: device.deviceInfo?.os || '',
-      cpu: device.deviceInfo?.cpu || '',
-      ram: device.deviceInfo?.ram || '',
-      architecture: device.deviceInfo?.architecture || '',
-      ip: device.deviceInfo?.ip || '',
-      mac: device.deviceInfo?.mac || '',
-      screenSize: device.deviceInfo?.screenSize || '',
-      resolution: device.deviceInfo?.resolution || '',
-      connectionType: device.deviceInfo?.connectionType || '',
-      gpu: device.deviceInfo?.gpu || '',
-      storage: device.deviceInfo?.storage || '',
-      activationStatus: device.deviceInfo?.activationStatus || '',
+    values: {
+      name: fullDevice.deviceInfo?.name || fullDevice.name || '',
+      type: fullDevice.type || 'PC',
+      status: fullDevice.status || 'inactive',
+      os: resolveField(fullDevice.deviceInfo?.os, computedData.os),
+      cpu: resolveField(fullDevice.deviceInfo?.cpu, computedData.cpu),
+      ram: resolveField(fullDevice.deviceInfo?.ram, computedData.ram),
+      architecture: resolveField(fullDevice.deviceInfo?.architecture, computedData.architecture),
+      ip: resolveField(fullDevice.deviceInfo?.ip, computedData.ip),
+      mac: resolveField(fullDevice.deviceInfo?.mac, computedData.mac),
+      screenSize: resolveField(fullDevice.deviceInfo?.screenSize, computedData.screenSize),
+      resolution: resolveField(fullDevice.deviceInfo?.resolution, computedData.resolution),
+      connectionType: resolveField(fullDevice.deviceInfo?.connectionType, computedData.connectionType),
+      gpu: resolveField(fullDevice.deviceInfo?.gpu, computedData.gpu),
+      storage: resolveField(fullDevice.deviceInfo?.storage, computedData.storage),
+      activationStatus: resolveField(fullDevice.deviceInfo?.activationStatus, computedData.activationStatus),
     },
   })
 

@@ -189,6 +189,7 @@ export const DEVICE_DETAIL_CARDS: Record<string, DetailCardConfig[]> = {
       ],
     },
   ],
+  // Laptop dùng chung bố trí card với PC — cùng thông số, cùng thứ tự
   [DEVICE_TYPES.LAPTOP]: [
     {
       type: 'hardware',
@@ -218,16 +219,6 @@ export const DEVICE_DETAIL_CARDS: Record<string, DetailCardConfig[]> = {
       fields: [{ key: 'gpu', label: 'Graphics', source: 'computed', computedKey: 'gpu' }],
     },
     {
-      type: 'display',
-      title: 'Màn hình',
-      icon: 'Monitor',
-      iconColor: 'text-cyan-600',
-      fields: [
-        { key: 'screenSize', label: 'Screen Size', source: 'deviceInfo' },
-        { key: 'resolution', label: 'Resolution', source: 'deviceInfo' },
-      ],
-    },
-    {
       type: 'os',
       title: 'Hệ điều hành',
       icon: 'HardDrive',
@@ -249,6 +240,16 @@ export const DEVICE_DETAIL_CARDS: Record<string, DetailCardConfig[]> = {
           source: 'computed',
           computedKey: 'activationStatus',
         },
+      ],
+    },
+    {
+      type: 'display',
+      title: 'Màn hình',
+      icon: 'Monitor',
+      iconColor: 'text-cyan-600',
+      fields: [
+        { key: 'screenSize', label: 'Screen Size', source: 'deviceInfo' },
+        { key: 'resolution', label: 'Resolution', source: 'deviceInfo' },
       ],
     },
     {
