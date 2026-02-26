@@ -8,7 +8,7 @@ import Link from 'next/link'
 import { NavMain } from '@/components/nav-main'
 import { NavUser } from '@/components/nav-user'
 import { useDeviceStatsQuery } from '@/hooks/useDevicesQuery'
-import { useEndUserStatsQuery } from '@/hooks/useEndUsersQuery'
+import { useEndUserStatsQuery } from '@/hooks/queries/endUserQueries'
 import { Logo } from '@/components/logo'
 import {
   Sidebar,

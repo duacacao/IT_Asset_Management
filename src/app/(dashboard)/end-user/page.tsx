@@ -19,7 +19,7 @@ import { EndUserToolbar } from '@/components/dashboard/end-user/EndUserToolbar'
 import { EndUserDialog } from '@/components/dashboard/end-user/EndUserDialog'
 import { EndUserDetailDialog } from '@/components/dashboard/end-user/EndUserDetailDialog'
 
-import { useEndUsersQuery, useDepartmentsQuery, usePositionsQuery } from '@/hooks/useEndUsersQuery'
+import { useEndUsersQuery, useDepartmentsQuery, usePositionsQuery } from '@/hooks/queries/endUserQueries'
 import { useDeleteEndUserMutation } from '@/hooks/mutations/endUserMutations'
 import { useDevicesQuery } from '@/hooks/useDevicesQuery'
 import { EndUserWithDevice } from '@/types/end-user'

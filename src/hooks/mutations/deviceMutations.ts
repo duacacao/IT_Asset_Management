@@ -7,18 +7,13 @@ import {
   updateDevice as updateDeviceAction,
   deleteDevice as deleteDeviceAction,
   importDevice as importDeviceAction,
-  updateDeviceVisibleSheets as updateDeviceVisibleSheetsAction,
   bulkUpdateDeviceStatus as bulkUpdateDeviceStatusAction,
 } from '@/app/actions/devices'
 import {
   createSheet as createSheetAction,
   updateSheetData as updateSheetDataAction,
   updateSheetCell as updateSheetCellAction,
-  renameSheet as renameSheetAction,
-  deleteSheet as deleteSheetAction,
-  reorderSheets as reorderSheetsAction,
   addSheetRow as addSheetRowAction,
-  deleteSheetRow as deleteSheetRowAction,
 } from '@/app/actions/device-sheets'
 import { toSupabaseDeviceInsert, toSupabaseDeviceUpdate } from '@/lib/supabase-adapter'
 import type { DeviceInfo, DeviceStatus, DeviceType } from '@/types/device'
@@ -188,23 +183,6 @@ export function useBulkUpdateStatusMutation() {
   })
 }
 
-export function useUpdateDeviceVisibleSheetsMutation() {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: async (params: { deviceId: string; visibleSheets: string[] }) => {
-      const { success, error } = await updateDeviceVisibleSheetsAction(
-        params.deviceId,
-        params.visibleSheets
-      )
-      if (!success) throw new Error(error || 'Lỗi cập nhật visible sheets')
-      return params.visibleSheets
-    },
-    onSuccess: (_data, vars) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.devices.detail(vars.deviceId) })
-    },
-  })
-}
 
 export function useDeleteDeviceMutation() {
   const queryClient = useQueryClient()
@@ -305,52 +283,6 @@ export function useUpdateCellMutation() {
   })
 }
 
-export function useRenameSheetMutation() {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: async (params: { deviceId: string; sheetId: string; newName: string }) => {
-      const { data, error } = await renameSheetAction(params.sheetId, params.newName)
-      if (error || !data) throw new Error(error || 'Lỗi đổi tên sheet')
-      return data
-    },
-    onSuccess: (_data, vars) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.devices.detail(vars.deviceId) })
-    },
-  })
-}
-
-export function useDeleteSheetMutation() {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: async (params: { deviceId: string; sheetId: string }) => {
-      const { success, error } = await deleteSheetAction(params.sheetId)
-      if (!success) throw new Error(error || 'Lỗi xóa sheet')
-    },
-    onSuccess: (_data, vars) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.devices.detail(vars.deviceId) })
-    },
-  })
-}
-
-export function useReorderSheetsMutation() {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: async (params: { deviceId: string; sheetIds: string[] }) => {
-      const sheetsOrder = params.sheetIds.map((id, i) => ({
-        id,
-        sort_order: i,
-      }))
-      const { success, error } = await reorderSheetsAction(sheetsOrder)
-      if (!success) throw new Error(error || 'Lỗi sắp xếp sheets')
-    },
-    onSuccess: (_data, vars) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.devices.detail(vars.deviceId) })
-    },
-  })
-}
 
 export function useAddRowMutation() {
   const queryClient = useQueryClient()
@@ -371,20 +303,6 @@ export function useAddRowMutation() {
   })
 }
 
-export function useDeleteRowMutation() {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: async (params: { deviceId: string; sheetId: string; rowIndex: number }) => {
-      const { data, error } = await deleteSheetRowAction(params.sheetId, params.rowIndex)
-      if (error || !data) throw new Error(error || 'Lỗi xóa row')
-      return data
-    },
-    onSuccess: (_data, vars) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.devices.detail(vars.deviceId) })
-    },
-  })
-}
 
 export function useAddColumnMutation() {
   const queryClient = useQueryClient()
