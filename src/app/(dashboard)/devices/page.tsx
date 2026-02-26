@@ -33,7 +33,6 @@ import {
   useDeleteDeviceMutation,
   useImportDeviceMutation,
   useDeviceDetailQuery,
-  deviceKeys,
 } from '@/hooks/useDevicesQuery'
 import { useUIStore } from '@/stores/useUIStore'
 import { parseExcelForImport, exportDeviceToExcel } from '@/lib/excel-import'

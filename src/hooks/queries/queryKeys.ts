@@ -30,11 +30,12 @@ export const queryKeys = {
     list: () => [...queryKeys.availableDevices.all, 'list'] as const,
   },
 
-  // Devices (for reference)
+  // Devices — nguồn duy nhất cho React Query keys
   devices: {
     all: ['devices'] as const,
     list: () => [...queryKeys.devices.all, 'list'] as const,
     detail: (id: string) => [...queryKeys.devices.all, 'detail', id] as const,
+    stats: () => [...queryKeys.devices.all, 'stats'] as const,
   },
 } as const
 

@@ -23,7 +23,7 @@ import {
 import { toSupabaseDeviceInsert, toSupabaseDeviceUpdate } from '@/lib/supabase-adapter'
 import type { DeviceInfo, DeviceStatus, DeviceType } from '@/types/device'
 import { mergeDeviceSpecs } from '@/types/device'
-import { deviceKeys } from '../queries/deviceQueries'
+import { queryKeys } from '../queries/queryKeys'
 
 export function useCreateDeviceMutation() {
   const queryClient = useQueryClient()
@@ -54,8 +54,8 @@ export function useCreateDeviceMutation() {
       return data
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: deviceKeys.list() })
-      queryClient.invalidateQueries({ queryKey: deviceKeys.stats() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.devices.list() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.devices.stats() })
       toast.success(`Đã tạo thiết bị "${data.name}"`)
     },
     onError: (err) => {
@@ -77,8 +77,8 @@ export function useImportDeviceMutation() {
       return data
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: deviceKeys.list() })
-      queryClient.invalidateQueries({ queryKey: deviceKeys.stats() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.devices.list() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.devices.stats() })
       toast.success(`Import thành công "${data.name}"`)
     },
     onError: (err) => {
@@ -104,14 +104,14 @@ export function useUpdateDeviceMutation() {
     },
     onMutate: async (vars) => {
       // Cancel queries
-      await queryClient.cancelQueries({ queryKey: deviceKeys.detail(vars.deviceId) })
-      await queryClient.cancelQueries({ queryKey: deviceKeys.list() })
+      await queryClient.cancelQueries({ queryKey: queryKeys.devices.detail(vars.deviceId) })
+      await queryClient.cancelQueries({ queryKey: queryKeys.devices.list() })
 
       // Snapshot previous value
-      const previousDevice = queryClient.getQueryData(deviceKeys.detail(vars.deviceId))
+      const previousDevice = queryClient.getQueryData(queryKeys.devices.detail(vars.deviceId))
 
       // Optimistic update
-      queryClient.setQueryData(deviceKeys.detail(vars.deviceId), (old: any) => {
+      queryClient.setQueryData(queryKeys.devices.detail(vars.deviceId), (old: any) => {
         if (!old || !old.device) return old
 
         // Remove status before merging specs
@@ -135,13 +135,13 @@ export function useUpdateDeviceMutation() {
     onError: (err, vars, context) => {
       // Rollback
       if (context?.previousDevice) {
-        queryClient.setQueryData(deviceKeys.detail(vars.deviceId), context.previousDevice)
+        queryClient.setQueryData(queryKeys.devices.detail(vars.deviceId), context.previousDevice)
       }
       toast.error('Lỗi cập nhật thiết bị', { description: err.message })
     },
     onSettled: (_data, _error, vars) => {
-      queryClient.invalidateQueries({ queryKey: deviceKeys.detail(vars.deviceId) })
-      queryClient.invalidateQueries({ queryKey: deviceKeys.list() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.devices.detail(vars.deviceId) })
+      queryClient.invalidateQueries({ queryKey: queryKeys.devices.list() })
     },
   })
 }
@@ -161,9 +161,9 @@ export function useUpdateStatusMutation() {
       return data
     },
     onSuccess: (_data, vars) => {
-      queryClient.invalidateQueries({ queryKey: deviceKeys.list() })
-      queryClient.invalidateQueries({ queryKey: deviceKeys.detail(vars.deviceId) })
-      queryClient.invalidateQueries({ queryKey: deviceKeys.stats() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.devices.list() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.devices.detail(vars.deviceId) })
+      queryClient.invalidateQueries({ queryKey: queryKeys.devices.stats() })
     },
   })
 }
@@ -178,8 +178,8 @@ export function useBulkUpdateStatusMutation() {
       return params.deviceIds.length
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: deviceKeys.list() })
-      queryClient.invalidateQueries({ queryKey: deviceKeys.stats() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.devices.list() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.devices.stats() })
       toast.success('Đã cập nhật trạng thái')
     },
     onError: (err) => {
@@ -201,7 +201,7 @@ export function useUpdateDeviceVisibleSheetsMutation() {
       return params.visibleSheets
     },
     onSuccess: (_data, vars) => {
-      queryClient.invalidateQueries({ queryKey: deviceKeys.detail(vars.deviceId) })
+      queryClient.invalidateQueries({ queryKey: queryKeys.devices.detail(vars.deviceId) })
     },
   })
 }
@@ -216,8 +216,8 @@ export function useDeleteDeviceMutation() {
       return deviceId
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: deviceKeys.list() })
-      queryClient.invalidateQueries({ queryKey: deviceKeys.stats() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.devices.list() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.devices.stats() })
       // Xóa device có thể thu hồi assignment → cập nhật lại end-user list
       queryClient.invalidateQueries({ queryKey: ['end-users'] })
       queryClient.invalidateQueries({ queryKey: ['available-devices'] })
@@ -244,7 +244,7 @@ export function useCreateSheetMutation() {
       return data
     },
     onSuccess: (_data, vars) => {
-      queryClient.invalidateQueries({ queryKey: deviceKeys.detail(vars.deviceId) })
+      queryClient.invalidateQueries({ queryKey: queryKeys.devices.detail(vars.deviceId) })
     },
   })
 }
@@ -271,11 +271,11 @@ export function useUpdateCellMutation() {
       return data
     },
     onMutate: async (vars) => {
-      await queryClient.cancelQueries({ queryKey: deviceKeys.detail(vars.deviceId) })
+      await queryClient.cancelQueries({ queryKey: queryKeys.devices.detail(vars.deviceId) })
 
-      const previous = queryClient.getQueryData(deviceKeys.detail(vars.deviceId))
+      const previous = queryClient.getQueryData(queryKeys.devices.detail(vars.deviceId))
 
-      queryClient.setQueryData(deviceKeys.detail(vars.deviceId), (old: any) => {
+      queryClient.setQueryData(queryKeys.devices.detail(vars.deviceId), (old: any) => {
         if (!old) return old
         const updatedDevice = { ...old.device }
         const sheetData = [...(updatedDevice.sheets[vars.sheetName] || [])]
@@ -296,11 +296,11 @@ export function useUpdateCellMutation() {
     },
     onError: (_err, vars, context) => {
       if (context?.previous) {
-        queryClient.setQueryData(deviceKeys.detail(vars.deviceId), context.previous)
+        queryClient.setQueryData(queryKeys.devices.detail(vars.deviceId), context.previous)
       }
     },
     onSettled: (_data, _err, vars) => {
-      queryClient.invalidateQueries({ queryKey: deviceKeys.detail(vars.deviceId) })
+      queryClient.invalidateQueries({ queryKey: queryKeys.devices.detail(vars.deviceId) })
     },
   })
 }
@@ -315,7 +315,7 @@ export function useRenameSheetMutation() {
       return data
     },
     onSuccess: (_data, vars) => {
-      queryClient.invalidateQueries({ queryKey: deviceKeys.detail(vars.deviceId) })
+      queryClient.invalidateQueries({ queryKey: queryKeys.devices.detail(vars.deviceId) })
     },
   })
 }
@@ -329,7 +329,7 @@ export function useDeleteSheetMutation() {
       if (!success) throw new Error(error || 'Lỗi xóa sheet')
     },
     onSuccess: (_data, vars) => {
-      queryClient.invalidateQueries({ queryKey: deviceKeys.detail(vars.deviceId) })
+      queryClient.invalidateQueries({ queryKey: queryKeys.devices.detail(vars.deviceId) })
     },
   })
 }
@@ -347,7 +347,7 @@ export function useReorderSheetsMutation() {
       if (!success) throw new Error(error || 'Lỗi sắp xếp sheets')
     },
     onSuccess: (_data, vars) => {
-      queryClient.invalidateQueries({ queryKey: deviceKeys.detail(vars.deviceId) })
+      queryClient.invalidateQueries({ queryKey: queryKeys.devices.detail(vars.deviceId) })
     },
   })
 }
@@ -366,7 +366,7 @@ export function useAddRowMutation() {
       return data
     },
     onSuccess: (_data, vars) => {
-      queryClient.invalidateQueries({ queryKey: deviceKeys.detail(vars.deviceId) })
+      queryClient.invalidateQueries({ queryKey: queryKeys.devices.detail(vars.deviceId) })
     },
   })
 }
@@ -381,7 +381,7 @@ export function useDeleteRowMutation() {
       return data
     },
     onSuccess: (_data, vars) => {
-      queryClient.invalidateQueries({ queryKey: deviceKeys.detail(vars.deviceId) })
+      queryClient.invalidateQueries({ queryKey: queryKeys.devices.detail(vars.deviceId) })
     },
   })
 }
@@ -405,7 +405,7 @@ export function useAddColumnMutation() {
       return data
     },
     onSuccess: (_data, vars) => {
-      queryClient.invalidateQueries({ queryKey: deviceKeys.detail(vars.deviceId) })
+      queryClient.invalidateQueries({ queryKey: queryKeys.devices.detail(vars.deviceId) })
     },
   })
 }

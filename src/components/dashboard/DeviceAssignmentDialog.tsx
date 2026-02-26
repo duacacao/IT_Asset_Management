@@ -40,6 +40,7 @@ interface DeviceAssignmentDialogProps {
   userId?: string // If provided, we are assigning a device TO this user
   deviceName?: string // Display name for context
   userName?: string // Display name for context
+  currentEndUserId?: string // ID nhân viên đang giữ thiết bị (để highlight trong dropdown)
 }
 
 export function DeviceAssignmentDialog({
@@ -50,6 +51,7 @@ export function DeviceAssignmentDialog({
   userId,
   deviceName,
   userName,
+  currentEndUserId,
 }: DeviceAssignmentDialogProps) {
   const queryClient = useQueryClient()
 
@@ -202,29 +204,35 @@ export function DeviceAssignmentDialog({
                     <CommandList>
                       <CommandEmpty>Không tìm thấy nhân viên.</CommandEmpty>
                       <CommandGroup>
-                        {users.map((user) => (
-                          <CommandItem
-                            key={user.id}
-                            value={user.full_name}
-                            onSelect={() => {
-                              setSelectedUser(user.id)
-                              setOpenUserCombobox(false)
-                            }}
-                          >
-                            <Check
-                              className={cn(
-                                'mr-2 h-4 w-4',
-                                selectedUser === user.id ? 'opacity-100' : 'opacity-0'
+                        {users.map((user) => {
+                          const isCurrentHolder = currentEndUserId === user.id
+                          return (
+                            <CommandItem
+                              key={user.id}
+                              value={user.full_name}
+                              onSelect={() => {
+                                setSelectedUser(user.id)
+                                setOpenUserCombobox(false)
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  'mr-2 h-4 w-4 shrink-0',
+                                  selectedUser === user.id ? 'opacity-100' : 'opacity-0'
+                                )}
+                              />
+                              <div className="flex min-w-0 flex-1 flex-col">
+                                <span>{user.full_name}</span>
+                                <span className="text-muted-foreground text-xs">
+                                  {user.email || 'No email'}
+                                </span>
+                              </div>
+                              {isCurrentHolder && (
+                                <Check className="ml-auto h-4 w-4 shrink-0 text-green-600" />
                               )}
-                            />
-                            <div className="flex flex-col">
-                              <span>{user.full_name}</span>
-                              <span className="text-muted-foreground text-xs">
-                                {user.email || 'No email'}
-                              </span>
-                            </div>
-                          </CommandItem>
-                        ))}
+                            </CommandItem>
+                          )
+                        })}
                       </CommandGroup>
                     </CommandList>
                   </Command>

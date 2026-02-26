@@ -53,6 +53,9 @@ export function useCreateEndUserMutation() {
       queryClient.invalidateQueries({ queryKey: queryKeys.endUsers.list() })
       queryClient.invalidateQueries({ queryKey: queryKeys.endUsers.stats() })
       queryClient.invalidateQueries({ queryKey: queryKeys.availableDevices.list() })
+      // Invalidate devices list vì assign device → thay đổi status + người sử dụng
+      queryClient.invalidateQueries({ queryKey: queryKeys.devices.list() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.devices.stats() })
       toast.success('Tạo người dùng thành công!')
     },
     onError: (err, _vars, context) => {
@@ -84,6 +87,9 @@ export function useUpdateEndUserMutation() {
       queryClient.invalidateQueries({ queryKey: queryKeys.endUsers.detail(vars.id) })
       queryClient.invalidateQueries({ queryKey: queryKeys.endUsers.stats() })
       queryClient.invalidateQueries({ queryKey: queryKeys.availableDevices.list() })
+      // Invalidate devices list vì assign/unassign device → thay đổi status + người sử dụng
+      queryClient.invalidateQueries({ queryKey: queryKeys.devices.list() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.devices.stats() })
       toast.success('Cập nhật người dùng thành công!')
     },
     onError: (err, _vars, context) => {
@@ -113,6 +119,9 @@ export function useDeleteEndUserMutation() {
       queryClient.invalidateQueries({ queryKey: queryKeys.endUsers.list() })
       queryClient.invalidateQueries({ queryKey: queryKeys.endUsers.stats() })
       queryClient.invalidateQueries({ queryKey: queryKeys.availableDevices.list() })
+      // Invalidate devices list vì xóa end-user → thu hồi device → thay đổi status
+      queryClient.invalidateQueries({ queryKey: queryKeys.devices.list() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.devices.stats() })
       toast.success('Xóa người dùng thành công!')
     },
     onError: (err, _vars, context) => {

@@ -1,5 +1,4 @@
 export {
-  deviceKeys,
   useDevicesQuery,
   useDeviceDetailQuery,
   useDeviceStatsQuery,

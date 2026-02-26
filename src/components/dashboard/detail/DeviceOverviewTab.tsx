@@ -285,8 +285,8 @@ export function DeviceOverviewTab({ device, onExport, onDelete, onUpdate, onClos
         <DetailCard
           title="Người sử dụng"
           icon={<User className="h-5 w-5" />}
-          actionLabel={device.assignment ? 'Quản lý' : 'Gán thiết bị'}
-          onAction={() => setAssignmentDialogOpen(true)}
+          actionLabel={!device.assignment ? 'Gán thiết bị' : undefined}
+          onAction={!device.assignment ? () => setAssignmentDialogOpen(true) : undefined}
         >
           {device.assignment ? (
             <div className="flex flex-col gap-1">
@@ -296,6 +296,25 @@ export function DeviceOverviewTab({ device, onExport, onDelete, onUpdate, onClos
               <span className="text-muted-foreground text-sm">
                 {device.assignment.assignee_email}
               </span>
+              {/* Hai nút inline: Quản lý (gán lại) + Thu hồi (hủy bàn giao) */}
+              <div className="mt-2 flex items-center gap-4 border-t border-gray-100 pt-2">
+                <button
+                  onClick={() => setAssignmentDialogOpen(true)}
+                  className="group/btn flex items-center text-xs font-semibold text-gray-900 transition-all hover:translate-x-1"
+                  type="button"
+                >
+                  Quản lý
+                  <ChevronRight className="ml-1 h-3 w-3 transition-transform group-hover/btn:translate-x-1" />
+                </button>
+                <button
+                  onClick={() => setReturnDialogOpen(true)}
+                  className="group/btn flex items-center text-xs font-semibold text-red-600 transition-all hover:translate-x-1"
+                  type="button"
+                >
+                  Thu hồi
+                  <ChevronRight className="ml-1 h-3 w-3 transition-transform group-hover/btn:translate-x-1" />
+                </button>
+              </div>
             </div>
           ) : (
             <div className="flex flex-col gap-2 py-2">
@@ -321,6 +340,7 @@ export function DeviceOverviewTab({ device, onExport, onDelete, onUpdate, onClos
         onSuccess={() => { }}
         deviceId={device.id}
         deviceName={device.deviceInfo.name}
+        currentEndUserId={device.assignment?.end_user_id}
       />
 
       <AlertDialog open={returnDialogOpen} onOpenChange={setReturnDialogOpen}>

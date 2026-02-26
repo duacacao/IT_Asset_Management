@@ -7,17 +7,11 @@ import {
   toFrontendDeviceWithSheets,
   buildSheetIdMap,
 } from '@/lib/supabase-adapter'
-
-export const deviceKeys = {
-  all: ['devices'] as const,
-  list: () => [...deviceKeys.all, 'list'] as const,
-  detail: (id: string) => [...deviceKeys.all, 'detail', id] as const,
-  stats: () => [...deviceKeys.all, 'stats'] as const,
-}
+import { queryKeys } from './queryKeys'
 
 export function useDevicesQuery() {
   return useQuery({
-    queryKey: deviceKeys.list(),
+    queryKey: queryKeys.devices.list(),
     staleTime: 60 * 1000,
     gcTime: 10 * 60 * 1000,
     queryFn: async () => {
@@ -33,7 +27,7 @@ export function useDevicesQuery() {
 
 export function useDeviceDetailQuery(deviceId: string | null) {
   return useQuery({
-    queryKey: deviceKeys.detail(deviceId!),
+    queryKey: queryKeys.devices.detail(deviceId!),
     enabled: !!deviceId,
     staleTime: 60 * 1000,
     gcTime: 10 * 60 * 1000,
@@ -54,7 +48,7 @@ export function useDeviceDetailQuery(deviceId: string | null) {
 
 export function useDeviceStatsQuery() {
   return useQuery({
-    queryKey: deviceKeys.stats(),
+    queryKey: queryKeys.devices.stats(),
     staleTime: 2 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
     queryFn: () => getDeviceStats(),
