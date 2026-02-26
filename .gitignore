@@ -81,3 +81,6 @@ build.log
 
 
 /plans/
+
+# Supabase migrations (không dùng Drizzle nữa)
+/supabase/migrations/
