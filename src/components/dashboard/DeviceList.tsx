@@ -200,6 +200,7 @@ export function DeviceList({
           <div className="ml-auto flex items-center gap-2">
             {/* Bulk set status - now uses single batch request */}
             <Select
+              disabled={bulkUpdateStatusMutation.isPending || updateStatusMutation.isPending}
               onValueChange={(val) => {
                 const selectedRows = table.getFilteredSelectedRowModel().rows
                 const selectedIds = selectedRows.map((row) => row.original.id)
@@ -230,6 +231,7 @@ export function DeviceList({
             <Button
               variant="outline"
               size="sm"
+              disabled={bulkUpdateStatusMutation.isPending}
               className="h-8"
               onClick={() => {
                 const selectedRows = table.getFilteredSelectedRowModel().rows
@@ -245,6 +247,7 @@ export function DeviceList({
             <Button
               variant="destructive"
               size="sm"
+              disabled={bulkUpdateStatusMutation.isPending}
               className="h-8"
               onClick={async () => {
                 // Batch check: 1 request thay vì N requests (fix B1 N+1)

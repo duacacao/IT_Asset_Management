@@ -24,7 +24,7 @@ export default function DeviceDetailPage({ params }: DeviceDetailPageProps) {
   const [activeTab, setActiveTab] = useState('overview')
   const [isUpdateOpen, setIsUpdateOpen] = useState(false)
 
-  const { data: detailData, isLoading, error } = useDeviceDetailQuery(id)
+  const { data: detailData, isLoading, isFetching, error } = useDeviceDetailQuery(id)
   const device = detailData?.device
 
   if (isLoading) {
@@ -70,10 +70,13 @@ export default function DeviceDetailPage({ params }: DeviceDetailPageProps) {
             >
               <ArrowLeft className="text-muted-foreground h-5 w-5" />
             </Button>
-            <div className="flex flex-col">
+            <div className="flex flex-row items-center gap-2">
               <h1 className="text-foreground text-2xl font-bold tracking-tight">
                 {device.deviceInfo.name}
               </h1>
+              {isFetching && !isLoading && (
+                <AppLoader layout="horizontal" hideText className="text-muted-foreground" />
+              )}
             </div>
           </div>
 
@@ -102,6 +105,7 @@ export default function DeviceDetailPage({ params }: DeviceDetailPageProps) {
           >
             <DeviceOverviewTab
               device={device}
+              isFetching={isFetching && !isLoading}
               onExport={handleExport}
               onDelete={handleDelete}
               onUpdate={() => setIsUpdateOpen(true)}

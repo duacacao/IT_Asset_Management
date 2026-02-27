@@ -72,13 +72,14 @@ const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
 
 interface DeviceOverviewTabProps {
   device: Device
+  isFetching?: boolean
   onExport: () => void
   onDelete: (id: string) => void
   onUpdate: () => void
   onClose: () => void
 }
 
-export function DeviceOverviewTab({ device, onExport, onDelete, onUpdate, onClose }: DeviceOverviewTabProps) {
+export function DeviceOverviewTab({ device, isFetching = false, onExport, onDelete, onUpdate, onClose }: DeviceOverviewTabProps) {
   const queryClient = useQueryClient()
   const [assignmentDialogOpen, setAssignmentDialogOpen] = useState(false)
   const [returnDialogOpen, setReturnDialogOpen] = useState(false)
@@ -87,6 +88,11 @@ export function DeviceOverviewTab({ device, onExport, onDelete, onUpdate, onClos
 
   const updateStatusMutation = useUpdateStatusMutation()
   const updateDeviceMutation = useUpdateDeviceMutation()
+
+  // Tổng hợp trạng thái busy: mutation đang chạy HOẶC data đang refetch
+  const isStatusPending = updateStatusMutation.isPending
+  const isTypePending = updateDeviceMutation.isPending
+  const isBusy = isFetching || isStatusPending || isTypePending
 
   const handleStatusChange = (newStatus: DeviceStatus) => {
     updateStatusMutation.mutate(
@@ -144,7 +150,11 @@ export function DeviceOverviewTab({ device, onExport, onDelete, onUpdate, onClos
                 <Button
                   variant="outline"
                   size="sm"
-                  className="text-muted-foreground hover:text-foreground flex h-auto w-40 items-center justify-between rounded-full px-3 py-2 text-xs font-medium"
+                  disabled={isTypePending || isFetching}
+                  className={cn(
+                    'text-muted-foreground hover:text-foreground flex h-auto w-40 items-center justify-between rounded-full px-3 py-2 text-xs font-medium',
+                    isTypePending && 'opacity-60'
+                  )}
                 >
                   <div className="flex items-center gap-1.5 overflow-hidden">
                     {(() => {
@@ -180,7 +190,7 @@ export function DeviceOverviewTab({ device, onExport, onDelete, onUpdate, onClos
             {/* <div className="bg-border/50 h-5 w-px" /> */}
 
             <DropdownMenu>
-              <DropdownMenuTrigger asChild>
+              <DropdownMenuTrigger asChild disabled={isStatusPending || isFetching}>
                 <div
                   className={cn(
                     'flex w-40 items-center justify-between rounded-full border px-3 py-2 text-xs font-medium transition-colors hover:opacity-80',
@@ -188,7 +198,8 @@ export function DeviceOverviewTab({ device, onExport, onDelete, onUpdate, onClos
                       ? 'border-green-200 bg-green-50 text-green-700'
                       : statusConfig.softColor === 'error'
                         ? 'border-red-200 bg-red-50 text-red-700'
-                        : 'border-amber-200 bg-amber-50 text-amber-700'
+                        : 'border-amber-200 bg-amber-50 text-amber-700',
+                    isStatusPending && 'opacity-60 pointer-events-none'
                   )}
                 >
                   <div className="flex items-center gap-1.5 overflow-hidden">
@@ -257,7 +268,7 @@ export function DeviceOverviewTab({ device, onExport, onDelete, onUpdate, onClos
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="icon" className="h-9 w-9">
+              <Button variant="outline" size="icon" className="h-9 w-9" disabled={isBusy}>
                 <MoreVertical className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
