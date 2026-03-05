@@ -55,6 +55,7 @@ import {
 import { cn } from '@/lib/utils'
 import type { DetailCardConfig } from '@/constants/device'
 import { useUpdateDeviceMutation, useUpdateStatusMutation } from '@/hooks/useDevicesQuery'
+import { queryKeys } from '@/hooks/queries/queryKeys'
 import { DeviceStatus, DeviceType } from '@/types/device'
 import { useComputedDeviceData, type ComputedDeviceData } from '@/hooks/useComputedDeviceData'
 
@@ -121,9 +122,9 @@ export function DeviceOverviewTab({ device, isFetching = false, onExport, onDele
       const result = await returnDevice(device.assignment.id)
       if (result.success) {
         toast.success('Đã thu hồi thiết bị thành công')
-        queryClient.invalidateQueries({ queryKey: ['devices'] })
-        queryClient.invalidateQueries({ queryKey: ['end-users'] })
-        queryClient.invalidateQueries({ queryKey: ['available-devices'] })
+        queryClient.invalidateQueries({ queryKey: queryKeys.devices.all, refetchType: 'all' })
+        queryClient.invalidateQueries({ queryKey: queryKeys.endUsers.all })
+        queryClient.invalidateQueries({ queryKey: queryKeys.availableDevices.all })
         setReturnDialogOpen(false)
       } else {
         toast.error(result.error || 'Lỗi thu hồi thiết bị')

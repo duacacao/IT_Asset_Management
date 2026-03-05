@@ -31,6 +31,9 @@ export function useDeviceDetailQuery(deviceId: string | null) {
     enabled: !!deviceId,
     staleTime: 60 * 1000,
     gcTime: 10 * 60 * 1000,
+    // Luôn refetch khi mount — safety net cho staleTime: Infinity global
+    // Đảm bảo device detail luôn có data mới nhất khi navigate vào
+    refetchOnMount: 'always',
     queryFn: async () => {
       const { data, error } = await getDeviceWithSheets(deviceId!)
       if (error || !data) throw new Error(error || 'Không thể tải device')

@@ -31,6 +31,7 @@ import { assignDevice, type AssignDeviceResult } from '@/app/actions/device-assi
 import { getEndUsers } from '@/app/actions/end-users'
 import { getAvailableDevices } from '@/app/actions/end-users'
 import { EndUserWithDevice } from '@/types/end-user'
+import { queryKeys } from '@/hooks/queries/queryKeys'
 
 interface DeviceAssignmentDialogProps {
   isOpen: boolean
@@ -114,10 +115,11 @@ export function DeviceAssignmentDialog({
   }, [isOpen, deviceId, userId])
 
   // Hàm invalidate tất cả query liên quan sau khi assign thành công
+  // refetchType: 'all' → buộc refetch cả inactive queries (VD: device detail cache khi user ở page khác)
   const invalidateRelatedQueries = () => {
-    queryClient.invalidateQueries({ queryKey: ['devices'] })
-    queryClient.invalidateQueries({ queryKey: ['end-users'] })
-    queryClient.invalidateQueries({ queryKey: ['available-devices'] })
+    queryClient.invalidateQueries({ queryKey: queryKeys.devices.all, refetchType: 'all' })
+    queryClient.invalidateQueries({ queryKey: queryKeys.endUsers.all })
+    queryClient.invalidateQueries({ queryKey: queryKeys.availableDevices.all })
   }
 
   // Xử lý assign — hỗ trợ smart reassign
