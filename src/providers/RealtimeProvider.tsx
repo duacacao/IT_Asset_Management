@@ -3,6 +3,7 @@
 import { useEffect } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { createClient } from '@/utils/supabase/client'
+import { queryKeys } from '@/hooks/queries/queryKeys'
 
 export function RealtimeProvider({ children }: { children: React.ReactNode }) {
     const queryClient = useQueryClient()
@@ -11,6 +12,7 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
         const supabase = createClient()
 
         // Lắng nghe thay đổi toàn cầu trên 3 bảng chính để Invalidate Cache
+        // refetchType: 'all' → buộc refetch cả inactive queries (VD: device detail khi user ở page khác)
         const channel = supabase
             .channel('schema-db-changes')
             .on(
@@ -21,7 +23,7 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
                     table: 'devices',
                 },
                 () => {
-                    queryClient.invalidateQueries({ queryKey: ['devices'] })
+                    queryClient.invalidateQueries({ queryKey: queryKeys.devices.all, refetchType: 'all' })
                 }
             )
             .on(
@@ -32,9 +34,9 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
                     table: 'device_assignments',
                 },
                 () => {
-                    queryClient.invalidateQueries({ queryKey: ['devices'] })
-                    queryClient.invalidateQueries({ queryKey: ['end-users'] })
-                    queryClient.invalidateQueries({ queryKey: ['available-devices'] })
+                    queryClient.invalidateQueries({ queryKey: queryKeys.devices.all, refetchType: 'all' })
+                    queryClient.invalidateQueries({ queryKey: queryKeys.endUsers.all, refetchType: 'all' })
+                    queryClient.invalidateQueries({ queryKey: queryKeys.availableDevices.all, refetchType: 'all' })
                 }
             )
             .on(
@@ -45,7 +47,7 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
                     table: 'end_users',
                 },
                 () => {
-                    queryClient.invalidateQueries({ queryKey: ['end-users'] })
+                    queryClient.invalidateQueries({ queryKey: queryKeys.endUsers.all, refetchType: 'all' })
                 }
             )
             .subscribe()

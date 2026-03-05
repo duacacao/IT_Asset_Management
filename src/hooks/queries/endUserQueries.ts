@@ -37,6 +37,11 @@ export function useEndUserQuery(id: string | null) {
   return useQuery({
     queryKey: queryKeys.endUsers.detail(id || ''),
     enabled: !!id,
+    staleTime: 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    // Luôn refetch khi mount — safety net cho staleTime: Infinity global
+    // Đảm bảo end-user detail luôn có data mới nhất khi mở dialog
+    refetchOnMount: 'always',
     queryFn: async () => {
       if (!id) return null
       const { data, error } = await getEndUser(id)
