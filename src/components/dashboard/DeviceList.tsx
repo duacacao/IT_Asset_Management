@@ -271,7 +271,7 @@ export function DeviceList({
       )}
 
       {/* Table — chiều cao cố định, scroll nếu nhiều thiết bị */}
-      <div className="relative rounded-md border">
+      <div className="relative overflow-hidden rounded-xl border-none bg-white shadow-md dark:bg-card">
         <Table containerClassName="h-[calc(100vh-220px)] overflow-auto">
           <TableHeader className="bg-background sticky top-0 z-10 shadow-sm">
             {table.getHeaderGroups().map((headerGroup) => (

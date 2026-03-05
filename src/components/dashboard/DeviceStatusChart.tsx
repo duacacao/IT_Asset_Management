@@ -50,7 +50,7 @@ export function DeviceStatusChart({ devices }: DeviceStatusChartProps) {
   const total = devices.length
 
   return (
-    <Card className="flex flex-col">
+    <Card className="flex flex-col rounded-xl border-none bg-white shadow-md dark:bg-card">
       <CardHeader className="items-center pb-0">
         <CardTitle>Trạng thái thiết bị</CardTitle>
         <CardDescription>Phân bổ theo trạng thái</CardDescription>

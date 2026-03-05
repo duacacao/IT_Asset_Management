@@ -6,7 +6,7 @@ import { Monitor, Users, Link2, AlertTriangle } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import {
   Card,
-  CardAction,
+  CardContent,
   CardDescription,
   CardFooter,
   CardHeader,
@@ -51,113 +51,69 @@ export function SectionCards({ devices, endUsers }: SectionCardsProps) {
   }, [devices, endUsers])
 
   return (
-    <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid gap-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs sm:grid-cols-2 xl:grid-cols-4">
-      {/* Thiết bị */}
-      <Card className="@container/card">
-        <CardHeader>
-          <CardDescription>Thiết bị</CardDescription>
-          <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            {stats.totalDevices}
-          </CardTitle>
-          <CardAction>
-            <Badge variant="outline">
-              <Monitor className="size-3" aria-hidden="true" />
-              Tổng
-            </Badge>
-          </CardAction>
+    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      {/* 1. Tổng số thiết bị */}
+      <Card className="rounded-xl border-none bg-white shadow-md transition-all hover:shadow-lg dark:bg-card">
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <CardTitle className="text-sm font-medium text-muted-foreground">Tổng số thiết bị</CardTitle>
+          <div className="rounded-full bg-blue-50 p-2 dark:bg-blue-950/50">
+            <Monitor className="size-4 text-primary" aria-hidden="true" />
+          </div>
         </CardHeader>
-        <CardFooter className="flex-col items-start gap-1.5 text-sm">
-          <div className="line-clamp-1 flex gap-2 font-medium">
-            {stats.activeDevices} đang hoạt động
-          </div>
-          <div className="text-muted-foreground">
-            {stats.assignedDevices} đã bàn giao ({stats.assignmentRate}%)
-          </div>
-        </CardFooter>
+        <CardContent>
+          <div className="text-3xl font-bold tabular-nums text-foreground">{stats.totalDevices}</div>
+          <p className="mt-1 text-sm text-muted-foreground">
+            <span className="font-medium text-primary">{stats.assignedDevices}</span> đang được bàn giao
+          </p>
+        </CardContent>
       </Card>
 
-      {/* Người dùng */}
-      <Card className="@container/card">
-        <CardHeader>
-          <CardDescription>Người dùng</CardDescription>
-          <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            {stats.totalUsers}
-          </CardTitle>
-          <CardAction>
-            <Badge variant="outline" className="border-blue-200 text-blue-600">
-              <Users className="size-3" aria-hidden="true" />
-              End-users
-            </Badge>
-          </CardAction>
+      {/* 2. Sẵn sàng */}
+      <Card className="rounded-xl border-none bg-white shadow-md transition-all hover:shadow-lg dark:bg-card">
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <CardTitle className="text-sm font-medium text-muted-foreground">Sẵn sàng (Active)</CardTitle>
+          <div className="rounded-full bg-emerald-50 p-2 dark:bg-emerald-950/50">
+            <Link2 className="size-4 text-emerald-600" aria-hidden="true" />
+          </div>
         </CardHeader>
-        <CardFooter className="flex-col items-start gap-1.5 text-sm">
-          <div className="line-clamp-1 flex gap-2 font-medium">
-            {stats.usersWithDevices} có thiết bị
-          </div>
-          <div className="text-muted-foreground">
-            {stats.usersWithoutDevices > 0
-              ? `${stats.usersWithoutDevices} chưa được gán`
-              : 'Tất cả đã có thiết bị'}
-          </div>
-        </CardFooter>
+        <CardContent>
+          <div className="text-3xl font-bold tabular-nums text-foreground">{stats.activeDevices}</div>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Sẵn sàng để cấp phát mới
+          </p>
+        </CardContent>
       </Card>
 
-      {/* Đang bàn giao */}
-      <Card className="@container/card">
-        <CardHeader>
-          <CardDescription>Đang bàn giao</CardDescription>
-          <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            {stats.assignedDevices}
-          </CardTitle>
-          <CardAction>
-            <Badge variant="outline" className="border-emerald-200 text-emerald-600">
-              <Link2 className="size-3" aria-hidden="true" />
-              {stats.assignmentRate}%
-            </Badge>
-          </CardAction>
+      {/* 3. Đang sửa chữa */}
+      <Card className="rounded-xl border-none bg-white shadow-md transition-all hover:shadow-lg dark:bg-card">
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <CardTitle className="text-sm font-medium text-muted-foreground">Đang sửa chữa</CardTitle>
+          <div className="rounded-full bg-red-50 p-2 dark:bg-red-950/50">
+            <AlertTriangle className="size-4 text-red-600" aria-hidden="true" />
+          </div>
         </CardHeader>
-        <CardFooter className="flex-col items-start gap-1.5 text-sm">
-          <div className="line-clamp-1 flex gap-2 font-medium">
-            Tỷ lệ sử dụng {stats.assignmentRate}%
-          </div>
-          <div className="text-muted-foreground">
-            {stats.totalDevices - stats.assignedDevices} thiết bị sẵn sàng
-          </div>
-        </CardFooter>
+        <CardContent>
+          <div className="text-3xl font-bold tabular-nums text-foreground">{stats.brokenDevices}</div>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Cần theo dõi bảo hành
+          </p>
+        </CardContent>
       </Card>
 
-      {/* Cần chú ý */}
-      <Card className="@container/card">
-        <CardHeader>
-          <CardDescription>Cần chú ý</CardDescription>
-          <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            {stats.deviceIssues + stats.usersWithoutDevices}
-          </CardTitle>
-          <CardAction>
-            <Badge
-              variant="outline"
-              className={
-                stats.deviceIssues + stats.usersWithoutDevices > 0
-                  ? 'border-amber-200 text-amber-600'
-                  : ''
-              }
-            >
-              <AlertTriangle className="size-3" aria-hidden="true" />
-              Issues
-            </Badge>
-          </CardAction>
+      {/* 4. Lưu kho */}
+      <Card className="rounded-xl border-none bg-white shadow-md transition-all hover:shadow-lg dark:bg-card">
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <CardTitle className="text-sm font-medium text-muted-foreground">Lưu kho</CardTitle>
+          <div className="rounded-full bg-slate-100 p-2 dark:bg-slate-800">
+            <Monitor className="size-4 text-slate-500 dark:text-slate-400" aria-hidden="true" />
+          </div>
         </CardHeader>
-        <CardFooter className="flex-col items-start gap-1.5 text-sm">
-          <div className="line-clamp-1 flex gap-2 font-medium">
-            {stats.deviceIssues > 0 && <>{stats.deviceIssues} thiết bị</>}
-            {stats.deviceIssues > 0 && stats.usersWithoutDevices > 0 && ' · '}
-            {stats.usersWithoutDevices > 0 && <>{stats.usersWithoutDevices} chưa gán</>}
-            {stats.deviceIssues === 0 && stats.usersWithoutDevices === 0 && 'Tất cả tốt'}
-          </div>
-          <div className="text-muted-foreground">
-            {stats.brokenDevices > 0 ? `${stats.brokenDevices} hư hỏng` : 'Không có vấn đề'}
-          </div>
-        </CardFooter>
+        <CardContent>
+          <div className="text-3xl font-bold tabular-nums text-foreground">{stats.inactiveDevices}</div>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Trong kho dự phòng
+          </p>
+        </CardContent>
       </Card>
     </div>
   )

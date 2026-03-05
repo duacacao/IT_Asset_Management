@@ -60,7 +60,7 @@ export function DepartmentChart({ endUsers }: DepartmentChartProps) {
 
   if (chartData.length === 0) {
     return (
-      <Card className="flex flex-col">
+      <Card className="flex flex-col rounded-xl border-none bg-white shadow-md dark:bg-card">
         <CardHeader className="items-center pb-0">
           <CardTitle>Phân bổ phòng ban</CardTitle>
           <CardDescription>Người dùng theo phòng ban</CardDescription>
@@ -73,7 +73,7 @@ export function DepartmentChart({ endUsers }: DepartmentChartProps) {
   }
 
   return (
-    <Card className="flex flex-col">
+    <Card className="flex flex-col rounded-xl border-none bg-white shadow-md dark:bg-card">
       <CardHeader className="items-center pb-0">
         <CardTitle>Phân bổ phòng ban</CardTitle>
         <CardDescription>Người dùng theo phòng ban</CardDescription>

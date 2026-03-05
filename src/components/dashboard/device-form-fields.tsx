@@ -48,7 +48,7 @@ export function DeviceFormFields({
       {/* Nhóm 1: Thông tin chung */}
       <AccordionItem
         value="general"
-        className="bg-background border-border/60 data-[state=closed]:pb-0 overflow-hidden rounded-lg border px-5 shadow-sm"
+        className="bg-white dark:bg-card border-none data-[state=closed]:pb-0 overflow-hidden rounded-xl px-5 shadow-md"
       >
         <AccordionTrigger className="hover:no-underline py-4">
           <div className="flex items-center gap-2">
@@ -150,7 +150,7 @@ export function DeviceFormFields({
       {/* Nhóm 2: Thông số kỹ thuật */}
       <AccordionItem
         value="specs"
-        className="bg-background border-border/60 data-[state=closed]:pb-0 overflow-hidden rounded-lg border px-5 shadow-sm"
+        className="bg-white dark:bg-card border-none data-[state=closed]:pb-0 overflow-hidden rounded-xl px-5 shadow-md"
       >
         <AccordionTrigger className="hover:no-underline py-4">
           <div className="flex items-center gap-2">
@@ -422,7 +422,7 @@ export function DeviceFormFields({
       {(fieldConfig?.ip?.show || fieldConfig?.mac?.show) && (
         <AccordionItem
           value="network"
-          className="bg-background border-border/60 data-[state=closed]:pb-0 overflow-hidden rounded-lg border px-5 shadow-sm"
+          className="bg-white dark:bg-card border-none data-[state=closed]:pb-0 overflow-hidden rounded-xl px-5 shadow-md"
         >
           <AccordionTrigger className="hover:no-underline py-4">
             <div className="flex items-center gap-2">

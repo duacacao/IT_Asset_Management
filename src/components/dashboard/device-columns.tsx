@@ -40,17 +40,17 @@ const STATUS_STYLES: Record<
 > = {
   active: {
     colorClass:
-      'border-amber-600 text-amber-600 dark:border-amber-400 dark:text-amber-400 [a&]:hover:bg-amber-600/10 [a&]:hover:text-amber-600/90 dark:[a&]:hover:bg-amber-400/10 dark:[a&]:hover:text-amber-400/90',
+      'border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-950/30 dark:text-blue-400',
     icon: AlertCircleIcon,
   },
   broken: {
     colorClass:
-      'border-red-600 text-red-600 dark:border-red-400 dark:text-red-400 [a&]:hover:bg-red-600/10 [a&]:hover:text-red-600/90 dark:[a&]:hover:bg-red-400/10 dark:[a&]:hover:text-red-400/90',
+      'border-red-200 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-950/30 dark:text-red-400',
     icon: XCircleIcon,
   },
   inactive: {
     colorClass:
-      'border-emerald-600 text-emerald-600 dark:border-emerald-400 dark:text-emerald-400 [a&]:hover:bg-emerald-600/10 [a&]:hover:text-emerald-600/90 dark:[a&]:hover:bg-emerald-400/10 dark:[a&]:hover:text-emerald-400/90',
+      'border-slate-200 bg-slate-50 text-slate-700 dark:border-slate-800 dark:bg-slate-950/30 dark:text-slate-400',
     icon: CheckCircleIcon,
   },
 }
@@ -80,9 +80,9 @@ const getDeviceIcon = (type: string | null) => {
 
 // Dot colors cho status dropdown items
 export const STATUS_DOT_COLORS: Record<DeviceStatus, string> = {
-  active: 'bg-amber-500',
+  active: 'bg-blue-500',
   broken: 'bg-red-500',
-  inactive: 'bg-emerald-500',
+  inactive: 'bg-slate-500',
 }
 
 // Label hiển thị trạng thái thiết bị

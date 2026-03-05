@@ -140,7 +140,7 @@ export function HardwareOverview({ devices }: HardwareOverviewProps) {
   const cpuData = React.useMemo(() => groupCPU(devices), [devices])
 
   return (
-    <Card className="flex h-full flex-col">
+    <Card className="flex h-full flex-col rounded-xl border-none bg-white shadow-md dark:bg-card">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="text-base font-semibold">Tổng quan phần cứng</CardTitle>

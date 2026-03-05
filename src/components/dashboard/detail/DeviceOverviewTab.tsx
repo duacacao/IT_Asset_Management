@@ -399,12 +399,12 @@ function DetailCard({
   onAction?: () => void
 }) {
   return (
-    <div className="group relative overflow-hidden rounded-sm border border-gray-200 bg-white p-4 transition-all duration-300 hover:border-gray-300 hover:shadow-md">
-      <div className="absolute top-0 left-0 h-1 w-full bg-gray-900 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+    <div className="group relative overflow-hidden rounded-xl border-none bg-white p-5 shadow-md transition-all hover:shadow-lg dark:bg-card">
+      <div className="absolute top-0 left-0 h-1 w-full bg-primary opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
-      <div className="mb-3 flex items-center gap-2.5">
-        <div className="flex h-8 w-8 items-center justify-center rounded-sm bg-gray-100 transition-colors duration-300 group-hover:bg-gray-900">
-          <span className="text-gray-600 transition-colors duration-300 group-hover:text-white">
+      <div className="mb-3 flex items-center gap-3">
+        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 transition-colors duration-300 group-hover:bg-primary">
+          <span className="text-primary transition-colors duration-300 group-hover:text-primary-foreground">
             {icon}
           </span>
         </div>
@@ -494,14 +494,14 @@ function DynamicDetailCard({
   }
 
   return (
-    <div className="group relative overflow-hidden rounded-sm border border-gray-200 bg-white p-4 transition-all duration-300 hover:border-gray-300 hover:shadow-md">
-      <div className="absolute top-0 left-0 h-1 w-full bg-gray-900 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+    <div className="group relative flex h-full flex-col overflow-hidden rounded-xl border-none bg-white p-5 shadow-md transition-all hover:shadow-lg dark:bg-card">
+      <div className="absolute top-0 left-0 h-1 w-full bg-primary opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
-      <div className="mb-4 flex items-center gap-2.5">
-        <div className="flex h-8 w-8 items-center justify-center rounded-sm bg-gray-100 transition-colors duration-300 group-hover:bg-gray-900">
+      <div className="mb-4 flex items-center gap-3">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 transition-colors duration-300 group-hover:bg-primary">
           <IconComponent
             className={cn(
-              'h-4 w-4 text-gray-600 group-hover:text-white',
+              'h-5 w-5 text-primary group-hover:text-primary-foreground',
               config.iconColor?.replace('text-', '')
             )}
           />
