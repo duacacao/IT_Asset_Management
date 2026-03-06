@@ -42,7 +42,7 @@ export function NavUser() {
       <SidebarMenu>
         <SidebarMenuItem>
           <SidebarMenuButton size="lg" disabled>
-            <div className="bg-muted flex h-8 w-8 shrink-0 items-center justify-center rounded-lg">
+            <div className="bg-muted flex h-8 w-8 shrink-0 items-center justify-center rounded-xl">
               <LogOut className="text-muted-foreground size-4" />
             </div>
             <div className="grid flex-1 text-left text-sm leading-tight">
@@ -60,7 +60,7 @@ export function NavUser() {
       <SidebarMenu>
         <SidebarMenuItem>
           <SidebarMenuButton size="lg" className="animate-pulse">
-            <div className="bg-muted flex h-8 w-8 shrink-0 items-center justify-center rounded-lg" />
+            <div className="bg-muted flex h-8 w-8 shrink-0 items-center justify-center rounded-xl" />
             <div className="grid flex-1 gap-1">
               <div className="bg-muted h-3 w-20 rounded" />
               <div className="bg-muted h-2 w-28 rounded" />
@@ -83,9 +83,9 @@ export function NavUser() {
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground cursor-pointer"
+              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground cursor-pointer rounded-xl transition-colors duration-300"
             >
-              <div className="bg-primary/10 text-primary flex h-8 w-8 shrink-0 items-center justify-center rounded-lg">
+              <div className="bg-primary/10 text-primary flex h-8 w-8 shrink-0 items-center justify-center rounded-xl">
                 <CircleUser className="size-5" />
               </div>
               <div className="grid flex-1 text-left text-sm leading-tight">
@@ -96,14 +96,14 @@ export function NavUser() {
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
-            className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
+            className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-xl shadow-md border border-border/50"
             side={isMobile ? 'bottom' : 'right'}
             align="end"
             sideOffset={4}
           >
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                <div className="bg-primary/10 text-primary flex h-8 w-8 shrink-0 items-center justify-center rounded-lg">
+                <div className="bg-primary/10 text-primary flex h-8 w-8 shrink-0 items-center justify-center rounded-xl">
                   <CircleUser className="size-5" />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">

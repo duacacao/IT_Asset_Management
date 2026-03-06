@@ -38,11 +38,11 @@ function SidebarQuickStats() {
       <SidebarGroupLabel>Thống kê nhanh</SidebarGroupLabel>
       <div className="px-2 py-1">
         <div className="grid grid-cols-2 gap-2">
-          <div className="flex items-center justify-center gap-2 rounded-md bg-teal-500/5 px-3 py-2">
+          <div className="flex items-center justify-center gap-2 rounded-xl bg-teal-500/5 px-3 py-2 cursor-pointer hover:bg-teal-500/10 transition-colors duration-300">
             <Laptop className="h-4 w-4 text-teal-500" />
             <p className="text-sm font-bold">{totalDevices}</p>
           </div>
-          <div className="flex items-center justify-center gap-2 rounded-md bg-blue-500/5 px-3 py-2">
+          <div className="flex items-center justify-center gap-2 rounded-xl bg-blue-500/5 px-3 py-2 cursor-pointer hover:bg-blue-500/10 transition-colors duration-300">
             <Users className="h-4 w-4 text-blue-500" />
             <p className="text-sm font-bold">{totalUsers}</p>
           </div>
@@ -108,7 +108,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
               <Link href="/dashboard">
-                <div className="bg-primary text-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
+                <div className="bg-primary text-primary-foreground flex aspect-square size-8 items-center justify-center rounded-xl shadow-sm">
                   <Logo size={24} className="text-current" />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">

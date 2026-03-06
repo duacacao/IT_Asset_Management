@@ -81,7 +81,7 @@ export function NavMain({
                       side={isMobile ? 'bottom' : 'right'}
                       align="start"
                       sideOffset={4}
-                      className="min-w-48 rounded-lg"
+                      className="min-w-48 rounded-xl shadow-md border border-border/50"
                     >
                       <DropdownMenuLabel>{item.title}</DropdownMenuLabel>
                       <DropdownMenuSeparator />
@@ -148,10 +148,6 @@ export function NavMain({
                   isActive={pathname === item.url}
                 >
                   <Link href={item.url}>
-                    {/* Active indicator — bar bên trái */}
-                    {pathname === item.url && (
-                      <span className="bg-primary absolute top-1/2 left-0 h-4 w-0.5 -translate-y-1/2 rounded-full" />
-                    )}
                     {item.icon && <item.icon />}
                     <span>{item.title}</span>
                     {item.badge}
