@@ -73,14 +73,13 @@ const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
 
 interface DeviceOverviewTabProps {
   device: Device
-  isFetching?: boolean
   onExport: () => void
   onDelete: (id: string) => void
   onUpdate: () => void
   onClose: () => void
 }
 
-export function DeviceOverviewTab({ device, isFetching = false, onExport, onDelete, onUpdate, onClose }: DeviceOverviewTabProps) {
+export function DeviceOverviewTab({ device, onExport, onDelete, onUpdate, onClose }: DeviceOverviewTabProps) {
   const queryClient = useQueryClient()
   const [assignmentDialogOpen, setAssignmentDialogOpen] = useState(false)
   const [returnDialogOpen, setReturnDialogOpen] = useState(false)
@@ -90,10 +89,10 @@ export function DeviceOverviewTab({ device, isFetching = false, onExport, onDele
   const updateStatusMutation = useUpdateStatusMutation()
   const updateDeviceMutation = useUpdateDeviceMutation()
 
-  // Tổng hợp trạng thái busy: mutation đang chạy HOẶC data đang refetch
+  // Tổng hợp trạng thái busy: mutation đang chạy mới disable UI, background refetch thì không
   const isStatusPending = updateStatusMutation.isPending
   const isTypePending = updateDeviceMutation.isPending
-  const isBusy = isFetching || isStatusPending || isTypePending
+  const isBusy = isStatusPending || isTypePending
 
   const handleStatusChange = (newStatus: DeviceStatus) => {
     updateStatusMutation.mutate(
@@ -122,7 +121,26 @@ export function DeviceOverviewTab({ device, isFetching = false, onExport, onDele
       const result = await returnDevice(device.assignment.id)
       if (result.success) {
         toast.success('Đã thu hồi thiết bị thành công')
-        queryClient.invalidateQueries({ queryKey: queryKeys.devices.all, refetchType: 'all' })
+        // Optimistic update: Xóa assignment khỏi cache — cấu trúc: { device: Device, sheetIdMap, rawSheets }
+        queryClient.setQueryData(queryKeys.devices.detail(device.id), (old: any) => {
+          if (!old?.device) return old
+          return {
+            ...old,
+            device: {
+              ...old.device,
+              assignment: undefined,
+              status: 'inactive',
+            },
+          }
+        })
+        // Update devices.list cache (là array, không phải pages object)
+        queryClient.setQueryData(queryKeys.devices.list(), (old: any) => {
+          if (!old || !Array.isArray(old)) return old
+          return old.map((d: any) =>
+            d.id === device.id ? { ...d, assignment: undefined, status: 'inactive' } : d
+          )
+        })
+        // Giảm invalidation: chỉ invalidate endUsers và availableDevices
         queryClient.invalidateQueries({ queryKey: queryKeys.endUsers.all })
         queryClient.invalidateQueries({ queryKey: queryKeys.availableDevices.all })
         setReturnDialogOpen(false)
@@ -151,7 +169,7 @@ export function DeviceOverviewTab({ device, isFetching = false, onExport, onDele
                 <Button
                   variant="outline"
                   size="sm"
-                  disabled={isTypePending || isFetching}
+                  disabled={isTypePending}
                   className={cn(
                     'text-muted-foreground hover:text-foreground flex h-auto w-40 items-center justify-between rounded-full px-3 py-2 text-xs font-medium',
                     isTypePending && 'opacity-60'
@@ -191,7 +209,7 @@ export function DeviceOverviewTab({ device, isFetching = false, onExport, onDele
             {/* <div className="bg-border/50 h-5 w-px" /> */}
 
             <DropdownMenu>
-              <DropdownMenuTrigger asChild disabled={isStatusPending || isFetching}>
+              <DropdownMenuTrigger asChild disabled={isStatusPending}>
                 <div
                   className={cn(
                     'flex w-40 items-center justify-between rounded-full border px-3 py-2 text-xs font-medium transition-colors hover:opacity-80',

@@ -74,9 +74,6 @@ export default function DeviceDetailPage({ params }: DeviceDetailPageProps) {
               <h1 className="text-foreground text-2xl font-bold tracking-tight">
                 {device.deviceInfo.name}
               </h1>
-              {isFetching && !isLoading && (
-                <AppLoader layout="horizontal" hideText className="text-muted-foreground" />
-              )}
             </div>
           </div>
 
@@ -105,7 +102,6 @@ export default function DeviceDetailPage({ params }: DeviceDetailPageProps) {
           >
             <DeviceOverviewTab
               device={device}
-              isFetching={isFetching && !isLoading}
               onExport={handleExport}
               onDelete={handleDelete}
               onUpdate={() => setIsUpdateOpen(true)}

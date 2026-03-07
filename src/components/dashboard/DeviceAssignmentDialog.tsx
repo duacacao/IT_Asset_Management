@@ -115,11 +115,51 @@ export function DeviceAssignmentDialog({
   }, [isOpen, deviceId, userId])
 
   // Hàm invalidate tất cả query liên quan sau khi assign thành công
-  // refetchType: 'all' → buộc refetch cả inactive queries (VD: device detail cache khi user ở page khác)
+  // Optimistic update: device cache đã được update, chỉ invalidate endUsers và availableDevices
   const invalidateRelatedQueries = () => {
-    queryClient.invalidateQueries({ queryKey: queryKeys.devices.all, refetchType: 'all' })
+    // Bỏ refetchType: 'all' - device cache đã update rồi, chỉ refetch queries đang hiển thị
     queryClient.invalidateQueries({ queryKey: queryKeys.endUsers.all })
     queryClient.invalidateQueries({ queryKey: queryKeys.availableDevices.all })
+  }
+
+  // Optimistic update: Update cache trực tiếp trước khi invalidate
+  const updateDeviceCacheOptimistically = (
+    deviceId: string,
+    userId: string,
+    userName: string,
+    userEmail?: string | null
+  ) => {
+    const now = new Date().toISOString()
+    const newAssignment = {
+      id: `temp-${Date.now()}`, // Temporary ID sẽ được server overwrite
+      end_user_id: userId,
+      assignee_name: userName,
+      assignee_email: userEmail,
+      assigned_at: now,
+    }
+
+    // Update devices.detail cache — cấu trúc: { device: Device, sheetIdMap, rawSheets }
+    queryClient.setQueryData(queryKeys.devices.detail(deviceId), (old: any) => {
+      if (!old?.device) return old
+      return {
+        ...old,
+        device: {
+          ...old.device,
+          assignment: newAssignment,
+          status: 'active',
+        },
+      }
+    })
+
+    // Update devices.list cache (là array, không phải pages object)
+    queryClient.setQueryData(queryKeys.devices.list(), (old: any) => {
+      if (!old || !Array.isArray(old)) return old
+      return old.map((device: any) =>
+        device.id === deviceId
+          ? { ...device, assignment: newAssignment, status: 'active' }
+          : device
+      )
+    })
   }
 
   // Xử lý assign — hỗ trợ smart reassign
@@ -152,6 +192,14 @@ export function DeviceAssignmentDialog({
       } else {
         const msg = forceReassign ? 'Đã chuyển thiết bị thành công' : 'Gán thiết bị thành công'
         toast.success(msg)
+        // Optimistic update cache trước
+        const selectedUserData = users.find((u) => u.id === selectedUser)
+        updateDeviceCacheOptimistically(
+          selectedDevice,
+          selectedUser,
+          selectedUserData?.full_name || 'Unknown',
+          selectedUserData?.email
+        )
         // Self-invalidate React Query cache → UI tự refresh
         invalidateRelatedQueries()
         onSuccess()

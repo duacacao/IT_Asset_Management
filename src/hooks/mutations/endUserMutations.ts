@@ -54,9 +54,9 @@ export function useCreateEndUserMutation() {
       queryClient.invalidateQueries({ queryKey: queryKeys.endUsers.stats() })
       queryClient.invalidateQueries({ queryKey: queryKeys.availableDevices.list() })
       // Invalidate devices list vì assign device → thay đổi status + người sử dụng
-      // refetchType: 'all' → buộc refetch cả khi user đang ở trang end-user (device queries inactive)
-      queryClient.invalidateQueries({ queryKey: queryKeys.devices.list(), refetchType: 'all' })
-      queryClient.invalidateQueries({ queryKey: queryKeys.devices.stats(), refetchType: 'all' })
+      // RealtimeProvider + optimistic update đã lo, bỏ refetchType: 'all'
+      queryClient.invalidateQueries({ queryKey: queryKeys.devices.list() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.devices.stats() })
       toast.success('Tạo người dùng thành công!')
     },
     onError: (err, _vars, context) => {
@@ -89,9 +89,9 @@ export function useUpdateEndUserMutation() {
       queryClient.invalidateQueries({ queryKey: queryKeys.endUsers.stats() })
       queryClient.invalidateQueries({ queryKey: queryKeys.availableDevices.list() })
       // Invalidate devices list vì assign/unassign device → thay đổi status + người sử dụng
-      // refetchType: 'all' → buộc refetch cả khi user đang ở trang end-user (device queries inactive)
-      queryClient.invalidateQueries({ queryKey: queryKeys.devices.list(), refetchType: 'all' })
-      queryClient.invalidateQueries({ queryKey: queryKeys.devices.stats(), refetchType: 'all' })
+      // RealtimeProvider + optimistic update đã lo, bỏ refetchType: 'all'
+      queryClient.invalidateQueries({ queryKey: queryKeys.devices.list() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.devices.stats() })
       toast.success('Cập nhật người dùng thành công!')
     },
     onError: (err, _vars, context) => {
@@ -122,9 +122,9 @@ export function useDeleteEndUserMutation() {
       queryClient.invalidateQueries({ queryKey: queryKeys.endUsers.stats() })
       queryClient.invalidateQueries({ queryKey: queryKeys.availableDevices.list() })
       // Invalidate devices list vì xóa end-user → thu hồi device → thay đổi status
-      // refetchType: 'all' → buộc refetch cả khi user đang ở trang end-user (device queries inactive)
-      queryClient.invalidateQueries({ queryKey: queryKeys.devices.list(), refetchType: 'all' })
-      queryClient.invalidateQueries({ queryKey: queryKeys.devices.stats(), refetchType: 'all' })
+      // RealtimeProvider + optimistic update đã lo, bỏ refetchType: 'all'
+      queryClient.invalidateQueries({ queryKey: queryKeys.devices.list() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.devices.stats() })
       toast.success('Xóa người dùng thành công!')
     },
     onError: (err, _vars, context) => {
