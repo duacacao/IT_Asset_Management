@@ -2,8 +2,8 @@
 
 import * as React from 'react'
 import { Label, Pie, PieChart } from 'recharts'
+import { Building2 } from 'lucide-react'
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   ChartConfig,
   ChartContainer,
@@ -58,30 +58,40 @@ export function DepartmentChart({ endUsers }: DepartmentChartProps) {
     return { chartData: data, chartConfig: config, total: endUsers.length }
   }, [endUsers])
 
+  const headerContent = (
+    <div className="mb-4 flex items-center gap-3">
+      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-50 shadow-sm transition-colors duration-300 group-hover:bg-primary dark:bg-emerald-950/50">
+        <Building2 className="h-5 w-5 text-emerald-600 transition-colors duration-300 group-hover:text-primary-foreground" />
+      </div>
+      <span className="text-xs font-medium tracking-wide text-gray-500 uppercase">Phân bổ phòng ban</span>
+    </div>
+  )
+
   if (chartData.length === 0) {
     return (
-      <Card className="flex flex-col rounded-xl border-none bg-white shadow-md dark:bg-card">
-        <CardHeader className="items-center pb-0">
-          <CardTitle>Phân bổ phòng ban</CardTitle>
-          <CardDescription>Người dùng theo phòng ban</CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-1 items-center justify-center pb-0">
+      <div className="group relative flex flex-col overflow-hidden rounded-xl border-none bg-white p-5 shadow-md transition-all hover:shadow-lg dark:bg-card">
+        <div className="absolute top-0 left-0 h-1 w-full bg-primary opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+        {headerContent}
+        <div className="flex flex-1 items-center justify-center py-8">
           <p className="text-muted-foreground text-sm">Chưa có dữ liệu</p>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     )
   }
 
   return (
-    <Card className="flex flex-col rounded-xl border-none bg-white shadow-md dark:bg-card">
-      <CardHeader className="items-center pb-0">
-        <CardTitle>Phân bổ phòng ban</CardTitle>
-        <CardDescription>Người dùng theo phòng ban</CardDescription>
-      </CardHeader>
-      <CardContent className="flex flex-1 flex-col items-center gap-4 pb-0 lg:flex-row lg:gap-6">
+    <div className="group relative flex flex-col overflow-hidden rounded-xl border-none bg-white p-5 shadow-md transition-all hover:shadow-lg dark:bg-card">
+      {/* Top accent bar */}
+      <div className="absolute top-0 left-0 h-1 w-full bg-primary opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+
+      {/* Header */}
+      {headerContent}
+
+      {/* Chart + Legend */}
+      <div className="flex flex-1 flex-col items-center gap-4 pb-2 lg:flex-row lg:gap-6">
         <ChartContainer
           config={chartConfig}
-          className="aspect-square max-h-[250px] w-full max-w-[250px]"
+          className="aspect-square max-h-[220px] w-full max-w-[220px]"
         >
           <PieChart>
             <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
@@ -148,7 +158,7 @@ export function DepartmentChart({ endUsers }: DepartmentChartProps) {
             )
           })}
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }

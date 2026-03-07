@@ -79,7 +79,13 @@ interface DeviceOverviewTabProps {
   onClose: () => void
 }
 
-export function DeviceOverviewTab({ device, onExport, onDelete, onUpdate, onClose }: DeviceOverviewTabProps) {
+export function DeviceOverviewTab({
+  device,
+  onExport,
+  onDelete,
+  onUpdate,
+  onClose,
+}: DeviceOverviewTabProps) {
   const queryClient = useQueryClient()
   const [assignmentDialogOpen, setAssignmentDialogOpen] = useState(false)
   const [returnDialogOpen, setReturnDialogOpen] = useState(false)
@@ -218,7 +224,7 @@ export function DeviceOverviewTab({ device, onExport, onDelete, onUpdate, onClos
                       : statusConfig.softColor === 'error'
                         ? 'border-red-200 bg-red-50 text-red-700'
                         : 'border-amber-200 bg-amber-50 text-amber-700',
-                    isStatusPending && 'opacity-60 pointer-events-none'
+                    isStatusPending && 'pointer-events-none opacity-60'
                   )}
                 >
                   <div className="flex items-center gap-1.5 overflow-hidden">
@@ -367,7 +373,7 @@ export function DeviceOverviewTab({ device, onExport, onDelete, onUpdate, onClos
       <DeviceAssignmentDialog
         isOpen={assignmentDialogOpen}
         onClose={() => setAssignmentDialogOpen(false)}
-        onSuccess={() => { }}
+        onSuccess={() => {}}
         deviceId={device.id}
         deviceName={device.deviceInfo.name}
         currentEndUserId={device.assignment?.end_user_id}
@@ -417,12 +423,12 @@ function DetailCard({
   onAction?: () => void
 }) {
   return (
-    <div className="group relative overflow-hidden rounded-xl border-none bg-white p-5 shadow-md transition-all hover:shadow-lg dark:bg-card">
-      <div className="absolute top-0 left-0 h-1 w-full bg-primary opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+    <div className="group dark:bg-card relative overflow-hidden rounded-xl border-none bg-white p-5 shadow-md transition-all hover:shadow-lg">
+      <div className="bg-primary absolute top-0 left-0 h-1 w-full opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
       <div className="mb-3 flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 transition-colors duration-300 group-hover:bg-primary">
-          <span className="text-primary transition-colors duration-300 group-hover:text-primary-foreground">
+        <div className="group-hover:bg-primary dark:bg-card flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-sm transition-colors duration-300">
+          <span className="text-primary group-hover:text-primary-foreground transition-colors duration-300">
             {icon}
           </span>
         </div>
@@ -512,14 +518,14 @@ function DynamicDetailCard({
   }
 
   return (
-    <div className="group relative flex h-full flex-col overflow-hidden rounded-xl border-none bg-white p-5 shadow-md transition-all hover:shadow-lg dark:bg-card">
-      <div className="absolute top-0 left-0 h-1 w-full bg-primary opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+    <div className="group dark:bg-card relative flex h-full flex-col overflow-hidden rounded-xl border-none bg-white p-5 shadow-md transition-all hover:shadow-lg">
+      <div className="bg-primary absolute top-0 left-0 h-1 w-full opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
       <div className="mb-4 flex items-center gap-3">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 transition-colors duration-300 group-hover:bg-primary">
+        <div className="dark:bg-card group-hover:bg-primary flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white shadow-sm transition-colors duration-300">
           <IconComponent
             className={cn(
-              'h-5 w-5 text-primary group-hover:text-primary-foreground',
+              'text-primary group-hover:text-primary-foreground h-5 w-5',
               config.iconColor?.replace('text-', '')
             )}
           />

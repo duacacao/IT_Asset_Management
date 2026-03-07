@@ -91,7 +91,7 @@ export function SignUpForm({ initialMessage }: { initialMessage?: string }) {
             )}
           </div>
 
-          <Button type="submit" className="w-full" disabled={isPending}>
+          <Button type="submit" className="w-full rounded-xl" disabled={isPending}>
             {isPending ? (
               <>
                 <AppLoader layout="horizontal" hideText className="mr-2" />
@@ -103,7 +103,7 @@ export function SignUpForm({ initialMessage }: { initialMessage?: string }) {
           </Button>
 
           {error && (
-            <p className="bg-destructive/15 text-destructive animate-in fade-in slide-in-from-top-1 mt-2 rounded-md p-3 text-center text-sm font-medium">
+            <p className="bg-destructive/10 text-destructive border border-destructive/20 animate-in fade-in slide-in-from-top-1 mt-2 rounded-xl p-3 text-center text-sm font-medium">
               {error}
             </p>
           )}

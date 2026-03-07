@@ -20,7 +20,7 @@ export default function AppearanceSettings() {
           </div>
         </div>
         <div className="hidden flex-1 md:block">
-          <div className="bg-muted/20 rounded-lg border p-4">
+          <div className="bg-muted/20 rounded-xl border border-border/50 p-4">
             <div className="space-y-4">
               <div className="bg-muted h-2 w-1/2 rounded-lg" />
               <div className="bg-muted h-2 w-3/4 rounded-lg" />

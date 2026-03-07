@@ -85,7 +85,7 @@ export function NavUser() {
               size="lg"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground cursor-pointer rounded-xl transition-colors duration-300"
             >
-              <div className="bg-primary/10 text-primary flex h-8 w-8 shrink-0 items-center justify-center rounded-xl">
+              <div className="dark:bg-card text-primary flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white shadow-sm">
                 <CircleUser className="size-5" />
               </div>
               <div className="grid flex-1 text-left text-sm leading-tight">
@@ -96,14 +96,14 @@ export function NavUser() {
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
-            className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-xl shadow-md border border-border/50"
+            className="border-border/50 w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-xl border shadow-md"
             side={isMobile ? 'bottom' : 'right'}
             align="end"
             sideOffset={4}
           >
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                <div className="bg-primary/10 text-primary flex h-8 w-8 shrink-0 items-center justify-center rounded-xl">
+                <div className="dark:bg-card text-primary flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white shadow-sm">
                   <CircleUser className="size-5" />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">

@@ -2,8 +2,8 @@
 
 import * as React from 'react'
 import { BarChart, Bar, XAxis, CartesianGrid, Cell, Rectangle } from 'recharts'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Cpu } from 'lucide-react'
 import {
   ChartContainer,
   ChartTooltip,
@@ -140,17 +140,24 @@ export function HardwareOverview({ devices }: HardwareOverviewProps) {
   const cpuData = React.useMemo(() => groupCPU(devices), [devices])
 
   return (
-    <Card className="flex h-full flex-col rounded-xl border-none bg-white shadow-md dark:bg-card">
-      <CardHeader className="pb-2">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-base font-semibold">Tổng quan phần cứng</CardTitle>
+    <div className="group relative flex h-full flex-col overflow-hidden rounded-xl border-none bg-white p-5 shadow-md transition-all hover:shadow-lg dark:bg-card">
+      {/* Top accent bar */}
+      <div className="absolute top-0 left-0 h-1 w-full bg-primary opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+
+      {/* Header */}
+      <div className="mb-4 flex items-center gap-3">
+        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-violet-50 shadow-sm transition-colors duration-300 group-hover:bg-primary dark:bg-violet-950/50">
+          <Cpu className="h-5 w-5 text-violet-600 transition-colors duration-300 group-hover:text-primary-foreground" />
         </div>
-      </CardHeader>
-      <CardContent className="flex-1">
+        <span className="text-xs font-medium tracking-wide text-gray-500 uppercase">Tổng quan phần cứng</span>
+      </div>
+
+      {/* Tabs */}
+      <div className="flex-1">
         <Tabs defaultValue="ram" className="w-full">
-          <TabsList className="mb-4 grid w-full grid-cols-2">
-            <TabsTrigger value="ram">RAM</TabsTrigger>
-            <TabsTrigger value="cpu">CPU</TabsTrigger>
+          <TabsList className="mb-4 grid w-full grid-cols-2 rounded-xl">
+            <TabsTrigger value="ram" className="rounded-lg">RAM</TabsTrigger>
+            <TabsTrigger value="cpu" className="rounded-lg">CPU</TabsTrigger>
           </TabsList>
           <TabsContent value="ram">
             <OverviewChart data={ramData} />
@@ -159,7 +166,7 @@ export function HardwareOverview({ devices }: HardwareOverviewProps) {
             <OverviewChart data={cpuData} />
           </TabsContent>
         </Tabs>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }

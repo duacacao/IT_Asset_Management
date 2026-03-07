@@ -7,12 +7,12 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       <div className="w-full max-w-sm md:max-w-3xl">
         <div className="flex flex-col gap-6">
           <Link href="/" className="flex items-center gap-2 self-center font-medium">
-            <div className="bg-primary text-primary-foreground flex h-6 w-6 items-center justify-center rounded-md">
+            <div className="bg-primary text-primary-foreground flex h-8 w-8 items-center justify-center rounded-xl shadow-sm">
               <Boxes className="size-4" />
             </div>
             IT Asset Management
           </Link>
-          <div className="bg-card text-card-foreground overflow-hidden rounded-xl border shadow">
+          <div className="bg-card text-card-foreground overflow-hidden rounded-xl border-border/50 border shadow-md transition-shadow hover:shadow-lg">
             <div className="grid min-h-[600px] md:grid-cols-2">
               <div className="bg-muted relative hidden border-r md:block">
                 <div

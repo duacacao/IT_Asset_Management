@@ -85,7 +85,7 @@ export function EndUserToolbar({
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Phòng ban" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="rounded-xl border-border/50 shadow-md">
               <SelectItem value="ALL">Tất cả phòng ban</SelectItem>
               {departments.map((d) => (
                 <SelectItem key={d.value} value={d.value}>
@@ -99,7 +99,7 @@ export function EndUserToolbar({
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Chức vụ" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="rounded-xl border-border/50 shadow-md">
               <SelectItem value="ALL">Tất cả chức vụ</SelectItem>
               {positions.map((p) => (
                 <SelectItem key={p.value} value={p.value}>

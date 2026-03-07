@@ -219,7 +219,7 @@ export function DeviceAssignmentDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] rounded-xl border-border/50 shadow-lg">
         <DialogHeader>
           <DialogTitle>Gán thiết bị</DialogTitle>
           <DialogDescription>
@@ -248,7 +248,7 @@ export function DeviceAssignmentDialog({
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-[400px] p-0">
+                <PopoverContent className="w-[400px] p-0 rounded-xl border-border/50 shadow-md">
                   <Command>
                     <CommandInput placeholder="Tìm nhân viên..." />
                     <CommandList>
@@ -309,7 +309,7 @@ export function DeviceAssignmentDialog({
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-[400px] p-0">
+                <PopoverContent className="w-[400px] p-0 rounded-xl border-border/50 shadow-md">
                   <Command>
                     <CommandInput placeholder="Tìm thiết bị..." />
                     <CommandList>
@@ -356,7 +356,7 @@ export function DeviceAssignmentDialog({
 
           {/* Cảnh báo khi thiết bị đang được bàn giao cho người khác */}
           {reassignInfo.needsConfirm && (
-            <div className="rounded-md border border-yellow-500/30 bg-yellow-500/10 p-3">
+            <div className="rounded-xl border border-amber-200/70 bg-amber-50/80 p-4 dark:border-amber-800/50 dark:bg-amber-950/30">
               <div className="flex items-start gap-2">
                 <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-yellow-500" />
                 <div className="text-sm">

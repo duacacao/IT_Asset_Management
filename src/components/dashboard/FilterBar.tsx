@@ -83,7 +83,7 @@ export function FilterBar({ onFilterChange, onReset, className, children }: Filt
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Trạng thái" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="rounded-xl border-border/50 shadow-md">
             <SelectItem value="all">
               <div className="flex items-center gap-2">
                 <div className="h-2 w-2 rounded-full bg-gray-400" />
@@ -111,7 +111,7 @@ export function FilterBar({ onFilterChange, onReset, className, children }: Filt
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Loại thiết bị" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="rounded-xl border-border/50 shadow-md">
             <SelectItem value="all">Tất cả loại</SelectItem>
             {Object.entries(DEVICE_TYPE_LABELS).map(([key, label]) => (
               <SelectItem key={key} value={key}>

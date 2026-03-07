@@ -101,9 +101,9 @@ export const EndUserTable = memo(function EndUserTable({
 
   return (
     <div className="space-y-4">
-      <div className="relative rounded-md border">
+      <div className="relative rounded-xl border-none shadow-md bg-white dark:bg-card transition-all duration-300">
         <Table containerClassName="h-[calc(100vh-220px)] overflow-auto">
-          <TableHeader className="bg-background sticky top-0 z-10 shadow-sm">
+          <TableHeader className="bg-white dark:bg-card sticky top-0 z-10 shadow-sm">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {

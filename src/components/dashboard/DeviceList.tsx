@@ -195,7 +195,7 @@ export function DeviceList({
 
       {/* Bulk Actions toolbar */}
       {Object.keys(rowSelection).length > 0 && (
-        <div className="bg-muted/50 flex items-center gap-3 rounded-lg border p-3">
+        <div className="flex items-center gap-3 rounded-xl border border-border/50 bg-white p-3 shadow-sm dark:bg-card">
           <span className="text-sm font-medium">{Object.keys(rowSelection).length} đã chọn</span>
           <div className="ml-auto flex items-center gap-2">
             {/* Bulk set status - now uses single batch request */}

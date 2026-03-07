@@ -1,6 +1,5 @@
 import { useCallback } from 'react'
 import { useDropzone } from 'react-dropzone'
-import { Card, CardContent } from '@/components/ui/card'
 import { Upload, FileSpreadsheet } from 'lucide-react'
 import { AppLoader } from '@/components/ui/app-loader'
 import { cn } from '@/lib/utils'
@@ -38,42 +37,59 @@ export function ImportDevice({ onImport, onImportMultiple, isLoading }: ImportDe
   })
 
   return (
-    <Card
+    <div
       className={cn(
-        'hover:bg-muted/50 cursor-pointer border-2 border-dashed transition-colors',
-        isDragActive && 'bg-muted'
+        'group relative cursor-pointer overflow-hidden rounded-xl border-2 border-dashed border-border/60 bg-white transition-all dark:bg-card',
+        isDragActive
+          ? 'border-primary/50 bg-primary/5 shadow-md dark:bg-primary/5'
+          : 'hover:border-primary/30 hover:bg-muted/30 hover:shadow-sm',
+        isLoading && 'pointer-events-none opacity-70'
       )}
     >
-      <CardContent className="p-0">
-        <div
-          {...getRootProps()}
-          className="flex min-h-[200px] flex-col items-center justify-center gap-4 p-10 text-center"
-        >
-          <input {...getInputProps()} />
+      {/* Top accent bar */}
+      <div className="absolute top-0 left-0 h-0.5 w-full bg-primary opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
-          {isLoading ? (
-            <AppLoader layout="vertical" text="Đang xử lý file…" />
-          ) : (
-            <div className="bg-primary/10 rounded-full p-4">
-              <Upload className="text-primary h-8 w-8" aria-hidden="true" />
-            </div>
-          )}
+      <div
+        {...getRootProps()}
+        className="flex min-h-[200px] flex-col items-center justify-center gap-4 p-10 text-center"
+      >
+        <input {...getInputProps()} />
 
-          <div className="space-y-1">
-            <h3 className="text-lg font-semibold">
-              {isLoading ? 'Đang import…' : isDragActive ? 'Thả file vào đây' : 'Import file Excel'}
-            </h3>
-            <p className="text-muted-foreground text-sm">
-              Kéo thả hoặc bấm để tải lên (hỗ trợ nhiều file)
-            </p>
+        {isLoading ? (
+          <AppLoader layout="vertical" text="Đang xử lý file…" />
+        ) : (
+          <div
+            className={cn(
+              'flex h-14 w-14 items-center justify-center rounded-full shadow-sm transition-colors duration-300',
+              isDragActive
+                ? 'bg-primary'
+                : 'bg-blue-50 group-hover:bg-primary dark:bg-blue-950/50'
+            )}
+          >
+            <Upload
+              className={cn(
+                'h-7 w-7 transition-colors duration-300',
+                isDragActive ? 'text-primary-foreground' : 'text-primary group-hover:text-primary-foreground'
+              )}
+              aria-hidden="true"
+            />
           </div>
+        )}
 
-          <div className="text-muted-foreground bg-muted flex items-center gap-2 rounded-full px-3 py-1 text-xs">
-            <FileSpreadsheet className="h-3 w-3" />
-            <span>Hỗ trợ .xlsx, .xls • Nhiều file</span>
-          </div>
+        <div className="space-y-1">
+          <h3 className="text-base font-semibold text-foreground">
+            {isLoading ? 'Đang import…' : isDragActive ? 'Thả file vào đây' : 'Import file Excel'}
+          </h3>
+          <p className="text-muted-foreground text-sm">
+            Kéo thả hoặc bấm để tải lên (hỗ trợ nhiều file)
+          </p>
         </div>
-      </CardContent>
-    </Card>
+
+        <div className="flex items-center gap-2 rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground">
+          <FileSpreadsheet className="h-3 w-3" />
+          <span>Hỗ trợ .xlsx, .xls • Nhiều file</span>
+        </div>
+      </div>
+    </div>
   )
 }

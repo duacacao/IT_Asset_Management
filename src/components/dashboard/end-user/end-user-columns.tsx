@@ -133,7 +133,7 @@ export const createEndUserColumns = ({
       return (
         <div className="flex flex-wrap items-center gap-2">
           {/* Show first device fully */}
-          <div className="bg-muted/50 flex items-center gap-2 rounded-md border px-2 py-1">
+          <div className="dark:bg-card flex items-center gap-2 rounded-full bg-white px-2 py-1 shadow-sm">
             {getDeviceIcon(devices[0].type)}
             <span className="text-xs font-medium">{devices[0].name}</span>
           </div>
@@ -188,7 +188,7 @@ export const createEndUserColumns = ({
                 <MoreHorizontal className="text-muted-foreground h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
+            <DropdownMenuContent align="end" className="rounded-xl border-border/50 shadow-md">
               <DropdownMenuItem
                 onClick={() => onDelete(user.id)}
                 className="text-destructive focus:text-destructive cursor-pointer"

@@ -141,13 +141,13 @@ export function CreateDeviceSheet({ isOpen, onClose, onCreated }: CreateDeviceSh
       <SheetContent
         side="right"
         hideClose
-        className="flex w-full flex-col sm:m-2 sm:h-[calc(100vh-1rem)] sm:max-w-xl sm:rounded-lg sm:border sm:shadow-2xl"
+        className="flex w-full flex-col sm:m-2 sm:h-[calc(100vh-1rem)] sm:max-w-xl sm:rounded-xl sm:border sm:border-border/50 sm:shadow-2xl"
       >
         {step === 'type' ? (
           <>
             <SheetHeader className="mb-2 space-y-1">
               <div className="flex items-center space-x-2">
-                <span className="bg-primary/10 text-primary rounded-md px-2 py-0.5 text-xs font-medium tracking-wider">
+                <span className="dark:bg-card text-primary rounded-md bg-white px-2 py-0.5 text-xs font-medium tracking-wider shadow-sm">
                   Tạo thiết bị mới
                 </span>
               </div>
@@ -182,7 +182,7 @@ export function CreateDeviceSheet({ isOpen, onClose, onCreated }: CreateDeviceSh
           </>
         ) : (
           <>
-            <SheetHeader className="mb-0 pb-0 space-y-1">
+            <SheetHeader className="mb-0 space-y-1 pb-0">
               <div className="flex items-center space-x-2">
                 <Button
                   type="button"
@@ -193,7 +193,7 @@ export function CreateDeviceSheet({ isOpen, onClose, onCreated }: CreateDeviceSh
                 >
                   <ArrowLeft className="h-4 w-4" />
                 </Button>
-                <span className="bg-primary/10 text-primary rounded-md px-2 py-0.5 text-xs font-semibold tracking-wider">
+                <span className="dark:bg-card text-primary rounded-md bg-white px-2 py-0.5 text-xs font-semibold tracking-wider shadow-sm">
                   Tạo thiết bị mới
                 </span>
               </div>
@@ -209,16 +209,18 @@ export function CreateDeviceSheet({ isOpen, onClose, onCreated }: CreateDeviceSh
                 >
                   {/* Scrollable Content Area with Fade Mask */}
                   <div
-                    className="flex-1 overflow-y-auto pl-4 pr-3"
+                    className="flex-1 overflow-y-auto pr-3 pl-4"
                     style={{
-                      maskImage: 'linear-gradient(to bottom, transparent, black 8px, black calc(100% - 16px), transparent)',
-                      WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 8px, black calc(100% - 16px), transparent)',
+                      maskImage:
+                        'linear-gradient(to bottom, transparent, black 8px, black calc(100% - 16px), transparent)',
+                      WebkitMaskImage:
+                        'linear-gradient(to bottom, transparent, black 8px, black calc(100% - 16px), transparent)',
                     }}
                   >
-                    <div className="pt-2 pb-6 space-y-6">
+                    <div className="space-y-6 pt-2 pb-6">
                       {templates.length > 0 && (
                         <div className="space-y-3 pb-2">
-                          <div className="flex items-center justify-between mx-1">
+                          <div className="mx-1 flex items-center justify-between">
                             <div className="flex items-center gap-2">
                               <Sparkles className="text-muted-foreground h-4 w-4" />
                               <span className="text-sm font-medium">Quick Templates</span>
@@ -232,7 +234,7 @@ export function CreateDeviceSheet({ isOpen, onClose, onCreated }: CreateDeviceSh
                           </div>
 
                           {showTemplates && (
-                            <div className="flex flex-wrap gap-2 pt-1 mx-1">
+                            <div className="mx-1 flex flex-wrap gap-2 pt-1">
                               {templates.map((template) => (
                                 <Button
                                   key={template.name}
@@ -240,7 +242,7 @@ export function CreateDeviceSheet({ isOpen, onClose, onCreated }: CreateDeviceSh
                                   variant="outline"
                                   size="sm"
                                   onClick={() => handleTemplateSelect(template)}
-                                  className="text-xs transition-colors hover:border-primary/50"
+                                  className="hover:border-primary/50 text-xs transition-colors"
                                 >
                                   {template.name}
                                 </Button>
@@ -255,7 +257,7 @@ export function CreateDeviceSheet({ isOpen, onClose, onCreated }: CreateDeviceSh
                   </div>
 
                   {/* Fixed Sticky Footer */}
-                  <div className="border-border/40 bg-background/50 -mx-1 -mb-1 mt-auto flex-shrink-0 rounded-b-lg border-t px-6 py-3 backdrop-blur-md">
+                  <div className="border-border/40 bg-background/50 -mx-1 mt-auto -mb-1 flex-shrink-0 rounded-b-lg border-t px-6 py-3 backdrop-blur-md">
                     <div className="flex items-center justify-end space-x-3">
                       <Button
                         type="button"
@@ -266,7 +268,11 @@ export function CreateDeviceSheet({ isOpen, onClose, onCreated }: CreateDeviceSh
                       >
                         Hủy bỏ
                       </Button>
-                      <Button type="submit" disabled={isCreating} className="min-w-[80px] font-medium shadow-md">
+                      <Button
+                        type="submit"
+                        disabled={isCreating}
+                        className="min-w-[80px] font-medium shadow-md"
+                      >
                         {isCreating ? (
                           <>
                             <AppLoader layout="horizontal" hideText className="mr-2 h-4 w-4" />

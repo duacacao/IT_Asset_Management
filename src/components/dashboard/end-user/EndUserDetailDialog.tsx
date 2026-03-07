@@ -32,7 +32,7 @@ export function EndUserDetailDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px] rounded-xl border-border/50 shadow-lg">
         <DialogHeader>
           <DialogTitle>Chi tiết End-User</DialogTitle>
         </DialogHeader>
@@ -70,7 +70,7 @@ export function EndUserDetailDialog({
             {user.devices && user.devices.length > 0 ? (
               <div className="flex flex-wrap gap-1.5">
                 {user.devices.map((d) => (
-                  <Badge key={d.id} variant="outline" className="gap-1">
+                  <Badge key={d.id} variant="outline" className="rounded-full gap-1 border-border/50">
                     <Laptop className="h-3 w-3" />
                     {d.name}
                     {d.type && <span className="text-muted-foreground">({d.type})</span>}

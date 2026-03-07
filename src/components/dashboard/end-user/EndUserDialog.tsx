@@ -182,7 +182,7 @@ export function EndUserDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px] rounded-xl border-border/50 shadow-lg">
         <DialogHeader>
           <DialogTitle>{userToEdit ? 'Sửa End-User' : 'Thêm End-User'}</DialogTitle>
           <DialogDescription>

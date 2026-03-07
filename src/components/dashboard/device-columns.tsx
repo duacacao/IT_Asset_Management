@@ -40,7 +40,7 @@ const STATUS_STYLES: Record<
 > = {
   active: {
     colorClass:
-      'border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-950/30 dark:text-blue-400',
+      'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-400',
     icon: AlertCircleIcon,
   },
   broken: {
@@ -50,7 +50,7 @@ const STATUS_STYLES: Record<
   },
   inactive: {
     colorClass:
-      'border-slate-200 bg-slate-50 text-slate-700 dark:border-slate-800 dark:bg-slate-950/30 dark:text-slate-400',
+      'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-400',
     icon: CheckCircleIcon,
   },
 }
@@ -80,9 +80,9 @@ const getDeviceIcon = (type: string | null) => {
 
 // Dot colors cho status dropdown items
 export const STATUS_DOT_COLORS: Record<DeviceStatus, string> = {
-  active: 'bg-blue-500',
+  active: 'bg-amber-500',
   broken: 'bg-red-500',
-  inactive: 'bg-slate-500',
+  inactive: 'bg-emerald-500',
 }
 
 // Label hiển thị trạng thái thiết bị
@@ -92,7 +92,7 @@ export function StatusLabel({ status }: { status: DeviceStatus }) {
   const Icon = style.icon
 
   return (
-    <Badge variant="outline" className={`rounded-sm ${style.colorClass} gap-1.5`}>
+    <Badge variant="outline" className={`rounded-full ${style.colorClass} gap-1.5`}>
       <Icon className="size-3" />
       {config.label}
     </Badge>
@@ -152,7 +152,7 @@ export function createDeviceColumns({
       ),
       cell: ({ row }) => (
         <div className="flex items-center gap-3 py-1 pr-12 pl-4">
-          <div className="bg-muted/50 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border">
+          <div className="bg-muted/30 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border/50 shadow-sm">
             {getDeviceIcon(row.original.type)}
           </div>
           <div className="flex flex-col">
@@ -247,7 +247,7 @@ export function createDeviceColumns({
                 <MoreHorizontal className="text-muted-foreground h-4 w-4" aria-hidden="true" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
+            <DropdownMenuContent align="end" className="rounded-xl border-border/50 shadow-md">
               <DropdownMenuItem
                 onClick={(e) => {
                   e.stopPropagation()

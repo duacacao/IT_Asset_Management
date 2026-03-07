@@ -1,10 +1,6 @@
 'use client'
 
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-} from '@/components/ui/sheet'
+import { Sheet, SheetContent, SheetHeader } from '@/components/ui/sheet'
 import { Device } from '@/types/device'
 import { AppLoader } from '@/components/ui/app-loader'
 import dynamic from 'next/dynamic'
@@ -38,7 +34,7 @@ export function DeviceUpdateSheet({ device, isOpen, onClose }: DeviceUpdateSheet
         <SheetContent
           side="right"
           hideClose
-          className="flex w-full flex-col sm:m-2 sm:h-[calc(100vh-1rem)] sm:max-w-xl sm:rounded-lg sm:border sm:shadow-2xl"
+          className="flex w-full flex-col sm:m-2 sm:h-[calc(100vh-1rem)] sm:max-w-xl sm:rounded-xl sm:border sm:border-border/50 sm:shadow-2xl"
         ></SheetContent>
       </Sheet>
     )
@@ -49,11 +45,11 @@ export function DeviceUpdateSheet({ device, isOpen, onClose }: DeviceUpdateSheet
       <SheetContent
         side="right"
         hideClose
-        className="flex w-full flex-col sm:m-2 sm:h-[calc(100vh-1rem)] sm:max-w-xl sm:rounded-lg sm:border sm:shadow-2xl"
+        className="flex w-full flex-col sm:m-2 sm:h-[calc(100vh-1rem)] sm:max-w-xl sm:rounded-xl sm:border sm:border-border/50 sm:shadow-2xl"
       >
-        <SheetHeader className="pb-0 mb-0">
+        <SheetHeader className="mb-0 pb-0">
           <div className="flex items-center space-x-2">
-            <span className="bg-primary/10 text-primary rounded-md px-2 py-0.5 text-xs font-medium tracking-wider">
+            <span className="dark:bg-card text-primary rounded-md bg-white px-2 py-0.5 text-xs font-medium tracking-wider shadow-sm">
               Đang chỉnh sửa
             </span>
           </div>

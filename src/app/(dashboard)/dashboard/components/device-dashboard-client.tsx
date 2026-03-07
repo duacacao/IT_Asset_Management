@@ -6,7 +6,6 @@ import { SectionCards } from './section-cards'
 import { useDevicesQuery } from '@/hooks/useDevicesQuery'
 import { useEndUsersQuery } from '@/hooks/queries/endUserQueries'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Upload, LayoutDashboard } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -33,37 +32,37 @@ const HardwareOverview = dynamic(
 
 function ChartSkeleton() {
   return (
-    <Card className="flex h-full flex-col">
-      <CardHeader className="pb-2">
-        <Skeleton className="h-5 w-32" />
-        <Skeleton className="h-4 w-24" />
-      </CardHeader>
-      <CardContent className="flex flex-1 items-center justify-center pb-4">
+    <div className="relative overflow-hidden rounded-xl border-none bg-white p-5 shadow-md dark:bg-card">
+      <div className="mb-4 flex items-center gap-3">
+        <Skeleton className="h-10 w-10 rounded-full" />
+        <Skeleton className="h-3 w-32" />
+      </div>
+      <div className="flex items-center justify-center py-6">
         <Skeleton className="h-48 w-48 rounded-full" />
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }
 
 function ActivitySkeleton() {
   return (
-    <Card className="flex h-full flex-col">
-      <CardHeader className="pb-2">
-        <Skeleton className="h-5 w-40" />
-        <Skeleton className="h-4 w-24" />
-      </CardHeader>
-      <CardContent className="flex flex-1 flex-col gap-3 pb-4">
+    <div className="relative overflow-hidden rounded-xl border-none bg-white p-5 shadow-md dark:bg-card">
+      <div className="mb-4 flex items-center gap-3">
+        <Skeleton className="h-10 w-10 rounded-full" />
+        <Skeleton className="h-3 w-40" />
+      </div>
+      <div className="flex flex-col gap-3">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="flex gap-3">
-            <Skeleton className="h-8 w-8 rounded-full" />
+          <div key={i} className="flex gap-3 px-2 py-2">
+            <Skeleton className="h-9 w-9 rounded-full" />
             <div className="flex-1 space-y-2">
               <Skeleton className="h-4 w-3/4" />
               <Skeleton className="h-3 w-1/2" />
             </div>
           </div>
         ))}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }
 
@@ -75,23 +74,25 @@ export function DeviceDashboardClient() {
   if (devices.length === 0) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-6 p-4 pt-0">
-        <Card className="w-full max-w-lg text-center">
-          <CardHeader>
-            <div className="bg-muted mx-auto mb-2 rounded-full p-4">
-              <LayoutDashboard className="text-muted-foreground h-8 w-8" aria-hidden="true" />
-            </div>
-            <CardTitle className="text-xl">Chào mừng đến IT Asset Management</CardTitle>
-            <CardDescription>
-              Import file Excel (.xlsx) để bắt đầu theo dõi và quản lý thiết bị IT.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button size="lg" onClick={() => router.push('/devices')}>
-              <Upload className="mr-2 h-5 w-5" aria-hidden="true" />
-              Import thiết bị
-            </Button>
-          </CardContent>
-        </Card>
+        <div className="group relative w-full max-w-lg overflow-hidden rounded-xl border-none bg-white p-8 text-center shadow-md dark:bg-card">
+          {/* Top accent bar */}
+          <div className="absolute top-0 left-0 h-1 w-full bg-primary opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-blue-50 shadow-sm dark:bg-blue-950/50">
+            <LayoutDashboard className="h-8 w-8 text-primary" aria-hidden="true" />
+          </div>
+
+          <h2 className="mb-2 text-xl font-bold tracking-tight text-foreground">
+            Chào mừng đến IT Asset Management
+          </h2>
+          <p className="mb-6 text-sm text-muted-foreground">
+            Import file Excel (.xlsx) để bắt đầu theo dõi và quản lý thiết bị IT.
+          </p>
+          <Button size="lg" className="rounded-xl" onClick={() => router.push('/devices')}>
+            <Upload className="mr-2 h-5 w-5" aria-hidden="true" />
+            Import thiết bị
+          </Button>
+        </div>
       </div>
     )
   }

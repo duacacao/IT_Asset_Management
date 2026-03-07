@@ -131,7 +131,7 @@ export function DeviceUpdateForm({ device, onClose }: DeviceUpdateFormProps) {
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
-          className="bg-muted/10 flex h-full flex-col overflow-hidden rounded-lg p-1"
+          className="bg-muted/10 flex h-full flex-col overflow-hidden rounded-xl p-1"
         >
           {/* Scrollable Content Area with Fade Mask */}
           <div
