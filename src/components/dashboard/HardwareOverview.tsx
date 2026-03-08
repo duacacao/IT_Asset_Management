@@ -140,14 +140,11 @@ export function HardwareOverview({ devices }: HardwareOverviewProps) {
   const cpuData = React.useMemo(() => groupCPU(devices), [devices])
 
   return (
-    <div className="group relative flex h-full flex-col overflow-hidden rounded-xl border-none bg-white p-5 shadow-md transition-all hover:shadow-lg dark:bg-card">
-      {/* Top accent bar */}
-      <div className="absolute top-0 left-0 h-1 w-full bg-primary opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-
+    <div className="relative flex h-full flex-col overflow-hidden rounded-xl border-none bg-white p-5 shadow-md dark:bg-card">
       {/* Header */}
       <div className="mb-4 flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-violet-50 shadow-sm transition-colors duration-300 group-hover:bg-primary dark:bg-violet-950/50">
-          <Cpu className="h-5 w-5 text-violet-600 transition-colors duration-300 group-hover:text-primary-foreground" />
+        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-violet-50 shadow-sm dark:bg-violet-950/50">
+          <Cpu className="h-5 w-5 text-violet-600" />
         </div>
         <span className="text-xs font-medium tracking-wide text-gray-500 uppercase">Tổng quan phần cứng</span>
       </div>

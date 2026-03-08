@@ -60,8 +60,8 @@ export function DepartmentChart({ endUsers }: DepartmentChartProps) {
 
   const headerContent = (
     <div className="mb-4 flex items-center gap-3">
-      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-50 shadow-sm transition-colors duration-300 group-hover:bg-primary dark:bg-emerald-950/50">
-        <Building2 className="h-5 w-5 text-emerald-600 transition-colors duration-300 group-hover:text-primary-foreground" />
+      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-50 shadow-sm dark:bg-emerald-950/50">
+        <Building2 className="h-5 w-5 text-emerald-600" />
       </div>
       <span className="text-xs font-medium tracking-wide text-gray-500 uppercase">Phân bổ phòng ban</span>
     </div>
@@ -69,8 +69,7 @@ export function DepartmentChart({ endUsers }: DepartmentChartProps) {
 
   if (chartData.length === 0) {
     return (
-      <div className="group relative flex flex-col overflow-hidden rounded-xl border-none bg-white p-5 shadow-md transition-all hover:shadow-lg dark:bg-card">
-        <div className="absolute top-0 left-0 h-1 w-full bg-primary opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+      <div className="relative flex flex-col overflow-hidden rounded-xl border-none bg-white p-5 shadow-md dark:bg-card">
         {headerContent}
         <div className="flex flex-1 items-center justify-center py-8">
           <p className="text-muted-foreground text-sm">Chưa có dữ liệu</p>
@@ -80,10 +79,7 @@ export function DepartmentChart({ endUsers }: DepartmentChartProps) {
   }
 
   return (
-    <div className="group relative flex flex-col overflow-hidden rounded-xl border-none bg-white p-5 shadow-md transition-all hover:shadow-lg dark:bg-card">
-      {/* Top accent bar */}
-      <div className="absolute top-0 left-0 h-1 w-full bg-primary opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-
+    <div className="relative flex flex-col overflow-hidden rounded-xl border-none bg-white p-5 shadow-md dark:bg-card">
       {/* Header */}
       {headerContent}
 

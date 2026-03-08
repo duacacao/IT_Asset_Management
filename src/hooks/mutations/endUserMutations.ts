@@ -144,13 +144,14 @@ export function useCreateDepartmentMutation() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (name: string) => {
-      const result = await createDepartmentAction({ name })
+    mutationFn: async (data: { name: string; parent_id?: string | null }) => {
+      const result = await createDepartmentAction(data)
       if (result.error) throw new Error(result.error)
       return result.data
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.departments.list() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.departments.all })
+      queryClient.invalidateQueries({ queryKey: queryKeys.organization.hierarchy() })
       toast.success('Tạo phòng ban thành công!')
     },
     onError: (err) => {
@@ -163,14 +164,15 @@ export function useUpdateDepartmentMutation() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async ({ id, name }: { id: string; name: string }) => {
-      const result = await updateDepartmentAction(id, { name })
+    mutationFn: async ({ id, name, parent_id }: { id: string; name: string; parent_id?: string | null }) => {
+      const result = await updateDepartmentAction(id, { name, parent_id })
       if (result.error) throw new Error(result.error)
       return result.data
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.departments.list() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.departments.all })
       queryClient.invalidateQueries({ queryKey: queryKeys.endUsers.list() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.organization.hierarchy() })
       toast.success('Cập nhật phòng ban thành công!')
     },
     onError: (err) => {
@@ -189,8 +191,9 @@ export function useDeleteDepartmentMutation() {
       return id
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.departments.list() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.departments.all })
       queryClient.invalidateQueries({ queryKey: queryKeys.endUsers.list() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.organization.hierarchy() })
       toast.success('Xóa phòng ban thành công!')
     },
     onError: (err) => {

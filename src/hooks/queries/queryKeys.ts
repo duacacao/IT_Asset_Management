@@ -37,6 +37,19 @@ export const queryKeys = {
     detail: (id: string) => [...queryKeys.devices.all, 'detail', id] as const,
     stats: () => [...queryKeys.devices.all, 'stats'] as const,
   },
+
+  // Organization Chart
+  organization: {
+    all: ['organization'] as const,
+    hierarchy: () => [...queryKeys.organization.all, 'hierarchy'] as const,
+  },
+
+  // Activity Logs
+  activityLogs: {
+    all: ['activity-logs'] as const,
+    list: (params?: { page?: number; action?: string }) =>
+      [...queryKeys.activityLogs.all, 'list', params] as const,
+  },
 } as const
 
 // Type-safe helper to get query keys

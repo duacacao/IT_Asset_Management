@@ -145,12 +145,6 @@ export default function EndUsersPage() {
 
   return (
     <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
-      <div className="flex items-center justify-between space-y-2">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight">Quản lý End-User</h2>
-        </div>
-      </div>
-
       {isLoading ? (
         <div className="flex min-h-[50vh] items-center justify-center">
           <AppLoader layout="vertical" text="Đang tải danh sách end-user..." />

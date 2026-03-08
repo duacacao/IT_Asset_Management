@@ -74,10 +74,7 @@ export function DeviceDashboardClient() {
   if (devices.length === 0) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-6 p-4 pt-0">
-        <div className="group relative w-full max-w-lg overflow-hidden rounded-xl border-none bg-white p-8 text-center shadow-md dark:bg-card">
-          {/* Top accent bar */}
-          <div className="absolute top-0 left-0 h-1 w-full bg-primary opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-
+        <div className="relative w-full max-w-lg overflow-hidden rounded-xl border-none bg-white p-8 text-center shadow-md dark:bg-card">
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-blue-50 shadow-sm dark:bg-blue-950/50">
             <LayoutDashboard className="h-8 w-8 text-primary" aria-hidden="true" />
           </div>

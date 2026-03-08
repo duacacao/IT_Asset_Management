@@ -68,9 +68,23 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           icon: Laptop,
         },
         {
-          title: 'End-Users',
-          url: '/end-user',
+          title: 'Nhân viên',
+          url: '#',
           icon: Users,
+          items: [
+            {
+              title: 'Thông tin nhân viên',
+              url: '/end-user',
+            },
+            {
+              title: 'Phòng ban',
+              url: '/department',
+            },
+            {
+              title: 'Sơ đồ tổ chức',
+              url: '/organization',
+            },
+          ],
         },
       ],
     },
@@ -94,6 +108,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             {
               title: 'Giao diện',
               url: '/settings/appearance',
+            },
+            {
+              title: 'Lịch sử hệ thống',
+              url: '/settings/history',
             },
           ],
         },

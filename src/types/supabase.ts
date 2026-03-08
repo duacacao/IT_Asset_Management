@@ -280,6 +280,44 @@ export type Database = {
           deleted_at: string | null
           id: string
           name: string
+          parent_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          name: string
+          parent_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          name?: string
+          parent_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'departments_parent_id_departments_id_fk'
+            columns: ['parent_id']
+            isOneToOne: false
+            referencedRelation: 'departments'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      positions: {
+        Row: {
+          created_at: string
+          deleted_at: string | null
+          id: string
+          name: string
           updated_at: string
           user_id: string
         }
@@ -300,44 +338,6 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
-      }
-      positions: {
-        Row: {
-          created_at: string
-          deleted_at: string | null
-          department_id: string | null
-          id: string
-          name: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          deleted_at?: string | null
-          department_id?: string | null
-          id?: string
-          name: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          deleted_at?: string | null
-          department_id?: string | null
-          id?: string
-          name?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: 'positions_department_id_departments_id_fk'
-            columns: ['department_id']
-            isOneToOne: false
-            referencedRelation: 'departments'
-            referencedColumns: ['id']
-          },
-        ]
       }
     }
     Views: {

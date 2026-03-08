@@ -46,6 +46,8 @@ export async function createDepartment(department: DepartmentInsert): Promise<{
   }
 
   revalidatePath('/end-user')
+  revalidatePath('/department')
+  revalidatePath('/organization')
   return { data, error: null }
 }
 
@@ -72,6 +74,8 @@ export async function updateDepartment(
   }
 
   revalidatePath('/end-user')
+  revalidatePath('/department')
+  revalidatePath('/organization')
   return { data, error: null }
 }
 
@@ -93,5 +97,7 @@ export async function deleteDepartment(id: string): Promise<{
   }
 
   revalidatePath('/end-user')
+  revalidatePath('/department')
+  revalidatePath('/organization')
   return { success: true, error: null }
 }

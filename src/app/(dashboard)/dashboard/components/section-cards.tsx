@@ -22,16 +22,13 @@ interface StatCardProps {
 
 function StatCard({ title, value, subtitle, icon, iconBg, iconColor }: StatCardProps) {
   return (
-    <div className="group relative overflow-hidden rounded-xl border-none bg-white p-5 shadow-md transition-all hover:shadow-lg dark:bg-card">
-      {/* Top accent bar — revealed on hover */}
-      <div className="absolute top-0 left-0 h-1 w-full bg-primary opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-
+    <div className="relative overflow-hidden rounded-xl border-none bg-white p-5 shadow-md dark:bg-card">
       <div className="mb-4 flex items-center justify-between">
         {/* Icon bubble */}
         <div
-          className={`flex h-10 w-10 items-center justify-center rounded-full shadow-sm transition-colors duration-300 group-hover:bg-primary ${iconBg}`}
+          className={`flex h-10 w-10 items-center justify-center rounded-full shadow-sm ${iconBg}`}
         >
-          <span className={`transition-colors duration-300 group-hover:text-primary-foreground ${iconColor}`}>
+          <span className={iconColor}>
             {icon}
           </span>
         </div>

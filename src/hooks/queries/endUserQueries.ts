@@ -68,6 +68,20 @@ export function useDepartmentsQuery() {
   })
 }
 
+// Raw Department[] for department management table
+export function useDepartmentsRawQuery() {
+  return useQuery({
+    queryKey: [...queryKeys.departments.all, 'raw'] as const,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
+    queryFn: async () => {
+      const { data, error } = await getDepartments()
+      if (error) throw new Error(error)
+      return data || []
+    },
+  })
+}
+
 // ============================================
 // POSITIONS QUERIES
 // ============================================

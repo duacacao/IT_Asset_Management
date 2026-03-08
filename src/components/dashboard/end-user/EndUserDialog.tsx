@@ -252,7 +252,7 @@ export function EndUserDialog({
                       creatable
                       createLabel="Thêm phòng ban mới"
                       onCreate={async (value) => {
-                        const result = await createDeptMutation.mutateAsync(value)
+                        const result = await createDeptMutation.mutateAsync({ name: value })
                         if (result?.id) field.onChange(result.id)
                       }}
                       editable

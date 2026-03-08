@@ -50,14 +50,11 @@ export function DeviceStatusChart({ devices }: DeviceStatusChartProps) {
   const total = devices.length
 
   return (
-    <div className="group relative flex flex-col overflow-hidden rounded-xl border-none bg-white p-5 shadow-md transition-all hover:shadow-lg dark:bg-card">
-      {/* Top accent bar */}
-      <div className="absolute top-0 left-0 h-1 w-full bg-primary opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-
+    <div className="relative flex flex-col overflow-hidden rounded-xl border-none bg-white p-5 shadow-md dark:bg-card">
       {/* Header */}
       <div className="mb-4 flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-50 shadow-sm transition-colors duration-300 group-hover:bg-primary dark:bg-blue-950/50">
-          <Activity className="h-5 w-5 text-primary transition-colors duration-300 group-hover:text-primary-foreground" />
+        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-50 shadow-sm dark:bg-blue-950/50">
+          <Activity className="h-5 w-5 text-primary" />
         </div>
         <span className="text-xs font-medium tracking-wide text-gray-500 uppercase">Trạng thái thiết bị</span>
       </div>

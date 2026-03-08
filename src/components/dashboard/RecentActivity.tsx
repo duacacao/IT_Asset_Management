@@ -65,14 +65,11 @@ export function RecentActivity({ devices, endUsers }: RecentActivityProps) {
   }, [devices, endUsers])
 
   return (
-    <div className="group relative flex h-full flex-col overflow-hidden rounded-xl border-none bg-white shadow-md transition-all hover:shadow-lg dark:bg-card">
-      {/* Top accent bar */}
-      <div className="absolute top-0 left-0 h-1 w-full bg-primary opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-
+    <div className="relative flex h-full flex-col overflow-hidden rounded-xl border-none bg-white shadow-md dark:bg-card">
       {/* Header */}
       <div className="flex items-center gap-3 p-5 pb-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-50 shadow-sm transition-colors duration-300 group-hover:bg-primary dark:bg-blue-950/50">
-          <Clock className="h-5 w-5 text-primary transition-colors duration-300 group-hover:text-primary-foreground" />
+        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-50 shadow-sm dark:bg-blue-950/50">
+          <Clock className="h-5 w-5 text-primary" />
         </div>
         <span className="text-xs font-medium tracking-wide text-gray-500 uppercase">Hoạt động gần đây</span>
       </div>

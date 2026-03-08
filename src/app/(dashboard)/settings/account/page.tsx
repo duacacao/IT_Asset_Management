@@ -140,11 +140,6 @@ export default function AccountSettings() {
 
   return (
     <div className="space-y-6 px-4 lg:px-6">
-      <div>
-        <h1 className="text-3xl font-bold">Cài đặt tài khoản</h1>
-        <p className="text-muted-foreground">Quản lý thông tin tài khoản của bạn.</p>
-      </div>
-
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <Card>

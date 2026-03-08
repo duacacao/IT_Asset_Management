@@ -5,13 +5,6 @@ import { ThemeWrapper } from '@/components/theme-customizer/theme-wrapper'
 export default function AppearanceSettings() {
   return (
     <div className="space-y-6 px-4 md:px-6 lg:px-8">
-      <div>
-        <h3 className="text-lg font-medium">Appearance</h3>
-        <p className="text-muted-foreground text-sm">
-          Customize the appearance of the application. Automatically switch between day and night
-          themes.
-        </p>
-      </div>
       <Separator />
       <ThemeWrapper className="flex flex-col gap-8 md:flex-row md:gap-12">
         <div className="flex-1 lg:max-w-2xl">
