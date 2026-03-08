@@ -13,6 +13,7 @@ import {
   useEndUsersQuery, // Added this hook
   useDepartmentsQuery,
   usePositionsQuery,
+  usePositionsRawQuery,
   useAvailableDevicesQuery,
 } from '@/hooks/queries/endUserQueries'
 import { toast } from 'sonner'
@@ -52,6 +53,7 @@ export function UsersClient({ initialData }: UsersClientProps) {
   // Remote Data Hooks for Selects
   const { data: departments = [] } = useDepartmentsQuery()
   const { data: positions = [] } = usePositionsQuery()
+  const { data: rawPositions = [] } = usePositionsRawQuery()
   const { data: availableDevices = [] } = useAvailableDevicesQuery()
 
   // Mutations
@@ -157,6 +159,7 @@ export function UsersClient({ initialData }: UsersClientProps) {
         userToEdit={userToEdit}
         departments={departments}
         positions={positions}
+        rawPositions={rawPositions}
         selectableDevices={availableDevices}
         onSuccess={() => {
           // onSuccess of Dialog calls refetch/invalidateQueries via mutation

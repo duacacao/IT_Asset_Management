@@ -133,7 +133,7 @@ export const createEndUserColumns = ({
       return (
         <div className="flex flex-wrap items-center gap-2">
           {/* Show first device fully */}
-          <div className="dark:bg-card flex items-center gap-2 rounded-full bg-white px-2 py-1 shadow-sm">
+          <div className="dark:bg-card/80 flex items-center gap-2 rounded-full bg-white px-2 py-1 shadow-sm border border-border/20">
             {getDeviceIcon(devices[0].type)}
             <span className="text-xs font-medium">{devices[0].name}</span>
           </div>
@@ -173,18 +173,18 @@ export const createEndUserColumns = ({
         <div className="flex items-center justify-end gap-1 pr-1">
           <Button
             variant="ghost"
-            className="h-8 w-8 p-0"
+            className="h-8 w-8 cursor-pointer rounded-xl p-0"
             onClick={() => onView(user.id)}
             title="Xem chi tiết"
           >
             <Eye className="text-muted-foreground h-4 w-4" />
           </Button>
-          <Button variant="ghost" className="h-8 w-8 p-0" onClick={() => onEdit(user)} title="Sửa">
+          <Button variant="ghost" className="h-8 w-8 cursor-pointer rounded-xl p-0" onClick={() => onEdit(user)} title="Sửa">
             <Pencil className="text-muted-foreground h-4 w-4" />
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
+              <Button variant="ghost" className="h-8 w-8 cursor-pointer rounded-xl p-0">
                 <MoreHorizontal className="text-muted-foreground h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>

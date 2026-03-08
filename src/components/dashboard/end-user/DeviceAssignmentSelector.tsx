@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { Laptop, Plus, X, ChevronsUpDown } from 'lucide-react'
+import { Plus, X, ChevronsUpDown } from 'lucide-react'
+import { getDeviceIcon } from './end-user-columns'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
@@ -59,7 +60,7 @@ export function DeviceAssignmentSelector({
             if (!device) return null
             return (
               <Badge key={deviceId} variant="secondary" className="gap-1 pr-1 text-xs">
-                <Laptop className="h-3 w-3" />
+                {getDeviceIcon(device.type)}
                 {device.name}
                 {device.type && <span className="text-muted-foreground">({device.type})</span>}
                 <button
@@ -84,7 +85,7 @@ export function DeviceAssignmentSelector({
             size="sm"
             type="button"
             disabled={disabled}
-            className="text-muted-foreground w-full cursor-pointer justify-between"
+            className="text-muted-foreground w-full cursor-pointer justify-between rounded-xl border-border/50 shadow-sm"
           >
             <span className="flex items-center gap-1">
               <Plus className="h-3.5 w-3.5" />
@@ -93,7 +94,7 @@ export function DeviceAssignmentSelector({
             <ChevronsUpDown className="h-3.5 w-3.5 opacity-50" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-[320px] p-0" align="start">
+        <PopoverContent className="w-[320px] rounded-xl border-border/50 p-0 shadow-md" align="start">
           <Command>
             <CommandInput placeholder="Tìm thiết bị..." />
             <CommandList>
@@ -106,7 +107,7 @@ export function DeviceAssignmentSelector({
                     onSelect={() => handleSelect(device.id)}
                     className="cursor-pointer"
                   >
-                    <Laptop className="text-muted-foreground mr-2 h-4 w-4" />
+                    <span className="text-muted-foreground mr-2">{getDeviceIcon(device.type)}</span>
                     <span>{device.name}</span>
                     {device.type && (
                       <span className="text-muted-foreground ml-1">({device.type})</span>

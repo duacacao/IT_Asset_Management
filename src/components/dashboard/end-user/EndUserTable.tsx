@@ -21,10 +21,18 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { createEndUserColumns } from './end-user-columns'
 import { EndUserWithDevice } from '@/types/end-user'
 import { EmptyState } from '@/components/EmptyState'
-import { Users2 } from 'lucide-react'
+import { Users2, ChevronsLeft, ChevronsRight, ChevronLeft, ChevronRight } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 interface EndUserTableProps {
   data: EndUserWithDevice[]
@@ -69,13 +77,11 @@ export const EndUserTable = memo(function EndUserTable({
     onColumnVisibilityChange: setColumnVisibility,
     enableRowSelection: true,
     onRowSelectionChange: (updater) => {
-      // Handle functional update
       const currentSelection = selectedIds.reduce((acc, id) => ({ ...acc, [id]: true }), {})
       const nextSelection = typeof updater === 'function' ? updater(currentSelection) : updater
 
       const nextSelectedIds = Object.keys(nextSelection)
 
-      // If all selected (or close to all, considering potential deselects)
       if (nextSelectedIds.length === data.length && data.length > 0) {
         onSelectAll(true)
         return
@@ -86,7 +92,6 @@ export const EndUserTable = memo(function EndUserTable({
         return
       }
 
-      // Identify differences
       const added = nextSelectedIds.filter((id) => !selectedIds.includes(id))
       const removed = selectedIds.filter((id) => !nextSelectedIds.includes(id))
 
@@ -105,7 +110,7 @@ export const EndUserTable = memo(function EndUserTable({
         <Table containerClassName="h-[calc(100vh-220px)] overflow-auto">
           <TableHeader className="bg-white dark:bg-card sticky top-0 z-10 shadow-sm">
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
+              <TableRow key={headerGroup.id} className="border-border/20 hover:bg-transparent">
                 {headerGroup.headers.map((header) => {
                   let widthClass = ''
                   const id = header.id
@@ -118,7 +123,13 @@ export const EndUserTable = memo(function EndUserTable({
                   else if (id === 'actions') widthClass = 'w-[120px] text-right pr-4'
 
                   return (
-                    <TableHead key={header.id} className={widthClass}>
+                    <TableHead
+                      key={header.id}
+                      className={cn(
+                        'text-muted-foreground text-xs font-semibold uppercase tracking-wider',
+                        widthClass
+                      )}
+                    >
                       {header.isPlaceholder
                         ? null
                         : flexRender(header.column.columnDef.header, header.getContext())}
@@ -131,7 +142,11 @@ export const EndUserTable = memo(function EndUserTable({
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && 'selected'}
+                  className="border-border/20 transition-colors hover:bg-muted/30"
+                >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -155,27 +170,84 @@ export const EndUserTable = memo(function EndUserTable({
         </Table>
       </div>
 
-      <div className="flex items-center justify-between">
+      {/* Pagination */}
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div className="text-muted-foreground text-sm">
-          {table.getFilteredRowModel().rows.length} người dùng
+          {selectedIds.length > 0 ? (
+            <span>
+              {selectedIds.length} / {table.getFilteredRowModel().rows.length} người dùng được chọn
+            </span>
+          ) : (
+            <span>{table.getFilteredRowModel().rows.length} người dùng</span>
+          )}
         </div>
-        <div className="flex items-center space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-          >
-            Trước
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-          >
-            Sau
-          </Button>
+        <div className="flex items-center gap-3">
+          {/* Page size */}
+          <div className="flex items-center gap-2">
+            <span className="text-muted-foreground text-sm whitespace-nowrap">Hiển thị</span>
+            <Select
+              value={`${table.getState().pagination.pageSize}`}
+              onValueChange={(value) => {
+                table.setPageSize(Number(value))
+              }}
+            >
+              <SelectTrigger className="h-8 w-[70px] rounded-xl border-border/50 shadow-sm">
+                <SelectValue placeholder={table.getState().pagination.pageSize} />
+              </SelectTrigger>
+              <SelectContent className="rounded-xl border-border/50 shadow-md">
+                {[10, 20, 30, 50].map((pageSize) => (
+                  <SelectItem key={pageSize} value={`${pageSize}`}>
+                    {pageSize}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Page indicator */}
+          <span className="text-muted-foreground text-sm whitespace-nowrap">
+            Trang {table.getState().pagination.pageIndex + 1} / {table.getPageCount() || 1}
+          </span>
+
+          {/* Navigation */}
+          <div className="flex items-center gap-1">
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-8 w-8 cursor-pointer rounded-xl border-border/50 shadow-sm"
+              onClick={() => table.setPageIndex(0)}
+              disabled={!table.getCanPreviousPage()}
+            >
+              <ChevronsLeft className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-8 w-8 cursor-pointer rounded-xl border-border/50 shadow-sm"
+              onClick={() => table.previousPage()}
+              disabled={!table.getCanPreviousPage()}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-8 w-8 cursor-pointer rounded-xl border-border/50 shadow-sm"
+              onClick={() => table.nextPage()}
+              disabled={!table.getCanNextPage()}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-8 w-8 cursor-pointer rounded-xl border-border/50 shadow-sm"
+              onClick={() => table.setPageIndex(table.getPageCount() - 1)}
+              disabled={!table.getCanNextPage()}
+            >
+              <ChevronsRight className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </div>
     </div>

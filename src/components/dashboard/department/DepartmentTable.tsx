@@ -13,10 +13,11 @@ import {
 } from '@tanstack/react-table'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { createDepartmentColumns } from './department-columns'
-import type { Department } from '@/types/department'
+import type { Department, Position } from '@/types/department'
 
 interface DepartmentTableProps {
   data: Department[]
+  positions: Position[]
   onEdit: (dept: Department) => void
   onDelete: (id: string) => void
   memberCounts: Map<string, number>
@@ -27,6 +28,7 @@ interface DepartmentTableProps {
 
 export function DepartmentTable({
   data,
+  positions,
   onEdit,
   onDelete,
   memberCounts,
@@ -38,8 +40,8 @@ export function DepartmentTable({
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
 
   const columns = useMemo(
-    () => createDepartmentColumns({ onEdit, onDelete, departments: data, memberCounts }),
-    [onEdit, onDelete, data, memberCounts]
+    () => createDepartmentColumns({ onEdit, onDelete, departments: data, positions, memberCounts }),
+    [onEdit, onDelete, data, positions, memberCounts]
   )
 
   // Client-side search filter
@@ -86,7 +88,7 @@ export function DepartmentTable({
                   const id = header.column.id
                   if (id === 'select') widthClass = 'w-[40px]'
                   else if (id === 'name') widthClass = 'w-[30%] min-w-[200px]'
-                  else if (id === 'parent') widthClass = 'w-[25%] min-w-[160px]'
+                  else if (id === 'positions') widthClass = 'w-[25%] min-w-[160px]'
                   else if (id === 'member_count') widthClass = 'w-[15%] min-w-[100px]'
                   else if (id === 'created_at') widthClass = 'w-[15%] min-w-[120px]'
                   else if (id === 'actions') widthClass = 'w-[100px] text-right pr-4'

@@ -1,5 +1,5 @@
 import { ColumnDef } from '@tanstack/react-table'
-import { Department } from '@/types/department'
+import { Department, Position } from '@/types/department'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -15,6 +15,7 @@ interface CreateDepartmentColumnsProps {
   onEdit: (dept: Department) => void
   onDelete: (id: string) => void
   departments: Department[]
+  positions: Position[]
   memberCounts: Map<string, number>
 }
 
@@ -22,6 +23,7 @@ export const createDepartmentColumns = ({
   onEdit,
   onDelete,
   departments,
+  positions,
   memberCounts,
 }: CreateDepartmentColumnsProps): ColumnDef<Department>[] => [
   {
@@ -51,32 +53,50 @@ export const createDepartmentColumns = ({
     cell: ({ row }) => {
       const dept = row.original
       const isRoot = !dept.parent_id
+      const parent = dept.parent_id ? departments.find((d) => d.id === dept.parent_id) : null
       return (
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-foreground">{dept.name}</span>
-          {isRoot && (
-            <Badge
-              variant="outline"
-              className="border-amber-300 bg-amber-50 text-amber-700 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-400"
-            >
-              Gốc
-            </Badge>
+        <div className="flex flex-col gap-0.5">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-foreground">{dept.name}</span>
+            {isRoot && (
+              <Badge
+                variant="outline"
+                className="border-amber-300 bg-amber-50 text-amber-700 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-400"
+              >
+                Gốc
+              </Badge>
+            )}
+          </div>
+          {parent && (
+            <span className="text-xs text-muted-foreground">
+              Trực thuộc: {parent.name}
+            </span>
           )}
         </div>
       )
     },
   },
   {
-    id: 'parent',
-    header: 'Phòng ban cha',
+    id: 'positions',
+    header: 'Chức vụ',
     cell: ({ row }) => {
-      const parentId = row.original.parent_id
-      if (!parentId) {
+      const deptId = row.original.id
+      const deptPositions = positions.filter((p) => p.department_id === deptId)
+      if (deptPositions.length === 0) {
         return <span className="text-muted-foreground text-sm">—</span>
       }
-      const parent = departments.find((d) => d.id === parentId)
       return (
-        <span className="text-sm text-foreground">{parent?.name || 'N/A'}</span>
+        <div className="flex flex-wrap gap-1">
+          {deptPositions.map((p) => (
+            <Badge
+              key={p.id}
+              variant="secondary"
+              className="text-xs"
+            >
+              {p.name}
+            </Badge>
+          ))}
+        </div>
       )
     },
   },

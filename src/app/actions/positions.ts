@@ -46,6 +46,7 @@ export async function createPosition(position: PositionInsert): Promise<{
   }
 
   revalidatePath('/end-user')
+  revalidatePath('/department')
   return { data, error: null }
 }
 
@@ -72,6 +73,7 @@ export async function updatePosition(
   }
 
   revalidatePath('/end-user')
+  revalidatePath('/department')
   return { data, error: null }
 }
 

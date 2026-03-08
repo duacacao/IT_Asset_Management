@@ -77,7 +77,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               url: '/end-user',
             },
             {
-              title: 'Phòng ban',
+              title: 'Phòng ban & Chức vụ',
               url: '/department',
             },
             {

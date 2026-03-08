@@ -26,9 +26,8 @@ export interface OrganizationData {
 
 // ============================================
 // Server Action: Fetch organization hierarchy
-// Positions don't have department_id directly.
-// We derive the mapping via end_users table which
-// has both department_id and position_id.
+// Positions have department_id directly.
+// Employee counts are derived from end_users.
 // ============================================
 
 export async function getOrganizationHierarchy(): Promise<OrganizationData> {
@@ -48,10 +47,10 @@ export async function getOrganizationHierarchy(): Promise<OrganizationData> {
       return { departments: [], error: deptError.message }
     }
 
-    // 2. Fetch positions (non-deleted) — no department_id column
+    // 2. Fetch positions with department_id
     const { data: positions, error: posError } = await supabase
       .from('positions')
-      .select('id, name')
+      .select('id, name, department_id')
       .eq('user_id', user.id)
       .is('deleted_at', null)
       .order('name', { ascending: true })
@@ -61,10 +60,10 @@ export async function getOrganizationHierarchy(): Promise<OrganizationData> {
       return { departments: [], error: posError.message }
     }
 
-    // 3. Fetch end_users to derive position ↔ department mapping + counts
+    // 3. Fetch end_users to count employees per position
     const { data: endUsers, error: euError } = await supabase
       .from('end_users')
-      .select('department_id, position_id')
+      .select('position_id')
       .eq('user_id', user.id)
       .is('deleted_at', null)
 
@@ -73,37 +72,31 @@ export async function getOrganizationHierarchy(): Promise<OrganizationData> {
       return { departments: [], error: euError.message }
     }
 
-    // Build position name lookup
-    const positionNameMap = new Map<string, string>()
-    for (const pos of positions || []) {
-      positionNameMap.set(pos.id, pos.name)
+    // Build: position_id → employee_count
+    const posEmployeeCount = new Map<string, number>()
+    for (const eu of endUsers || []) {
+      if (eu.position_id) {
+        posEmployeeCount.set(eu.position_id, (posEmployeeCount.get(eu.position_id) || 0) + 1)
+      }
     }
 
-    // Build: department_id → { position_id → employee_count }
-    const deptPositionMap = new Map<string, Map<string, number>>()
-    for (const eu of endUsers || []) {
-      if (!deptPositionMap.has(eu.department_id)) {
-        deptPositionMap.set(eu.department_id, new Map())
+    // Build: department_id → positions[]
+    const deptPositionsMap = new Map<string, OrgPosition[]>()
+    for (const pos of positions || []) {
+      if (!pos.department_id) continue
+      if (!deptPositionsMap.has(pos.department_id)) {
+        deptPositionsMap.set(pos.department_id, [])
       }
-      const posMap = deptPositionMap.get(eu.department_id)!
-      posMap.set(eu.position_id, (posMap.get(eu.position_id) || 0) + 1)
+      deptPositionsMap.get(pos.department_id)!.push({
+        id: pos.id,
+        name: pos.name,
+        employee_count: posEmployeeCount.get(pos.id) || 0,
+      })
     }
 
     // 4. Build department hierarchy with positions grouped
     const orgDepartments: OrgDepartment[] = (departments || []).map((dept) => {
-      const posMap = deptPositionMap.get(dept.id) || new Map()
-      const deptPositions: OrgPosition[] = []
-
-      for (const [posId, count] of posMap) {
-        const posName = positionNameMap.get(posId)
-        if (posName) {
-          deptPositions.push({
-            id: posId,
-            name: posName,
-            employee_count: count,
-          })
-        }
-      }
+      const deptPositions = deptPositionsMap.get(dept.id) || []
 
       // Sort: highest employee count first (manager-like roles first)
       deptPositions.sort((a, b) => b.employee_count - a.employee_count)

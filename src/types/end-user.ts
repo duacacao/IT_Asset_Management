@@ -5,7 +5,7 @@ export interface EndUser {
   email: string | null
   phone: string | null
   department_id: string
-  position_id: string
+  position_id: string | null
   notes: string | null
   created_at: string
   updated_at: string
@@ -40,7 +40,7 @@ export interface EndUserInsert {
   email?: string
   phone?: string
   department_id: string // Bắt buộc — NOT NULL trong DB
-  position_id: string // Bắt buộc — NOT NULL trong DB
+  position_id?: string // Có thể nullable
   notes?: string
   device_ids?: string[] // Danh sách thiết bị muốn gán (1:N)
 }

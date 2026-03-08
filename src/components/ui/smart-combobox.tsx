@@ -58,11 +58,11 @@ export function SmartCombobox({
   value,
   onValueChange,
   options,
-  placeholder = 'Select option...',
-  searchPlaceholder = 'Search...',
-  emptyText = 'No results found.',
+  placeholder = 'Chọn...',
+  searchPlaceholder = 'Tìm kiếm...',
+  emptyText = 'Không tìm thấy kết quả.',
   creatable = false,
-  createLabel = 'Create new',
+  createLabel = 'Tạo mới',
   onCreate,
   editable = false,
   onEdit,
@@ -92,11 +92,9 @@ export function SmartCombobox({
       await onCreate(tempValue.trim())
       setCreateDialogOpen(false)
       setTempValue('')
-      // Optional: Select the newly created item?
-      // Usually the parent handles refreshing options and maybe selecting it.
     } catch (error) {
       console.error(error)
-      toast.error('Failed to create item')
+      toast.error('Không thể tạo mục')
     } finally {
       setIsLoading(false)
     }
@@ -112,7 +110,7 @@ export function SmartCombobox({
       setTempValue('')
     } catch (error) {
       console.error(error)
-      toast.error('Failed to update item')
+      toast.error('Không thể cập nhật mục')
     } finally {
       setIsLoading(false)
     }
@@ -130,7 +128,7 @@ export function SmartCombobox({
       }
     } catch (error) {
       console.error(error)
-      toast.error('Failed to delete item')
+      toast.error('Không thể xóa mục')
     } finally {
       setIsLoading(false)
     }
@@ -177,7 +175,7 @@ export function SmartCombobox({
                       }}
                     >
                       <Plus className="mr-2 h-4 w-4" />
-                      Create "{searchValue}"
+                      Tạo &quot;{searchValue}&quot;
                     </Button>
                   )}
                 </div>
@@ -216,7 +214,7 @@ export function SmartCombobox({
                             <MoreHorizontal className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
+                        <DropdownMenuContent align="end" className="rounded-xl border-border/50 shadow-md">
                           {editable && (
                             <DropdownMenuItem
                               onClick={(e) => {
@@ -226,14 +224,15 @@ export function SmartCombobox({
                                 setEditDialogOpen(true)
                                 setOpen(false)
                               }}
+                              className="cursor-pointer"
                             >
                               <Pencil className="mr-2 h-4 w-4" />
-                              Edit
+                              Chỉnh sửa
                             </DropdownMenuItem>
                           )}
                           {deletable && (
                             <DropdownMenuItem
-                              className="text-destructive"
+                              className="text-destructive cursor-pointer"
                               onClick={(e) => {
                                 e.stopPropagation()
                                 setSelectedItem(option)
@@ -242,7 +241,7 @@ export function SmartCombobox({
                               }}
                             >
                               <Trash2 className="mr-2 h-4 w-4" />
-                              Delete
+                              Xóa
                             </DropdownMenuItem>
                           )}
                         </DropdownMenuContent>
@@ -276,30 +275,31 @@ export function SmartCombobox({
 
       {/* Create Dialog */}
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-        <DialogContent>
+        <DialogContent className="rounded-xl border-border/50 shadow-lg">
           <DialogHeader>
             <DialogTitle>{createLabel}</DialogTitle>
-            <DialogDescription>Enter the name for the new item.</DialogDescription>
+            <DialogDescription>Nhập tên cho mục mới.</DialogDescription>
           </DialogHeader>
           <Input
             value={tempValue}
             onChange={(e) => setTempValue(e.target.value)}
-            placeholder="Name..."
+            placeholder="Tên..."
             autoFocus
+            className="rounded-xl border-border/50"
             onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
           />
           <DialogFooter>
-            <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
-              Cancel
+            <Button variant="outline" onClick={() => setCreateDialogOpen(false)} className="cursor-pointer rounded-xl">
+              Hủy
             </Button>
-            <Button onClick={handleCreate} disabled={isLoading || !tempValue.trim()}>
+            <Button onClick={handleCreate} disabled={isLoading || !tempValue.trim()} className="cursor-pointer rounded-xl">
               {isLoading ? (
                 <>
                   <AppLoader layout="horizontal" hideText className="mr-2" />
-                  Creating...
+                  Đang tạo...
                 </>
               ) : (
-                'Create'
+                'Tạo'
               )}
             </Button>
           </DialogFooter>
@@ -308,29 +308,30 @@ export function SmartCombobox({
 
       {/* Edit Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent>
+        <DialogContent className="rounded-xl border-border/50 shadow-lg">
           <DialogHeader>
-            <DialogTitle>Edit Item</DialogTitle>
+            <DialogTitle>Chỉnh sửa</DialogTitle>
           </DialogHeader>
           <Input
             value={tempValue}
             onChange={(e) => setTempValue(e.target.value)}
-            placeholder="Name..."
+            placeholder="Tên..."
             autoFocus
+            className="rounded-xl border-border/50"
             onKeyDown={(e) => e.key === 'Enter' && handleEdit()}
           />
           <DialogFooter>
-            <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
-              Cancel
+            <Button variant="outline" onClick={() => setEditDialogOpen(false)} className="cursor-pointer rounded-xl">
+              Hủy
             </Button>
-            <Button onClick={handleEdit} disabled={isLoading || !tempValue.trim()}>
+            <Button onClick={handleEdit} disabled={isLoading || !tempValue.trim()} className="cursor-pointer rounded-xl">
               {isLoading ? (
                 <>
                   <AppLoader layout="horizontal" hideText className="mr-2" />
-                  Saving...
+                  Đang lưu...
                 </>
               ) : (
-                'Save'
+                'Lưu'
               )}
             </Button>
           </DialogFooter>
@@ -339,25 +340,25 @@ export function SmartCombobox({
 
       {/* Delete Dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent>
+        <DialogContent className="rounded-xl border-border/50 shadow-lg">
           <DialogHeader>
-            <DialogTitle>Delete Item?</DialogTitle>
+            <DialogTitle>Xóa mục?</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete "{selectedItem?.label}"? This action cannot be undone.
+              Bạn có chắc chắn muốn xóa &quot;{selectedItem?.label}&quot;? Hành động này không thể hoàn tác.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
-              Cancel
+            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)} className="cursor-pointer rounded-xl">
+              Hủy
             </Button>
-            <Button variant="destructive" onClick={handleDelete} disabled={isLoading}>
+            <Button variant="destructive" onClick={handleDelete} disabled={isLoading} className="cursor-pointer rounded-xl">
               {isLoading ? (
                 <>
                   <AppLoader layout="horizontal" hideText className="mr-2" />
-                  Deleting...
+                  Đang xóa...
                 </>
               ) : (
-                'Delete'
+                'Xóa'
               )}
             </Button>
           </DialogFooter>

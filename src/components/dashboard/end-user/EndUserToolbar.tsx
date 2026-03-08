@@ -10,7 +10,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Badge } from '@/components/ui/badge'
 
 interface Option {
   label: string
@@ -67,13 +66,13 @@ export function EndUserToolbar({
 
   return (
     <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-      <div className="flex flex-1 flex-col gap-4 md:flex-row md:items-center">
+      <div className="flex flex-1 flex-col gap-3 md:flex-row md:items-center">
         {/* Search */}
         <div className="relative w-full md:w-72">
-          <Search className="text-muted-foreground absolute top-2.5 left-2 h-4 w-4" />
+          <Search className="text-muted-foreground absolute top-2.5 left-2.5 h-4 w-4" />
           <Input
             placeholder="Tìm theo tên, email, SĐT..."
-            className="pl-8"
+            className="rounded-xl border-border/50 bg-white pl-9 shadow-sm dark:bg-card"
             value={filters.search}
             onChange={handleSearchChange}
           />
@@ -82,7 +81,7 @@ export function EndUserToolbar({
         {/* Filters */}
         <div className="flex gap-2">
           <Select value={filters.department} onValueChange={handleDeptChange}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-full rounded-xl border-border/50 bg-white shadow-sm dark:bg-card md:w-[180px]">
               <SelectValue placeholder="Phòng ban" />
             </SelectTrigger>
             <SelectContent className="rounded-xl border-border/50 shadow-md">
@@ -96,7 +95,7 @@ export function EndUserToolbar({
           </Select>
 
           <Select value={filters.position} onValueChange={handlePosChange}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-full rounded-xl border-border/50 bg-white shadow-sm dark:bg-card md:w-[180px]">
               <SelectValue placeholder="Chức vụ" />
             </SelectTrigger>
             <SelectContent className="rounded-xl border-border/50 shadow-md">
@@ -110,7 +109,13 @@ export function EndUserToolbar({
           </Select>
 
           {hasActiveFilters && (
-            <Button variant="ghost" size="icon" onClick={handleClearFilters} title="Xóa bộ lọc">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleClearFilters}
+              title="Xóa bộ lọc"
+              className="cursor-pointer rounded-xl"
+            >
               <FilterX className="h-4 w-4" />
             </Button>
           )}
@@ -120,19 +125,24 @@ export function EndUserToolbar({
       {/* Actions */}
       <div className="flex items-center gap-2">
         {selectedCount > 0 && (
-          <Button variant="destructive" size="sm" onClick={onBulkDelete} className="cursor-pointer">
-            <Trash className="mr-2 h-4 w-4" />
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={onBulkDelete}
+            className="cursor-pointer rounded-xl gap-2"
+          >
+            <Trash className="h-4 w-4" />
             Xóa ({selectedCount})
           </Button>
         )}
         <Button
-          variant="outline"
+          variant="default"
           onClick={onAdd}
-          size="icon"
-          title="Thêm mới"
-          className="cursor-pointer"
+          size="sm"
+          className="cursor-pointer rounded-xl shadow-sm gap-2"
         >
           <Plus className="h-4 w-4" />
+          Thêm mới
         </Button>
       </div>
     </div>

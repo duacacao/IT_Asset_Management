@@ -1,7 +1,6 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { toast } from 'sonner'
 import { AppLoader } from '@/components/ui/app-loader'
 
 import {
@@ -19,17 +18,17 @@ import { EndUserToolbar } from '@/components/dashboard/end-user/EndUserToolbar'
 import { EndUserDialog } from '@/components/dashboard/end-user/EndUserDialog'
 import { EndUserDetailDialog } from '@/components/dashboard/end-user/EndUserDetailDialog'
 
-import { useEndUsersQuery, useDepartmentsQuery, usePositionsQuery } from '@/hooks/queries/endUserQueries'
+import { useEndUsersQuery, useDepartmentsQuery, usePositionsQuery, usePositionsRawQuery } from '@/hooks/queries/endUserQueries'
 import { useDeleteEndUserMutation } from '@/hooks/mutations/endUserMutations'
 import { useDevicesQuery } from '@/hooks/useDevicesQuery'
 import { EndUserWithDevice } from '@/types/end-user'
 
 export default function EndUsersPage() {
   // Queries
-  // Queries
   const { data: endUsers = [], isLoading: isLoadingUsers } = useEndUsersQuery()
   const { data: deptOptions = [], isLoading: isLoadingDepartments } = useDepartmentsQuery()
   const { data: posOptions = [], isLoading: isLoadingPositions } = usePositionsQuery()
+  const { data: rawPositions = [] } = usePositionsRawQuery()
 
   const isLoading = isLoadingUsers || isLoadingDepartments || isLoadingPositions
 
@@ -114,13 +113,11 @@ export default function EndUsersPage() {
         // Bulk delete logic
         await Promise.all(selectedIds.map((id) => deleteMutation.mutateAsync(id)))
         setSelectedIds([])
-        toast.success(`Đã xóa ${selectedIds.length} người dùng`)
       } else {
         await deleteMutation.mutateAsync(deleteId)
-        toast.success('Đã xóa người dùng')
       }
     } catch (error) {
-      toast.error('Có lỗi xảy ra khi xóa')
+      console.error('Delete error:', error)
     } finally {
       setIsDeleting(false)
       setDeleteId(null)
@@ -181,6 +178,7 @@ export default function EndUsersPage() {
         userToEdit={editingUser}
         departments={deptOptions}
         positions={posOptions}
+        rawPositions={rawPositions}
         selectableDevices={selectableDevices}
         onSuccess={() => {
           // Query invalidation handled in mutation hooks
@@ -199,7 +197,7 @@ export default function EndUsersPage() {
 
       {/* Delete Confirmation */}
       <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
-        <AlertDialogContent>
+        <AlertDialogContent className="rounded-xl">
           <AlertDialogHeader>
             <AlertDialogTitle>Bạn có chắc chắn muốn xóa?</AlertDialogTitle>
             <AlertDialogDescription>
@@ -210,14 +208,14 @@ export default function EndUsersPage() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Hủy</AlertDialogCancel>
+            <AlertDialogCancel disabled={isDeleting} className="cursor-pointer rounded-xl">Hủy</AlertDialogCancel>
             <AlertDialogAction
               onClick={(e) => {
                 e.preventDefault()
                 handleConfirmDelete()
               }}
               disabled={isDeleting}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="cursor-pointer rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               {isDeleting ? (
                 <>

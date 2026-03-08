@@ -16,12 +16,13 @@ import { AppLoader } from '@/components/ui/app-loader'
 import { DepartmentTable } from '@/components/dashboard/department/DepartmentTable'
 import { DepartmentToolbar } from '@/components/dashboard/department/DepartmentToolbar'
 import { DepartmentDialog } from '@/components/dashboard/department/DepartmentDialog'
-import { useDepartmentsRawQuery, useEndUsersQuery } from '@/hooks/queries/endUserQueries'
+import { useDepartmentsRawQuery, useEndUsersQuery, usePositionsRawQuery } from '@/hooks/queries/endUserQueries'
 import { useDeleteDepartmentMutation } from '@/hooks/mutations/endUserMutations'
 import type { Department } from '@/types/department'
 
 export default function DepartmentPage() {
   const { data: departments = [], isLoading } = useDepartmentsRawQuery()
+  const { data: positions = [] } = usePositionsRawQuery()
   const { data: endUsers = [] } = useEndUsersQuery()
   const deleteMutation = useDeleteDepartmentMutation()
 
@@ -102,6 +103,7 @@ export default function DepartmentPage() {
 
         <DepartmentTable
           data={departments}
+          positions={positions}
           onEdit={handleEdit}
           onDelete={handleDelete}
           memberCounts={memberCounts}
@@ -117,6 +119,7 @@ export default function DepartmentPage() {
         onOpenChange={setIsDialogOpen}
         deptToEdit={editingDept}
         departments={departments}
+        positions={positions}
       />
 
       {/* Delete Confirmation */}

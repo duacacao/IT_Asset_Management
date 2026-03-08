@@ -99,6 +99,20 @@ export function usePositionsQuery() {
   })
 }
 
+// Raw Position[] for department management table
+export function usePositionsRawQuery() {
+  return useQuery({
+    queryKey: [...queryKeys.positions.all, 'raw'] as const,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
+    queryFn: async () => {
+      const { data, error } = await getPositions()
+      if (error) throw new Error(error)
+      return data || []
+    },
+  })
+}
+
 // ============================================
 // AVAILABLE DEVICES QUERIES
 // ============================================

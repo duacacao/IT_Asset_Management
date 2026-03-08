@@ -25,7 +25,7 @@ const ROUTE_LABELS: Record<string, string> = {
   '/dashboard': 'Bảng điều khiển',
   '/devices': 'Thiết bị',
   '/end-user': 'Thông tin nhân viên',
-  '/department': 'Phòng ban',
+  '/department': 'Phòng ban & Chức vụ',
   '/users': 'Nhân sự',
   '/organization': 'Sơ đồ tổ chức',
   '/docs': 'Tài liệu',

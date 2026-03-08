@@ -210,13 +210,13 @@ export function useCreatePositionMutation() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (name: string) => {
-      const result = await createPositionAction({ name })
+    mutationFn: async (data: { name: string; department_id?: string | null }) => {
+      const result = await createPositionAction(data)
       if (result.error) throw new Error(result.error)
       return result.data
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.positions.list() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.positions.all })
       toast.success('Tạo chức vụ thành công!')
     },
     onError: (err) => {
@@ -229,13 +229,13 @@ export function useUpdatePositionMutation() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async ({ id, name }: { id: string; name: string }) => {
-      const result = await updatePositionAction(id, { name })
+    mutationFn: async ({ id, name, department_id }: { id: string; name: string; department_id?: string | null }) => {
+      const result = await updatePositionAction(id, { name, department_id })
       if (result.error) throw new Error(result.error)
       return result.data
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.positions.list() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.positions.all })
       queryClient.invalidateQueries({ queryKey: queryKeys.endUsers.list() })
       toast.success('Cập nhật chức vụ thành công!')
     },
@@ -255,7 +255,7 @@ export function useDeletePositionMutation() {
       return id
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.positions.list() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.positions.all })
       queryClient.invalidateQueries({ queryKey: queryKeys.endUsers.list() })
       toast.success('Xóa chức vụ thành công!')
     },
