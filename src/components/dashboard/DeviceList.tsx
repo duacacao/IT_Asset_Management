@@ -1,4 +1,4 @@
-import { useMemo, useState, useCallback, useEffect } from 'react'
+import { useMemo, useState, useEffect, ReactNode } from 'react'
 import {
   useReactTable,
   getCoreRowModel,
@@ -20,15 +20,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { Search, FilterX, CheckCircle2, SearchX, Download, Trash2, Plus, Upload } from 'lucide-react'
+import { SearchX } from 'lucide-react'
 import { AppLoader } from '@/components/ui/app-loader'
 import {
   AlertDialog,
@@ -40,13 +32,20 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { Device, DeviceStatus, DeviceType } from '@/types/device'
-import { DEVICE_STATUS_CONFIG, DEVICE_TYPE_LABELS } from '@/constants/device'
+import { Device, DeviceStatus } from '@/types/device'
 import { useUpdateStatusMutation, useBulkUpdateStatusMutation } from '@/hooks/useDevicesQuery'
 import { checkDeviceAssignment, checkDevicesAssignments } from '@/app/actions/devices'
-import { createDeviceColumns, STATUS_DOT_COLORS } from './device-columns'
-
+import { createDeviceColumns } from './device-columns'
 import { EmptyState } from '@/components/EmptyState'
+import { DataTableViewOptions } from '@/components/ui/data-table-view-options'
+
+// Params truyền vào toolbar render prop — export để page có thể tham chiếu type
+export interface DeviceToolbarParams {
+  viewOptions: ReactNode
+  selectedCount: number
+  onBulkDelete: () => void
+  isBulkPending: boolean
+}
 
 interface DeviceListProps {
   devices: Device[]
@@ -57,10 +56,7 @@ interface DeviceListProps {
   onSelectionChange?: (selectedDevices: Device[]) => void
   onHoverDevice?: (deviceId: string) => void
   highlightId?: string | null
-  onCreateDevice: () => void
-  onImportDevice: () => void
-  onExportCSV: () => void
-  isImporting?: boolean
+  toolbar?: (params: DeviceToolbarParams) => ReactNode
 }
 
 export function DeviceList({
@@ -72,16 +68,16 @@ export function DeviceList({
   onSelectionChange,
   onHoverDevice,
   highlightId,
-  onCreateDevice,
-  onImportDevice,
-  onExportCSV,
-  isImporting,
+  toolbar,
 }: DeviceListProps) {
+  // Table state
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
-  const [deleteId, setDeleteId] = useState<string | null>(null)
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
+
+  // Delete dialog state
+  const [deleteId, setDeleteId] = useState<string | null>(null)
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   // State cho cảnh báo thiết bị đang bàn giao
@@ -90,29 +86,6 @@ export function DeviceList({
   } | null>(null)
   const [bulkAssignmentCount, setBulkAssignmentCount] = useState(0)
   const [isCheckingAssignment, setIsCheckingAssignment] = useState(false)
-
-  // Toolbar filter state (inline, giống EndUserToolbar)
-  const [search, setSearch] = useState('')
-  const [statusFilter, setStatusFilter] = useState<DeviceStatus | 'all'>('all')
-  const [typeFilter, setTypeFilter] = useState<DeviceType | 'all'>('all')
-  const [debouncedSearch, setDebouncedSearch] = useState('')
-
-  // Debounce search 300ms
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(search)
-    }, 300)
-    return () => clearTimeout(timer)
-  }, [search])
-
-  const hasActiveFilters = search !== '' || statusFilter !== 'all' || typeFilter !== 'all'
-
-  const handleClearFilters = () => {
-    setSearch('')
-    setStatusFilter('all')
-    setTypeFilter('all')
-    setDebouncedSearch('')
-  }
 
   // Effect: Scroll to highlighted row
   useEffect(() => {
@@ -153,28 +126,6 @@ export function DeviceList({
   const updateStatusMutation = useUpdateStatusMutation()
   const bulkUpdateStatusMutation = useBulkUpdateStatusMutation()
 
-  // Comprehensive filter logic — tìm theo tên, id, fileName, IP + status + device type
-  const filteredDevices = useMemo(() => {
-    return devices.filter((device) => {
-      if (debouncedSearch) {
-        const searchLower = debouncedSearch.toLowerCase()
-        const matchesSearch =
-          device.deviceInfo.name.toLowerCase().includes(searchLower) ||
-          device.id.toLowerCase().includes(searchLower) ||
-          device.fileName.toLowerCase().includes(searchLower) ||
-          device.deviceInfo.ip.toLowerCase().includes(searchLower)
-        if (!matchesSearch) return false
-      }
-      if (statusFilter !== 'all') {
-        if (device.status !== statusFilter) return false
-      }
-      if (typeFilter !== 'all') {
-        if (device.type !== typeFilter) return false
-      }
-      return true
-    })
-  }, [devices, debouncedSearch, statusFilter, typeFilter])
-
   // Columns — lấy từ device-columns.tsx để giữ file gọn
   const columns = useMemo(
     () => createDeviceColumns({ onViewDevice, onUpdateDevice, onExportDevice, setDeleteId }),
@@ -182,7 +133,7 @@ export function DeviceList({
   )
 
   const table = useReactTable({
-    data: filteredDevices,
+    data: devices,
     columns,
     state: {
       sorting,
@@ -214,168 +165,40 @@ export function DeviceList({
     }
   }, [selectedDevices, onSelectionChange])
 
+  // Bulk action: set status cho tất cả device đã chọn
+  const handleBulkSetStatus = (status: DeviceStatus) => {
+    const selectedRows = table.getFilteredSelectedRowModel().rows
+    const selectedIds = selectedRows.map((row) => row.original.id)
+    bulkUpdateStatusMutation.mutate({
+      deviceIds: selectedIds,
+      status,
+    })
+    setRowSelection({})
+  }
+
+  // Bulk action: mở dialog xác nhận xóa hàng loạt
+  const handleBulkDeleteClick = async () => {
+    const selectedRows = table.getFilteredSelectedRowModel().rows
+    const selectedIds = selectedRows.map((row) => row.original.id)
+    try {
+      const { assignedCount } = await checkDevicesAssignments(selectedIds)
+      setBulkAssignmentCount(assignedCount)
+    } catch {
+      setBulkAssignmentCount(0)
+    }
+    setBulkDeleteOpen(true)
+  }
+
   return (
     <div className="space-y-4">
-      {/* Toolbar — 2-block layout giống EndUserToolbar */}
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div className="flex flex-1 flex-col gap-3 md:flex-row md:items-center">
-          {/* Search */}
-          <div className="relative w-full md:w-72">
-            <Search className="text-muted-foreground absolute top-2.5 left-2.5 h-4 w-4" />
-            <Input
-              placeholder="Tìm theo tên, IP hoặc ID…"
-              className="rounded-xl border-border/50 bg-white pl-9 shadow-sm dark:bg-card"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </div>
-
-          {/* Filters */}
-          <div className="flex gap-2">
-            {/* Status Filter */}
-            <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as DeviceStatus | 'all')}>
-              <SelectTrigger className="w-full rounded-xl border-border/50 bg-white shadow-sm dark:bg-card md:w-[180px]">
-                <SelectValue placeholder="Trạng thái" />
-              </SelectTrigger>
-              <SelectContent className="rounded-xl border-border/50 shadow-md">
-                <SelectItem value="all">
-                  <div className="flex items-center gap-2">
-                    <div className="h-2 w-2 rounded-full bg-gray-400" />
-                    Tất cả
-                  </div>
-                </SelectItem>
-                {Object.entries(DEVICE_STATUS_CONFIG).map(([key, config]) => (
-                  <SelectItem key={key} value={key}>
-                    <div className="flex items-center gap-2">
-                      <div
-                        className={`h-2 w-2 rounded-full ${STATUS_DOT_COLORS[key as DeviceStatus]}`}
-                      />
-                      {config.label}
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            {/* Device Type Filter */}
-            <Select value={typeFilter} onValueChange={(value) => setTypeFilter(value as DeviceType | 'all')}>
-              <SelectTrigger className="w-full rounded-xl border-border/50 bg-white shadow-sm dark:bg-card md:w-[180px]">
-                <SelectValue placeholder="Loại thiết bị" />
-              </SelectTrigger>
-              <SelectContent className="rounded-xl border-border/50 shadow-md">
-                <SelectItem value="all">Tất cả loại</SelectItem>
-                {Object.entries(DEVICE_TYPE_LABELS).map(([key, label]) => (
-                  <SelectItem key={key} value={key}>
-                    {label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            {hasActiveFilters && (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleClearFilters}
-                title="Xóa bộ lọc"
-                className="cursor-pointer rounded-xl"
-              >
-                <FilterX className="h-4 w-4" />
-              </Button>
-            )}
-          </div>
-        </div>
-
-        {/* Actions */}
-        <div className="flex items-center gap-2">
-          {/* Bulk actions — inline khi có selection */}
-          {Object.keys(rowSelection).length > 0 && (
-            <>
-              {/* Bulk set status */}
-              <Select
-                disabled={bulkUpdateStatusMutation.isPending || updateStatusMutation.isPending}
-                onValueChange={(val) => {
-                  const selectedRows = table.getFilteredSelectedRowModel().rows
-                  const selectedIds = selectedRows.map((row) => row.original.id)
-                  bulkUpdateStatusMutation.mutate({
-                    deviceIds: selectedIds,
-                    status: val as DeviceStatus,
-                  })
-                  setRowSelection({})
-                }}
-              >
-                <SelectTrigger className="h-8 w-[150px] rounded-xl border-border/50 shadow-sm text-xs">
-                  <CheckCircle2 className="mr-1 h-3.5 w-3.5" aria-hidden="true" />
-                  <SelectValue placeholder="Đặt trạng thái" />
-                </SelectTrigger>
-                <SelectContent className="rounded-xl border-border/50 shadow-md">
-                  {Object.entries(DEVICE_STATUS_CONFIG).map(([key, config]) => (
-                    <SelectItem key={key} value={key}>
-                      <span
-                        className={`mr-1.5 h-2 w-2 rounded-full ${STATUS_DOT_COLORS[key as DeviceStatus]} inline-block`}
-                      />
-                      {config.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              {/* Bulk delete */}
-              <Button
-                variant="destructive"
-                size="sm"
-                disabled={bulkUpdateStatusMutation.isPending}
-                className="cursor-pointer rounded-xl gap-2"
-                onClick={async () => {
-                  const selectedRows = table.getFilteredSelectedRowModel().rows
-                  const selectedIds = selectedRows.map((row) => row.original.id)
-                  try {
-                    const { assignedCount } = await checkDevicesAssignments(selectedIds)
-                    setBulkAssignmentCount(assignedCount)
-                  } catch {
-                    setBulkAssignmentCount(0)
-                  }
-                  setBulkDeleteOpen(true)
-                }}
-              >
-                <Trash2 className="h-4 w-4" />
-                Xóa ({Object.keys(rowSelection).length})
-              </Button>
-            </>
-          )}
-
-          {/* Primary actions */}
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={onExportCSV}
-            title="Export CSV"
-            disabled={Object.keys(rowSelection).length === 0}
-            className="cursor-pointer rounded-xl shadow-sm"
-          >
-            <Download className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={onImportDevice}
-            disabled={isImporting}
-            title="Import Excel"
-            className="cursor-pointer rounded-xl shadow-sm"
-          >
-            <Upload className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="default"
-            size="icon"
-            onClick={onCreateDevice}
-            title="Tạo mới"
-            className="cursor-pointer rounded-xl shadow-sm"
-          >
-            <Plus className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
+      {/* Toolbar via render prop — truyền viewOptions + selection info cho DeviceToolbar */}
+      {toolbar &&
+        toolbar({
+          viewOptions: <DataTableViewOptions table={table} />,
+          selectedCount: Object.keys(rowSelection).length,
+          onBulkDelete: handleBulkDeleteClick,
+          isBulkPending: bulkUpdateStatusMutation.isPending || updateStatusMutation.isPending,
+        })}
 
       {/* Table — chiều cao cố định, scroll nếu nhiều thiết bị */}
       <div className="relative overflow-hidden rounded-xl border-none bg-white shadow-md dark:bg-card">
@@ -467,6 +290,7 @@ export function DeviceList({
         </div>
       </div>
 
+      {/* Single delete confirmation */}
       <AlertDialog
         open={!!deleteId}
         onOpenChange={(open) => {

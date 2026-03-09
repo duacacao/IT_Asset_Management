@@ -1,7 +1,8 @@
 import { ColumnDef } from '@tanstack/react-table'
-import { ArrowUpDown, Eye, Pencil, Download, Trash2, MoreHorizontal } from 'lucide-react'
+import { Eye, Pencil, Download, Trash2, MoreHorizontal } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
+import { DataTableColumnHeader } from '@/components/ui/data-table-column-header'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -140,16 +141,7 @@ export function createDeviceColumns({
     },
     {
       accessorKey: 'deviceInfo.name',
-      header: ({ column }) => (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-          className="pl-4"
-        >
-          Tên thiết bị
-          <ArrowUpDown className="ml-2 h-4 w-4" aria-hidden="true" />
-        </Button>
-      ),
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Tên thiết bị" className="pl-2" />,
       cell: ({ row }) => (
         <div className="flex items-center gap-3 py-1 pr-12 pl-4">
           <div className="bg-muted/30 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border/50 shadow-sm">
@@ -168,7 +160,7 @@ export function createDeviceColumns({
     },
     {
       accessorKey: 'type',
-      header: 'Loại',
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Loại" />,
       cell: ({ row }) => {
         const type = row.original.type
         const colors = DEVICE_TYPE_COLORS[type] || DEVICE_TYPE_COLORS[DEVICE_TYPES.OTHER]
@@ -184,12 +176,12 @@ export function createDeviceColumns({
     },
     {
       accessorKey: 'status',
-      header: 'Trạng thái',
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Trạng thái" />,
       cell: ({ row }) => <StatusLabel status={row.original.status ?? 'active'} />,
     },
     {
       accessorKey: 'assignment.assignee_name',
-      header: 'Người sử dụng',
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Người sử dụng" />,
       cell: ({ row }) => {
         const assignment = row.original.assignment
         return assignment && assignment.assignee_name ? (

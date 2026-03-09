@@ -93,14 +93,6 @@ export default function DepartmentPage() {
   return (
     <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
       <div className="space-y-4">
-        <DepartmentToolbar
-          searchTerm={searchTerm}
-          onSearchChange={setSearchTerm}
-          selectedCount={selectedIds.length}
-          onAdd={handleAdd}
-          onBulkDelete={handleBulkDelete}
-        />
-
         <DepartmentTable
           data={departments}
           positions={positions}
@@ -110,6 +102,16 @@ export default function DepartmentPage() {
           searchTerm={searchTerm}
           selectedIds={selectedIds}
           onSelectedIdsChange={setSelectedIds}
+          toolbar={(viewOptions) => (
+            <DepartmentToolbar
+              searchTerm={searchTerm}
+              onSearchChange={setSearchTerm}
+              selectedCount={selectedIds.length}
+              onAdd={handleAdd}
+              onBulkDelete={handleBulkDelete}
+              viewOptions={viewOptions}
+            />
+          )}
         />
       </div>
 

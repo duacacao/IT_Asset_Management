@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { Upload } from 'lucide-react'
 import { AppLoader } from '@/components/ui/app-loader'
-import { useState, useCallback, useEffect, useRef } from 'react'
+import { useState, useCallback, useEffect, useRef, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   Dialog,
@@ -16,10 +16,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Device } from '@/types/device'
+import { Device, DeviceStatus, DeviceType } from '@/types/device'
 import { CreateDeviceSheet } from '@/components/dashboard/CreateDeviceDialog'
 import { toast } from 'sonner'
 import { DeviceUpdateSheet } from './_components/DeviceUpdateSheet'
+import { DeviceToolbar } from '@/components/dashboard/device-toolbar/DeviceToolbar'
 
 // Hooks mới — React Query cho data, UIStore cho UI state
 import {
@@ -90,6 +91,42 @@ export default function DevicesPage() {
   const [isImportOpen, setIsImportOpen] = useState(false)
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [selectedDevices, setSelectedDevices] = useState<Device[]>([])
+
+  // Filter state — lifted from DeviceList để truyền qua Toolbar
+  const [search, setSearch] = useState('')
+  const [statusFilter, setStatusFilter] = useState<DeviceStatus | 'all'>('all')
+  const [typeFilter, setTypeFilter] = useState<DeviceType | 'all'>('all')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
+
+  // Debounce search 300ms
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search)
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [search])
+
+  // Client-side filtering — tìm theo tên, id, fileName, IP + status + type
+  const filteredDevices = useMemo(() => {
+    return devices.filter((device) => {
+      if (debouncedSearch) {
+        const searchLower = debouncedSearch.toLowerCase()
+        const matchesSearch =
+          device.deviceInfo.name.toLowerCase().includes(searchLower) ||
+          device.id.toLowerCase().includes(searchLower) ||
+          device.fileName.toLowerCase().includes(searchLower) ||
+          device.deviceInfo.ip.toLowerCase().includes(searchLower)
+        if (!matchesSearch) return false
+      }
+      if (statusFilter !== 'all') {
+        if (device.status !== statusFilter) return false
+      }
+      if (typeFilter !== 'all') {
+        if (device.type !== typeFilter) return false
+      }
+      return true
+    })
+  }, [devices, debouncedSearch, statusFilter, typeFilter])
 
   // Stable callback for selection changes
   const handleSelectionChange = useCallback((devices: Device[]) => {
@@ -250,7 +287,7 @@ export default function DevicesPage() {
       ) : (
         <div className="flex flex-1 flex-col space-y-8">
           <DeviceList
-            devices={devices}
+            devices={filteredDevices}
             onViewDevice={handleViewDevice}
             onUpdateDevice={handleUpdateDevice}
             onExportDevice={handleExportDevice}
@@ -258,13 +295,28 @@ export default function DevicesPage() {
             onSelectionChange={handleSelectionChange}
             onHoverDevice={handlePrefetchDevice}
             highlightId={highlightId}
-            onCreateDevice={() => setIsCreateOpen(true)}
-            onImportDevice={() => setIsImportOpen(true)}
-            onExportCSV={() => {
-              const devicesToExport = selectedDevices.length > 0 ? selectedDevices : devices
-              exportDevicesToCSV(devicesToExport)
-            }}
-            isImporting={isImporting}
+            toolbar={({ viewOptions, selectedCount, onBulkDelete, isBulkPending }) => (
+              <DeviceToolbar
+                viewOptions={viewOptions}
+                search={search}
+                onSearchChange={setSearch}
+                statusFilter={statusFilter}
+                onStatusFilterChange={setStatusFilter}
+                typeFilter={typeFilter}
+                onTypeFilterChange={setTypeFilter}
+                selectedCount={selectedCount}
+                onBulkDelete={onBulkDelete}
+                isBulkPending={isBulkPending}
+                onExportCSV={() => {
+                  if (selectedDevices.length > 0) {
+                    exportDevicesToCSV(selectedDevices)
+                  }
+                }}
+                onImportDevice={() => setIsImportOpen(true)}
+                onCreateDevice={() => setIsCreateOpen(true)}
+                isImporting={isImporting}
+              />
+            )}
           />
         </div>
       )}

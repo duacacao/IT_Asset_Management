@@ -148,17 +148,6 @@ export default function EndUsersPage() {
         </div>
       ) : (
         <div className="space-y-4">
-          <EndUserToolbar
-            filters={filters}
-            setFilters={setFilters}
-            departments={deptOptions}
-            positions={posOptions}
-            onAdd={handleOpenCreate}
-            onBulkDelete={() => setDeleteId('BULK')}
-            selectedCount={selectedIds.length}
-            totalCount={endUsers.length}
-            filteredCount={filteredUsers.length}
-          />
           <EndUserTable
             data={filteredUsers}
             selectedIds={selectedIds}
@@ -167,6 +156,20 @@ export default function EndUsersPage() {
             onEdit={handleOpenEdit}
             onDelete={handleDeleteClick}
             onView={(id) => handleView(id)}
+            toolbar={(viewOptions) => (
+              <EndUserToolbar
+                filters={filters}
+                setFilters={setFilters}
+                departments={deptOptions}
+                positions={posOptions}
+                onAdd={handleOpenCreate}
+                onBulkDelete={() => setDeleteId('BULK')}
+                selectedCount={selectedIds.length}
+                totalCount={endUsers.length}
+                filteredCount={filteredUsers.length}
+                viewOptions={viewOptions}
+              />
+            )}
           />
         </div>
       )}

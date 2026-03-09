@@ -11,6 +11,8 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 
+import { ReactNode } from 'react'
+
 interface Option {
   label: string
   value: string
@@ -32,6 +34,7 @@ interface EndUserToolbarProps {
   selectedCount: number
   totalCount: number
   filteredCount: number
+  viewOptions?: ReactNode
 }
 
 export function EndUserToolbar({
@@ -44,6 +47,7 @@ export function EndUserToolbar({
   selectedCount,
   totalCount,
   filteredCount,
+  viewOptions,
 }: EndUserToolbarProps) {
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFilters({ ...filters, search: e.target.value })
@@ -139,11 +143,12 @@ export function EndUserToolbar({
           variant="default"
           onClick={onAdd}
           size="sm"
-          className="cursor-pointer rounded-xl shadow-sm gap-2"
+          className="cursor-pointer rounded-xl shadow-sm gap-2 h-9"
         >
           <Plus className="h-4 w-4" />
-          Thêm mới
+          <span className="hidden sm:inline">Thêm mới</span>
         </Button>
+        {viewOptions}
       </div>
     </div>
   )

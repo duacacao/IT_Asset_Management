@@ -4,12 +4,15 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Plus, Search, Trash } from 'lucide-react'
 
+import { ReactNode } from 'react'
+
 interface DepartmentToolbarProps {
   searchTerm: string
   onSearchChange: (value: string) => void
   selectedCount: number
   onAdd: () => void
   onBulkDelete: () => void
+  viewOptions?: ReactNode
 }
 
 export function DepartmentToolbar({
@@ -18,6 +21,7 @@ export function DepartmentToolbar({
   selectedCount,
   onAdd,
   onBulkDelete,
+  viewOptions,
 }: DepartmentToolbarProps) {
   return (
     <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -46,14 +50,15 @@ export function DepartmentToolbar({
           </Button>
         )}
         <Button
-          variant="outline"
+          variant="default"
           size="icon"
           onClick={onAdd}
           title="Thêm phòng ban"
-          className="cursor-pointer rounded-xl border-border/50 shadow-sm"
+          className="cursor-pointer rounded-xl shadow-sm h-9 w-9"
         >
           <Plus className="h-4 w-4" />
         </Button>
+        {viewOptions}
       </div>
     </div>
   )

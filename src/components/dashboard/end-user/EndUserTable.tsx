@@ -32,7 +32,9 @@ import { createEndUserColumns } from './end-user-columns'
 import { EndUserWithDevice } from '@/types/end-user'
 import { EmptyState } from '@/components/EmptyState'
 import { Users2, ChevronsLeft, ChevronsRight, ChevronLeft, ChevronRight } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { DataTableViewOptions } from '@/components/ui/data-table-view-options'
+
+import { ReactNode } from 'react'
 
 interface EndUserTableProps {
   data: EndUserWithDevice[]
@@ -42,6 +44,7 @@ interface EndUserTableProps {
   onEdit: (user: EndUserWithDevice) => void
   onDelete: (id: string) => void
   onView: (id: string) => void
+  toolbar?: (viewOptions: ReactNode) => ReactNode
 }
 
 export const EndUserTable = memo(function EndUserTable({
@@ -52,6 +55,7 @@ export const EndUserTable = memo(function EndUserTable({
   onEdit,
   onDelete,
   onView,
+  toolbar,
 }: EndUserTableProps) {
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
@@ -106,11 +110,14 @@ export const EndUserTable = memo(function EndUserTable({
 
   return (
     <div className="space-y-4">
-      <div className="relative rounded-xl border-none shadow-md bg-white dark:bg-card transition-all duration-300">
+      {/* Toolbar with view options */}
+      {toolbar && toolbar(<DataTableViewOptions table={table} />)}
+
+      <div className="relative overflow-hidden rounded-xl border-none shadow-md bg-white dark:bg-card transition-all duration-300">
         <Table containerClassName="h-[calc(100vh-220px)] overflow-auto">
-          <TableHeader className="bg-white dark:bg-card sticky top-0 z-10 shadow-sm">
+          <TableHeader className="bg-background sticky top-0 z-10 shadow-sm">
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id} className="border-border/20 hover:bg-transparent">
+              <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
                   let widthClass = ''
                   const id = header.id
@@ -125,10 +132,7 @@ export const EndUserTable = memo(function EndUserTable({
                   return (
                     <TableHead
                       key={header.id}
-                      className={cn(
-                        'text-muted-foreground text-xs font-semibold uppercase tracking-wider',
-                        widthClass
-                      )}
+                      className={widthClass}
                     >
                       {header.isPlaceholder
                         ? null
