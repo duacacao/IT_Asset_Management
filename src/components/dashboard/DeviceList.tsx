@@ -28,7 +28,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Search, FilterX, CheckCircle2, SearchX, Download, Trash2, Plus, Upload, FileDown } from 'lucide-react'
+import { Search, FilterX, CheckCircle2, SearchX, Download, Trash2, Plus, Upload } from 'lucide-react'
 import { AppLoader } from '@/components/ui/app-loader'
 import {
   AlertDialog,
@@ -320,22 +320,6 @@ export function DeviceList({
                 </SelectContent>
               </Select>
 
-              {/* Bulk export */}
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={bulkUpdateStatusMutation.isPending}
-                className="cursor-pointer rounded-xl gap-2"
-                onClick={() => {
-                  const selectedRows = table.getFilteredSelectedRowModel().rows
-                  selectedRows.forEach((row) => onExportDevice(row.original))
-                  setRowSelection({})
-                }}
-              >
-                <Download className="h-3.5 w-3.5" aria-hidden="true" />
-                Xuất file
-              </Button>
-
               {/* Bulk delete */}
               <Button
                 variant="destructive"
@@ -363,31 +347,32 @@ export function DeviceList({
           {/* Primary actions */}
           <Button
             variant="outline"
-            size="sm"
-            onClick={onImportDevice}
-            disabled={isImporting}
-            className="cursor-pointer rounded-xl shadow-sm gap-2"
+            size="icon"
+            onClick={onExportCSV}
+            title="Export CSV"
+            disabled={Object.keys(rowSelection).length === 0}
+            className="cursor-pointer rounded-xl shadow-sm"
           >
-            <Upload className="h-4 w-4" />
-            Import
+            <Download className="h-4 w-4" />
           </Button>
           <Button
             variant="outline"
-            size="sm"
-            onClick={onExportCSV}
-            className="cursor-pointer rounded-xl shadow-sm gap-2"
+            size="icon"
+            onClick={onImportDevice}
+            disabled={isImporting}
+            title="Import Excel"
+            className="cursor-pointer rounded-xl shadow-sm"
           >
-            <FileDown className="h-4 w-4" />
-            Export
+            <Upload className="h-4 w-4" />
           </Button>
           <Button
             variant="default"
-            size="sm"
+            size="icon"
             onClick={onCreateDevice}
-            className="cursor-pointer rounded-xl shadow-sm gap-2"
+            title="Tạo mới"
+            className="cursor-pointer rounded-xl shadow-sm"
           >
             <Plus className="h-4 w-4" />
-            Tạo mới
           </Button>
         </div>
       </div>
