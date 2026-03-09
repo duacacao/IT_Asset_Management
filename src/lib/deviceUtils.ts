@@ -1,4 +1,3 @@
-import * as XLSX from 'xlsx'
 import { Device, DeviceInfo, DeviceType } from '@/types/device'
 
 /**
@@ -6,14 +5,19 @@ import { Device, DeviceInfo, DeviceType } from '@/types/device'
  * - Read as array buffer
  * - Handle type safety
  * - Handle multiple sheets
+ * - Dynamic import xlsx để tránh đưa ~900KB vào main bundle
  */
+
+// Dynamic import xlsx — chỉ tải khi cần
+const getXLSX = () => import('xlsx')
 
 // Scan tên sheet từ file Excel (không parse data) — dùng cho Sheet Selection Dialog
 export const scanSheetNames = async (file: File): Promise<string[]> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
-    reader.onload = (e) => {
+    reader.onload = async (e) => {
       try {
+        const XLSX = await getXLSX()
         const data = new Uint8Array(e.target?.result as ArrayBuffer)
         const workbook = XLSX.read(data, { type: 'array', bookSheets: true })
         const normalized = workbook.SheetNames.map((name) =>
@@ -33,8 +37,9 @@ export const importExcelDevice = async (file: File, selectedSheets?: string[]): 
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
 
-    reader.onload = (e) => {
+    reader.onload = async (e) => {
       try {
+        const XLSX = await getXLSX()
         const data = new Uint8Array(e.target?.result as ArrayBuffer)
         const workbook = XLSX.read(data, { type: 'array' })
 
@@ -100,7 +105,8 @@ export const importExcelDevice = async (file: File, selectedSheets?: string[]): 
   })
 }
 
-export const exportDeviceToExcel = (device: Device): void => {
+export const exportDeviceToExcel = async (device: Device): Promise<void> => {
+  const XLSX = await getXLSX()
   const workbook = XLSX.utils.book_new()
 
   Object.entries(device.sheets).forEach(([sheetName, sheetData]) => {

@@ -1,5 +1,8 @@
-import * as XLSX from 'xlsx'
 import { toSupabaseDeviceInsert } from '@/lib/supabase-adapter'
+
+// Dynamic import xlsx — chỉ tải ~900KB khi user thực sự cần import/export Excel
+// Tránh đưa vào main bundle, cải thiện initial page load đáng kể
+const getXLSX = () => import('xlsx')
 
 // ============================================
 // Scan tên sheet từ file Excel (không parse data)
@@ -8,8 +11,9 @@ import { toSupabaseDeviceInsert } from '@/lib/supabase-adapter'
 export const scanSheetNames = async (file: File): Promise<string[]> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
-    reader.onload = (e) => {
+    reader.onload = async (e) => {
       try {
+        const XLSX = await getXLSX()
         const data = new Uint8Array(e.target?.result as ArrayBuffer)
         const workbook = XLSX.read(data, { type: 'array', bookSheets: true })
         const normalized = workbook.SheetNames.map((name) =>
@@ -41,8 +45,9 @@ export const parseExcelForImport = async (
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
 
-    reader.onload = (e) => {
+    reader.onload = async (e) => {
       try {
+        const XLSX = await getXLSX()
         const data = new Uint8Array(e.target?.result as ArrayBuffer)
         const workbook = XLSX.read(data, { type: 'array' })
 
@@ -121,7 +126,8 @@ export const parseExcelForImport = async (
 // Export device thành file Excel
 // Nhận Device object (frontend type) — adapter đã convert
 // ============================================
-export const exportDeviceToExcel = (deviceName: string, sheets: Record<string, any[]>): void => {
+export const exportDeviceToExcel = async (deviceName: string, sheets: Record<string, any[]>): Promise<void> => {
+  const XLSX = await getXLSX()
   const workbook = XLSX.utils.book_new()
 
   Object.entries(sheets).forEach(([sheetName, sheetData]) => {

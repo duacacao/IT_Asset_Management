@@ -1,10 +1,16 @@
 'use client'
 
+import dynamic from 'next/dynamic'
 import { useOrganizationQuery } from '@/hooks/queries/organizationQueries'
-import { OrganizationChart } from '@/components/dashboard/org-chart/OrganizationChart'
 import { AppLoader } from '@/components/ui/app-loader'
 import { AlertTriangle, RefreshCw, Network } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+
+const OrganizationChart = dynamic(
+  () =>
+    import('@/components/dashboard/org-chart/OrganizationChart').then((mod) => mod.OrganizationChart),
+  { ssr: false, loading: () => <AppLoader layout="vertical" text="Đang tải sơ đồ tổ chức..." /> }
+)
 
 export default function OrganizationPage() {
   const { data: departments, isLoading, error, refetch } = useOrganizationQuery()

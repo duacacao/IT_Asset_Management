@@ -28,7 +28,18 @@ export function useEndUsersQuery() {
 
       const { endUsers, assignments } = data
 
-      return endUsers.map((user: any) => toFrontendEndUser(user, assignments))
+      // Pre-build grouped Map để tránh O(n²) — .filter() bên trong toFrontendEndUser
+      // EndUser có thể có nhiều assignments (1:N), nên dùng Map<userId, assignment[]>
+      const assignmentsByUser = new Map<string, any[]>()
+      for (const a of assignments) {
+        const list = assignmentsByUser.get(a.end_user_id) || []
+        list.push(a)
+        assignmentsByUser.set(a.end_user_id, list)
+      }
+
+      return endUsers.map((user: any) =>
+        toFrontendEndUser(user, assignmentsByUser.get(user.id) || [])
+      )
     },
   })
 }

@@ -181,7 +181,10 @@ export default function DevicesPage() {
   // Export device — cần resolve sheets từ detail query
   const handleExportDevice = useCallback((device: Device) => {
     if (Object.keys(device.sheets).length > 0) {
-      exportDeviceToExcel(device.deviceInfo.name, device.sheets)
+      // exportDeviceToExcel giờ là async (dynamic import xlsx)
+      exportDeviceToExcel(device.deviceInfo.name, device.sheets).catch(() => {
+        toast.error('Lỗi khi xuất file Excel')
+      })
     } else {
       toast.info('Mở chi tiết thiết bị trước khi xuất file')
     }

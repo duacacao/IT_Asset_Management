@@ -7,8 +7,7 @@ import Link from 'next/link'
 
 import { NavMain } from '@/components/nav-main'
 import { NavUser } from '@/components/nav-user'
-import { useDeviceStatsQuery } from '@/hooks/useDevicesQuery'
-import { useEndUserStatsQuery } from '@/hooks/queries/endUserQueries'
+import { useAppStatsQuery } from '@/hooks/queries/appQueries'
 import { Logo } from '@/components/logo'
 import {
   Sidebar,
@@ -24,14 +23,13 @@ import {
 } from '@/components/ui/sidebar'
 
 function SidebarQuickStats() {
-  const { data: deviceStats } = useDeviceStatsQuery()
-  const { data: endUserStats } = useEndUserStatsQuery()
+  const { data: appStats } = useAppStatsQuery()
   const { state } = useSidebar()
 
   if (state === 'collapsed') return null
 
-  const totalDevices = deviceStats?.total ?? 0
-  const totalUsers = endUserStats?.total ?? 0
+  const totalDevices = appStats?.devicesCount ?? 0
+  const totalUsers = appStats?.endUsersCount ?? 0
 
   return (
     <SidebarGroup>

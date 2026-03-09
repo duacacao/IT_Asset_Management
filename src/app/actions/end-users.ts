@@ -299,7 +299,7 @@ export async function getEndUserStats() {
 
   const { count, error } = await supabase
     .from('end_users')
-    .select('*', { count: 'exact', head: true })
+    .select('id', { count: 'exact', head: true })
     .eq('user_id', user.id)
     .is('deleted_at', null)
 

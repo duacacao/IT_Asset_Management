@@ -4,6 +4,11 @@
 // ============================================
 
 export const queryKeys = {
+  // App Stats (Combined for Sidebar)
+  appStats: {
+    all: ['app-stats'] as const,
+  },
+
   // End Users
   endUsers: {
     stats: () => [...queryKeys.endUsers.all, 'stats'] as const,

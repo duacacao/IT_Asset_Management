@@ -18,7 +18,9 @@ export async function getDevices() {
   const [devicesResult, assignmentsResult] = await Promise.all([
     supabase
       .from('devices')
-      .select('*')
+      // Chỉ select columns cần cho list view — bỏ code, location, notes, purchase_date, warranty_exp
+      // Giảm payload size đáng kể khi có nhiều devices
+      .select('id, name, status, type, specs, created_at, updated_at')
       .eq('owner_id', user.id)
       .is('deleted_at', null)
       .order('created_at', { ascending: false }),

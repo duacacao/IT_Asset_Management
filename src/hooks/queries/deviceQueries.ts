@@ -20,7 +20,17 @@ export function useDevicesQuery() {
 
       const { devices, assignments } = data
 
-      return devices.map((d: any) => toFrontendDevice(d, assignments))
+      // Pre-build Map để tránh O(n²) — .find() bên trong toFrontendDevice
+      // Trước: devices.map(d => toFrontendDevice(d, assignments)) → O(n×m)
+      // Sau: Map lookup → O(n+m)
+      const assignmentMap = new Map(
+        assignments.map((a: any) => [a.device_id, a])
+      )
+
+      return devices.map((d: any) => {
+        const matched = assignmentMap.get(d.id)
+        return toFrontendDevice(d, matched ? [matched] : [])
+      })
     },
   })
 }
