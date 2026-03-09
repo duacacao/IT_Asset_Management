@@ -5,13 +5,7 @@ import { DeviceList } from '@/components/dashboard/DeviceList'
 import { SheetSelectionDialog } from '@/components/dashboard/SheetSelectionDialog'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { Upload, Plus, MoreHorizontal, FileDown } from 'lucide-react'
+import { Upload } from 'lucide-react'
 import { AppLoader } from '@/components/ui/app-loader'
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
@@ -32,7 +26,6 @@ import {
   useDevicesQuery,
   useDeleteDeviceMutation,
   useImportDeviceMutation,
-  useDeviceDetailQuery,
 } from '@/hooks/useDevicesQuery'
 import { useUIStore } from '@/stores/useUIStore'
 import { parseExcelForImport, exportDeviceToExcel } from '@/lib/excel-import'
@@ -265,39 +258,13 @@ export default function DevicesPage() {
             onSelectionChange={handleSelectionChange}
             onHoverDevice={handlePrefetchDevice}
             highlightId={highlightId}
-            headerAction={
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="icon" disabled={isImporting}>
-                    <MoreHorizontal className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => setIsCreateOpen(true)}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Tạo mới
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setIsImportOpen(true)}>
-                    <Upload className="mr-2 h-4 w-4" />
-                    Import Excel
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => {
-                      const devicesToExport = selectedDevices.length > 0 ? selectedDevices : devices
-                      exportDevicesToCSV(devicesToExport)
-                    }}
-                  >
-                    <FileDown className="mr-2 h-4 w-4" />
-                    Export CSV
-                    {selectedDevices.length > 0 && (
-                      <span className="text-muted-foreground ml-2 text-xs">
-                        ({selectedDevices.length})
-                      </span>
-                    )}
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            }
+            onCreateDevice={() => setIsCreateOpen(true)}
+            onImportDevice={() => setIsImportOpen(true)}
+            onExportCSV={() => {
+              const devicesToExport = selectedDevices.length > 0 ? selectedDevices : devices
+              exportDevicesToCSV(devicesToExport)
+            }}
+            isImporting={isImporting}
           />
         </div>
       )}
