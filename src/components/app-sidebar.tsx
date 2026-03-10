@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { LayoutDashboard, Settings, Laptop, Users, BookOpen } from 'lucide-react'
+import { LayoutDashboard, Settings, Laptop, Users, BookOpen, UsersRound } from 'lucide-react'
 
 import Link from 'next/link'
 
@@ -18,9 +18,36 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar'
+import { useIsAdmin } from '@/hooks/usePermission'
 
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const isAdmin = useIsAdmin()
+
+  // Xây dựng menu items cho Cài đặt — thêm "Thành viên" nếu admin+
+  const settingsItems = [
+    {
+      title: 'Tài khoản',
+      url: '/settings/account',
+    },
+    {
+      title: 'Giao diện',
+      url: '/settings/appearance',
+    },
+    {
+      title: 'Lịch sử hệ thống',
+      url: '/settings/history',
+    },
+  ]
+
+  // Admin+ thấy link "Thành viên" — member/viewer không thấy
+  if (isAdmin) {
+    settingsItems.splice(0, 0, {
+      title: 'Thành viên',
+      url: '/settings/members',
+    })
+  }
+
   const navGroups = [
     {
       label: 'Tổng quan',
@@ -68,20 +95,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           title: 'Cài đặt',
           url: '#',
           icon: Settings,
-          items: [
-            {
-              title: 'Tài khoản',
-              url: '/settings/account',
-            },
-            {
-              title: 'Giao diện',
-              url: '/settings/appearance',
-            },
-            {
-              title: 'Lịch sử hệ thống',
-              url: '/settings/history',
-            },
-          ],
+          items: settingsItems,
         },
       ],
     },
@@ -117,3 +131,4 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     </Sidebar>
   )
 }
+

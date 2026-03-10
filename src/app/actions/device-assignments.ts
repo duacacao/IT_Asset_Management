@@ -1,6 +1,7 @@
 'use server'
 
 import { requireAuth } from '@/lib/auth'
+import { requirePermission } from '@/lib/permissions'
 import { revalidatePath } from 'next/cache'
 import { ACTIVITY_LOG_ACTIONS } from '@/constants/activity-log'
 
@@ -25,7 +26,8 @@ export async function assignDevice(
   endUserId: string,
   forceReassign: boolean = false
 ): Promise<AssignDeviceResult> {
-  const { supabase, user } = await requireAuth()
+  const { supabase, user, organization, role } = await requireAuth()
+  requirePermission(role, 'assignments:write')
 
   // B1: Kiểm tra device đã được assign cho ai chưa
   const { data: existingDeviceAssignment } = await supabase
@@ -62,14 +64,12 @@ export async function assignDevice(
     }
   }
 
-  // B2: (Đã bỏ) — Cho phép 1 user nhận nhiều device (1:N)
-  // Chỉ giữ B1: 1 device chỉ assign cho 1 user tại 1 thời điểm
-
-  // B3: Tạo assignment mới
+  // B2: Tạo assignment mới — gắn organization_id
   const { error } = await supabase.from('device_assignments').insert({
     device_id: deviceId,
     end_user_id: endUserId,
     user_id: user.id,
+    organization_id: organization.id,
   })
 
   if (error) {
@@ -83,10 +83,11 @@ export async function assignDevice(
     .update({ status: 'active', updated_at: new Date().toISOString() })
     .eq('id', deviceId)
 
-  // B4: Log activity
+  // B3: Log activity — gắn organization_id
   await supabase.from('activity_logs').insert({
     device_id: deviceId,
     user_id: user.id,
+    organization_id: organization.id,
     action: ACTIVITY_LOG_ACTIONS.ASSIGN,
     details: `Gán thiết bị cho end-user ${endUserId}`,
   })
@@ -102,13 +103,12 @@ export async function assignDevice(
 export async function returnDevice(
   assignmentId: string
 ): Promise<{ success: boolean; error: string | null }> {
-  const { supabase, user } = await requireAuth()
+  const { supabase, user, organization } = await requireAuth()
 
   const { data: assignment, error } = await supabase
     .from('device_assignments')
     .update({ returned_at: new Date().toISOString() })
     .eq('id', assignmentId)
-    .eq('user_id', user.id)
     .is('returned_at', null)
     .select()
     .single()
@@ -128,6 +128,7 @@ export async function returnDevice(
     await supabase.from('activity_logs').insert({
       device_id: assignment.device_id,
       user_id: user.id,
+      organization_id: organization.id,
       action: ACTIVITY_LOG_ACTIONS.RETURN,
       details: `Trả thiết bị (Assignment ID: ${assignmentId})`,
     })
@@ -154,7 +155,7 @@ export async function getDeviceHistory(endUserId: string): Promise<{
   | null
   error: string | null
 }> {
-  const { supabase, user } = await requireAuth()
+  const { supabase } = await requireAuth()
 
   const { data, error } = await supabase
     .from('device_assignments')
@@ -171,7 +172,6 @@ export async function getDeviceHistory(endUserId: string): Promise<{
         `
     )
     .eq('end_user_id', endUserId)
-    .eq('user_id', user.id)
     .order('assigned_at', { ascending: false })
 
   if (error) {
@@ -205,7 +205,7 @@ export async function getCurrentAssignment(endUserId: string): Promise<{
   } | null
   error: string | null
 }> {
-  const { supabase, user } = await requireAuth()
+  const { supabase } = await requireAuth()
 
   const { data, error } = await supabase
     .from('device_assignments')
@@ -221,7 +221,6 @@ export async function getCurrentAssignment(endUserId: string): Promise<{
         `
     )
     .eq('end_user_id', endUserId)
-    .eq('user_id', user.id)
     .is('returned_at', null)
     .maybeSingle()
 
@@ -254,7 +253,8 @@ export async function bulkAssignDevices(
 ): Promise<{ success: boolean; error: string | null }> {
   if (!deviceIds.length) return { success: true, error: null }
 
-  const { supabase, user } = await requireAuth()
+  const { supabase, user, organization, role } = await requireAuth()
+  requirePermission(role, 'assignments:write')
 
   // Thu hồi thiết bị gán cũ nếu bất kỳ ID nào đã nằm trong device_assignments khác
   const { data: activeAssignments } = await supabase
@@ -269,14 +269,14 @@ export async function bulkAssignDevices(
       .from('device_assignments')
       .update({ returned_at: new Date().toISOString() })
       .in('id', assignmentIdsToReturn)
-      .eq('user_id', user.id)
   }
 
-  // Tạo assignments mới
+  // Tạo assignments mới — gắn organization_id
   const assignmentsToInsert = deviceIds.map(deviceId => ({
     device_id: deviceId,
     end_user_id: endUserId,
-    user_id: user.id
+    user_id: user.id,
+    organization_id: organization.id,
   }))
 
   const { error } = await supabase.from('device_assignments').insert(assignmentsToInsert)
@@ -291,11 +291,11 @@ export async function bulkAssignDevices(
     .from('devices')
     .update({ status: 'active', updated_at: new Date().toISOString() })
     .in('id', deviceIds)
-    .eq('owner_id', user.id)
 
   const activityLogs = deviceIds.map(deviceId => ({
     device_id: deviceId,
     user_id: user.id,
+    organization_id: organization.id,
     action: ACTIVITY_LOG_ACTIONS.ASSIGN,
     details: `Gán thiết bị cho end-user ${endUserId} (Bulk)`
   }))
@@ -315,13 +315,12 @@ export async function bulkReturnDevices(
 ): Promise<{ success: boolean; error: string | null }> {
   if (!assignmentIds.length) return { success: true, error: null }
 
-  const { supabase, user } = await requireAuth()
+  const { supabase, user, organization } = await requireAuth()
 
   const { data: assignments } = await supabase
     .from('device_assignments')
     .select('device_id, id')
     .in('id', assignmentIds)
-    .eq('user_id', user.id)
 
   if (!assignments || assignments.length === 0) {
     return { success: true, error: null }
@@ -331,7 +330,6 @@ export async function bulkReturnDevices(
     .from('device_assignments')
     .update({ returned_at: new Date().toISOString() })
     .in('id', assignmentIds)
-    .eq('user_id', user.id)
     .is('returned_at', null)
 
   if (error) {
@@ -350,6 +348,7 @@ export async function bulkReturnDevices(
   const activityLogs = assignments.map(a => ({
     device_id: a.device_id,
     user_id: user.id,
+    organization_id: organization.id,
     action: ACTIVITY_LOG_ACTIONS.RETURN,
     details: `Trả thiết bị (Assignment ID: ${a.id}) (Bulk)`
   }))

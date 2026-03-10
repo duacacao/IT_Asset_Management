@@ -44,12 +44,12 @@ export function toFrontendDevice(dbDevice: DbDevice, assignments: any[] = []): D
 
   const mappedAssignment = assignment
     ? {
-        id: assignment.id,
-        end_user_id: assignment.end_user_id,
-        assignee_name: assignment.end_users?.full_name || assignment.end_users?.[0]?.full_name,
-        assignee_email: assignment.end_users?.email || assignment.end_users?.[0]?.email,
-        assigned_at: assignment.assigned_at,
-      }
+      id: assignment.id,
+      end_user_id: assignment.end_user_id,
+      assignee_name: assignment.end_users?.full_name || assignment.end_users?.[0]?.full_name,
+      assignee_email: assignment.end_users?.email || assignment.end_users?.[0]?.email,
+      assigned_at: assignment.assigned_at,
+    }
     : undefined
 
   return {
@@ -120,8 +120,8 @@ export function toFrontendEndUser(
     department_id: dbUser.department_id,
     position_id: dbUser.position_id,
     notes: dbUser.notes,
-    created_at: dbUser.created_at,
-    updated_at: dbUser.updated_at,
+    created_at: dbUser.created_at || '',
+    updated_at: dbUser.updated_at || '',
     department: dbUser.departments?.name || null,
     position: dbUser.positions?.name || null,
     devices: devices,

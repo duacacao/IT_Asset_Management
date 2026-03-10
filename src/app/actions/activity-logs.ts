@@ -27,6 +27,7 @@ interface GetActivityLogsParams {
 
 /**
  * Lấy danh sách activity logs trong vòng 30 ngày gần nhất.
+ * RLS filter theo organization_id — chỉ hiện logs cùng org.
  * Log cũ hơn 30 ngày sẽ không được hiển thị.
  */
 export async function getActivityLogs(params: GetActivityLogsParams = {}) {

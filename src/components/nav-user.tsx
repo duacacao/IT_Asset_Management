@@ -19,6 +19,7 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar'
 import { useAuth } from '@/contexts/AuthContext'
+import { RoleBadge } from '@/components/permission/RoleBadge'
 
 // Parse display name từ email — capitalize chữ cái đầu
 function getDisplayName(email: string | undefined): string {
@@ -30,11 +31,12 @@ function getDisplayName(email: string | undefined): string {
 
 export function NavUser() {
   const { isMobile } = useSidebar()
-  const { user, isLoading, isLoggingOut, logout } = useAuth()
+  const { user, isLoading, isLoggingOut, logout, organization, role } = useAuth()
 
   // Lấy thông tin từ Supabase Auth user object
   const displayName = user?.user_metadata?.full_name || getDisplayName(user?.email)
   const displayEmail = user?.email || ''
+  const orgName = organization?.name || ''
 
   // Trạng thái đang đăng xuất — hiện text thay vì skeleton
   if (isLoggingOut) {
@@ -89,8 +91,11 @@ export function NavUser() {
                 <CircleUser className="size-5" />
               </div>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{displayName}</span>
-                <span className="text-muted-foreground truncate text-xs">{displayEmail}</span>
+                <div className="flex items-center gap-1.5">
+                  <span className="truncate font-medium">{displayName}</span>
+                  {role && <RoleBadge role={role} className="text-[10px] px-1.5 py-0 h-4" />}
+                </div>
+                <span className="text-muted-foreground truncate text-xs">{orgName || displayEmail}</span>
               </div>
               <EllipsisVertical className="ml-auto size-4" />
             </SidebarMenuButton>
@@ -107,8 +112,11 @@ export function NavUser() {
                   <CircleUser className="size-5" />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">{displayName}</span>
-                  <span className="text-muted-foreground truncate text-xs">{displayEmail}</span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="truncate font-medium">{displayName}</span>
+                    {role && <RoleBadge role={role} className="text-[10px] px-1.5 py-0 h-4" />}
+                  </div>
+                  <span className="text-muted-foreground truncate text-xs">{orgName || displayEmail}</span>
                 </div>
               </div>
             </DropdownMenuLabel>

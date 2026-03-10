@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/utils/supabase/server'
+import { createClient as createAdminClient } from '@supabase/supabase-js'
 import { z } from 'zod'
 
 // ============================================
@@ -96,7 +97,7 @@ export async function signUp(formData: FormData) {
     // Redirect URL for email verification (if enabled)
     const redirectUrl = `${getBaseUrl()}/auth/callback`
 
-    const { error } = await supabase.auth.signUp({
+    const { data: signUpData, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -106,6 +107,48 @@ export async function signUp(formData: FormData) {
 
     if (error) {
       return { error: error.message }
+    }
+
+    // Auto-create organization + membership cho user mới
+    // Dùng service role key để bypass RLS vì user mới chưa có org membership
+    const newUserId = signUpData.user?.id
+    if (newUserId) {
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+      const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+      if (supabaseUrl && serviceRoleKey) {
+        const adminClient = createAdminClient(supabaseUrl, serviceRoleKey)
+
+        // Tạo slug từ username — đảm bảo unique
+        const slug = `${username.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${Date.now().toString(36)}`
+        const orgName = `${username}'s Organization`
+
+        // Tạo organization
+        const { data: org } = await adminClient
+          .from('organizations')
+          .insert({
+            name: orgName,
+            slug,
+            created_by: newUserId,
+          })
+          .select('id')
+          .single()
+
+        if (org) {
+          // Tạo membership (owner)
+          await adminClient.from('organization_members').insert({
+            organization_id: org.id,
+            user_id: newUserId,
+            role: 'owner',
+          })
+
+          // Set current_organization_id cho profile
+          await adminClient
+            .from('profiles')
+            .update({ current_organization_id: org.id })
+            .eq('id', newUserId)
+        }
+      }
     }
 
     // Force sign out to require manual login

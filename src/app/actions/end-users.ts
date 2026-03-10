@@ -1,16 +1,17 @@
 'use server'
 
 import { requireAuth } from '@/lib/auth'
+import { requirePermission } from '@/lib/permissions'
 import { revalidatePath } from 'next/cache'
-import type { EndUser, EndUserInsert, EndUserUpdate, EndUserWithDevice } from '@/types/end-user'
+import type { EndUser, EndUserInsert, EndUserUpdate } from '@/types/end-user'
 import { assignDevice, returnDevice, bulkAssignDevices, bulkReturnDevices } from './device-assignments'
 
 // ============================================
 // Lấy danh sách end-users + thông tin phòng ban, chức vụ, thiết bị đang assign
-// Refactor: Trả về raw data để Frontend Query Hook tự xử lý qua adapter
+// RLS filter theo organization_id — chỉ hiện members cùng org
 // ============================================
 export async function getEndUsers() {
-  const { supabase, user } = await requireAuth()
+  const { supabase, organization } = await requireAuth()
 
   // Parallel queries with Promise.all for performance
   const [endUsersResult, assignmentsResult] = await Promise.all([
@@ -27,7 +28,7 @@ export async function getEndUsers() {
         )
         `
       )
-      .eq('user_id', user.id)
+      .eq('organization_id', organization.id)
       .is('deleted_at', null)
       .order('created_at', { ascending: false }),
     supabase
@@ -44,7 +45,7 @@ export async function getEndUsers() {
         )
         `
       )
-      .eq('user_id', user.id)
+      .eq('organization_id', organization.id)
       .is('returned_at', null),
   ])
 
@@ -77,13 +78,13 @@ export async function getEndUser(id: string): Promise<{
   data: EndUser | null
   error: string | null
 }> {
-  const { supabase, user } = await requireAuth()
+  const { supabase, organization } = await requireAuth()
 
   const { data, error } = await supabase
     .from('end_users')
     .select('*')
     .eq('id', id)
-    .eq('user_id', user.id)
+    .eq('organization_id', organization.id)
     .is('deleted_at', null)
     .single()
 
@@ -96,14 +97,14 @@ export async function getEndUser(id: string): Promise<{
 }
 
 // ============================================
-// Tạo end-user mới
-// department_id và position_id bắt buộc (NOT NULL trong DB)
+// Tạo end-user mới — gắn organization_id
 // ============================================
 export async function createEndUser(endUser: EndUserInsert): Promise<{
   data: EndUser | null
   error: string | null
 }> {
-  const { supabase, user } = await requireAuth()
+  const { supabase, user, organization, role } = await requireAuth()
+  requirePermission(role, 'end-users:write')
 
   // Validate bắt buộc
   if (!endUser.department_id) {
@@ -123,6 +124,7 @@ export async function createEndUser(endUser: EndUserInsert): Promise<{
       position_id: endUser.position_id,
       notes: endUser.notes,
       user_id: user.id,
+      organization_id: organization.id,
     })
     .select()
     .single()
@@ -145,7 +147,7 @@ export async function createEndUser(endUser: EndUserInsert): Promise<{
 }
 
 // ============================================
-// Cập nhật end-user
+// Cập nhật end-user — RLS đảm bảo chỉ cùng org
 // Xử lý device assignment nếu device_id thay đổi
 // ============================================
 export async function updateEndUser(
@@ -155,7 +157,8 @@ export async function updateEndUser(
   data: EndUser | null
   error: string | null
 }> {
-  const { supabase, user } = await requireAuth()
+  const { supabase, role } = await requireAuth()
+  requirePermission(role, 'end-users:write')
 
   const { data, error } = await supabase
     .from('end_users')
@@ -168,7 +171,6 @@ export async function updateEndUser(
       notes: updates.notes,
     })
     .eq('id', id)
-    .eq('user_id', user.id)
     .select()
     .single()
 
@@ -178,7 +180,6 @@ export async function updateEndUser(
   }
 
   // Xử lý device assignment theo diff (1:N)
-  // So sánh device_ids mới vs existing_devices → biết thêm/bớt
   if (data && updates.device_ids !== undefined) {
     const newIds = updates.device_ids || []
     const existingDevices = updates.existing_devices || []
@@ -212,14 +213,14 @@ export async function deleteEndUser(id: string): Promise<{
   success: boolean
   error: string | null
 }> {
-  const { supabase, user } = await requireAuth()
+  const { supabase, role } = await requireAuth()
+  requirePermission(role, 'end-users:write')
 
   // B1: Trả TẤT CẢ thiết bị đang được gán (1:N)
   const { data: activeAssignments } = await supabase
     .from('device_assignments')
     .select('id')
     .eq('end_user_id', id)
-    .eq('user_id', user.id)
     .is('returned_at', null)
 
   if (activeAssignments && activeAssignments.length > 0) {
@@ -235,7 +236,6 @@ export async function deleteEndUser(id: string): Promise<{
     .from('end_users')
     .update({ deleted_at: new Date().toISOString() })
     .eq('id', id)
-    .eq('user_id', user.id)
 
   if (error) {
     console.error('Lỗi xóa end_user:', error.message)
@@ -248,16 +248,14 @@ export async function deleteEndUser(id: string): Promise<{
 
 // ============================================
 // Lấy danh sách devices chưa được assign (dùng cho dropdown gán thiết bị)
-// Query device_assignments thay vì end_users.device_id
 // ============================================
 export async function getAvailableDevices(): Promise<{
   data: { id: string; name: string; type: string }[] | null
   error: string | null
 }> {
-  const { supabase, user } = await requireAuth()
+  const { supabase, organization } = await requireAuth()
 
   // Single query: fetch all devices with their active assignment status
-  // LEFT JOIN với device_assignments để lọc trực tiếp trên DB — tránh 2 round-trips
   const { data, error } = await supabase
     .from('devices')
     .select(
@@ -269,7 +267,7 @@ export async function getAvailableDevices(): Promise<{
       )
       `
     )
-    .eq('owner_id', user.id)
+    .eq('organization_id', organization.id)
     .in('status', ['active', 'inactive'])
     .is('deleted_at', null)
     .order('name')
@@ -292,15 +290,15 @@ export async function getAvailableDevices(): Promise<{
 }
 
 // ============================================
-// Lấy thống kê end-users cho sidebar
+// Lấy thống kê end-users
 // ============================================
 export async function getEndUserStats() {
-  const { supabase, user } = await requireAuth()
+  const { supabase, organization } = await requireAuth()
 
   const { count, error } = await supabase
     .from('end_users')
     .select('id', { count: 'exact', head: true })
-    .eq('user_id', user.id)
+    .eq('organization_id', organization.id)
     .is('deleted_at', null)
 
   if (error) {

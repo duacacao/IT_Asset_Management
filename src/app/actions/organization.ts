@@ -26,19 +26,18 @@ export interface OrganizationData {
 
 // ============================================
 // Server Action: Fetch organization hierarchy
-// Positions have department_id directly.
-// Employee counts are derived from end_users.
+// Chuyển từ user_id → organization_id
 // ============================================
 
 export async function getOrganizationHierarchy(): Promise<OrganizationData> {
   try {
-    const { supabase, user } = await requireAuth()
+    const { supabase, organization } = await requireAuth()
 
     // 1. Fetch departments (non-deleted) with parent_id
     const { data: departments, error: deptError } = await supabase
       .from('departments')
       .select('id, name, parent_id')
-      .eq('user_id', user.id)
+      .eq('organization_id', organization.id)
       .is('deleted_at', null)
       .order('name', { ascending: true })
 
@@ -51,7 +50,7 @@ export async function getOrganizationHierarchy(): Promise<OrganizationData> {
     const { data: positions, error: posError } = await supabase
       .from('positions')
       .select('id, name, department_id')
-      .eq('user_id', user.id)
+      .eq('organization_id', organization.id)
       .is('deleted_at', null)
       .order('name', { ascending: true })
 
@@ -64,7 +63,7 @@ export async function getOrganizationHierarchy(): Promise<OrganizationData> {
     const { data: endUsers, error: euError } = await supabase
       .from('end_users')
       .select('position_id')
-      .eq('user_id', user.id)
+      .eq('organization_id', organization.id)
       .is('deleted_at', null)
 
     if (euError) {

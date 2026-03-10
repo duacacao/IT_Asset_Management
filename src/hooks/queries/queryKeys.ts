@@ -55,6 +55,13 @@ export const queryKeys = {
     list: (params?: { page?: number; action?: string }) =>
       [...queryKeys.activityLogs.all, 'list', params] as const,
   },
+
+  // Members
+  members: {
+    all: ['members'] as const,
+    list: () => [...queryKeys.members.all, 'list'] as const,
+    detail: (id: string) => [...queryKeys.members.all, 'detail', id] as const,
+  },
 } as const
 
 // Type-safe helper to get query keys

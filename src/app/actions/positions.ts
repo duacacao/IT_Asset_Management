@@ -1,6 +1,7 @@
 'use server'
 
 import { requireAuth } from '@/lib/auth'
+import { requirePermission } from '@/lib/permissions'
 import { revalidatePath } from 'next/cache'
 import type { Position, PositionInsert } from '@/types/department'
 
@@ -8,12 +9,12 @@ export async function getPositions(): Promise<{
   data: Position[] | null
   error: string | null
 }> {
-  const { supabase, user } = await requireAuth()
+  const { supabase, organization } = await requireAuth()
 
   const { data, error } = await supabase
     .from('positions')
     .select('*')
-    .eq('user_id', user.id)
+    .eq('organization_id', organization.id)
     .is('deleted_at', null)
     .order('name', { ascending: true })
 
@@ -29,13 +30,15 @@ export async function createPosition(position: PositionInsert): Promise<{
   data: Position | null
   error: string | null
 }> {
-  const { supabase, user } = await requireAuth()
+  const { supabase, user, organization, role } = await requireAuth()
+  requirePermission(role, 'departments:write')
 
   const { data, error } = await supabase
     .from('positions')
     .insert({
       ...position,
       user_id: user.id,
+      organization_id: organization.id,
     })
     .select()
     .single()
@@ -57,13 +60,13 @@ export async function updatePosition(
   data: Position | null
   error: string | null
 }> {
-  const { supabase, user } = await requireAuth()
+  const { supabase, role } = await requireAuth()
+  requirePermission(role, 'departments:write')
 
   const { data, error } = await supabase
     .from('positions')
     .update(updates)
     .eq('id', id)
-    .eq('user_id', user.id)
     .select()
     .single()
 
@@ -81,13 +84,13 @@ export async function deletePosition(id: string): Promise<{
   success: boolean
   error: string | null
 }> {
-  const { supabase, user } = await requireAuth()
+  const { supabase, role } = await requireAuth()
+  requirePermission(role, 'departments:write')
 
   const { error } = await supabase
     .from('positions')
     .update({ deleted_at: new Date().toISOString() })
     .eq('id', id)
-    .eq('user_id', user.id)
 
   if (error) {
     console.error('Lỗi xóa position:', error.message)

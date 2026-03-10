@@ -6,12 +6,21 @@ import { createClient } from '@/utils/supabase/client'
 import { User } from '@supabase/supabase-js'
 import { useQueryClient } from '@tanstack/react-query'
 import { signOut as serverSignOut } from '@/app/actions/auth'
+import { type Role } from '@/types/permission'
+
+// ============================================
+// AuthContext — mở rộng thêm organization + role
+// Client-side source of truth cho auth + org context
+// ============================================
 
 interface AuthContextType {
   user: User | null
   isAuthenticated: boolean
   isLoading: boolean
   isLoggingOut: boolean
+  // Thông tin organization của user hiện tại
+  organization: { id: string; name: string; slug: string } | null
+  role: Role | null
   logout: () => Promise<void>
   refreshAuth: () => Promise<void>
 }
@@ -22,6 +31,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isLoggingOut, setIsLoggingOut] = useState(false)
+  // Organization + role state — fetch sau khi user authenticated
+  const [organization, setOrganization] = useState<{ id: string; name: string; slug: string } | null>(null)
+  const [role, setRole] = useState<Role | null>(null)
   const router = useRouter()
 
   // Memoize Supabase client — tránh tạo instance mới mỗi render
@@ -30,97 +42,115 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Query Client for cache management
   const queryClient = useQueryClient()
 
+  // Fetch organization + role từ DB khi user thay đổi
+  const fetchOrgContext = useCallback(
+    async (userId: string) => {
+      try {
+        const { data: membership } = await supabase
+          .from('organization_members')
+          .select('role, organizations(id, name, slug)')
+          .eq('user_id', userId)
+          .single()
+
+        if (membership?.organizations) {
+          const org = membership.organizations as unknown as { id: string; name: string; slug: string }
+          setOrganization(org)
+          setRole(membership.role as Role)
+        } else {
+          setOrganization(null)
+          setRole(null)
+        }
+      } catch (error) {
+        console.error('Error fetching org context:', error)
+        setOrganization(null)
+        setRole(null)
+      }
+    },
+    [supabase]
+  )
+
   // onAuthStateChange — SINGLE SOURCE OF TRUTH cho auth state
-  // Xử lý: INITIAL_SESSION (mount), SIGNED_IN, SIGNED_OUT, TOKEN_REFRESHED
-  // KHÔNG dùng pathname-based checkUser() để tránh:
-  //   1. Race condition giữa 2 effects
-  //   2. API call thừa trên mỗi navigation
-  //   3. setUser(null) khi getUser() fail → NavUser biến mất
-  // Callback PHẢI là sync — async bị await bởi Promise.all()
-  // trong GoTrueClient._notifyAllSubscribers(), chạy trong exclusive lock → risk deadlock
   useEffect(() => {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
-      setUser(session?.user ?? null)
+      const currentUser = session?.user ?? null
+      setUser(currentUser)
       setIsLoading(false)
 
-      if (event === 'SIGNED_IN') {
-        // Fire-and-forget — KHÔNG await để tránh deadlock trong auth lock
+      if (event === 'SIGNED_IN' && currentUser) {
+        // Fetch org context sau khi sign in
+        fetchOrgContext(currentUser.id)
         queryClient.invalidateQueries()
         router.refresh()
       }
 
       if (event === 'SIGNED_OUT') {
+        setOrganization(null)
+        setRole(null)
         queryClient.removeQueries()
         setIsLoggingOut(false)
         router.push('/sign-in')
       }
+
+      // INITIAL_SESSION — fetch org context nếu user có session
+      if (event === 'INITIAL_SESSION' && currentUser) {
+        fetchOrgContext(currentUser.id)
+      }
     })
 
     return () => subscription.unsubscribe()
-  }, [supabase, router, queryClient])
+  }, [supabase, router, queryClient, fetchOrgContext])
 
   // refreshAuth — gọi sau server action sign-in để client-side detect session mới
-  // Server action set cookies qua cookies() API → client cần đọc lại cookies
-  // KHÔNG dùng cho navigation — chỉ gọi explicit khi biết session đã thay đổi
-  // setIsLoading(false) đảm bảo UI không stuck ở loading state nếu
-  // onAuthStateChange chưa fire (vd: gọi refreshAuth trước khi SIGNED_IN event)
   const refreshAuth = useCallback(async () => {
     try {
-      // 1. Ép Supabase Client SDK đọc lại cookie thông qua storage adapter
-      // Do Server action vừa set Http Cookie, in-memory state của client vẫn đang rỗng.
-      // Việc gọi getSession() sẽ parse token từ cookie và populate vào memory.
       const { data: { session } } = await supabase.auth.getSession()
-      
+
       if (session?.user) {
         setUser(session.user)
         setIsLoading(false)
+        await fetchOrgContext(session.user.id)
         return
       }
 
-      // 2. Fallback: Nếu JWT session chưa có user data, fetch từ API
       const {
         data: { user: currentUser },
         error
       } = await supabase.auth.getUser()
-      
+
       if (error) {
         console.error('refreshAuth getUser error:', error.message)
       }
-      
+
       if (currentUser) {
         setUser(currentUser)
         setIsLoading(false)
+        await fetchOrgContext(currentUser.id)
       }
     } catch (e) {
       console.error('refreshAuth exception:', e)
-      // Network error ≠ signed out — giữ nguyên user state
     }
-  }, [supabase])
+  }, [supabase, fetchOrgContext])
 
   const logout = async () => {
     setIsLoggingOut(true)
     try {
-      // 1. Server action — xóa cookies qua cookies() API (cùng cơ chế với sign-in)
-      // Đảm bảo xóa đúng cookies httpOnly đã set server-side
       await serverSignOut()
+      supabase.auth.signOut({ scope: 'local' }).catch(() => { })
 
-      // 2. Xóa in-memory session client-side — fire-and-forget
-      // Không await vì signOut() có thể fail do API call (xem root cause analysis)
-      supabase.auth.signOut({ scope: 'local' }).catch(() => {})
-
-      // 3. Cleanup thủ công — không phụ thuộc vào SIGNED_OUT event
-      // (event có thể không fire nếu signOut() internal fail)
       queryClient.removeQueries()
       setUser(null)
+      setOrganization(null)
+      setRole(null)
       setIsLoggingOut(false)
       router.push('/sign-in')
     } catch (error) {
       console.error('Logout error:', error)
-      // Fallback: reset thủ công dù server action fail
       queryClient.removeQueries()
       setUser(null)
+      setOrganization(null)
+      setRole(null)
       setIsLoggingOut(false)
       router.push('/sign-in')
     }
@@ -133,6 +163,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isAuthenticated: !!user,
         isLoading,
         isLoggingOut,
+        organization,
+        role,
         logout,
         refreshAuth,
       }}

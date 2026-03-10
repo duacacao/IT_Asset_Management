@@ -1,27 +1,26 @@
 'use server'
 
 import { requireAuth } from '@/lib/auth'
+import { requirePermission } from '@/lib/permissions'
 import { revalidatePath } from 'next/cache'
 import type { DeviceInsert, DeviceUpdate } from '@/types/supabase'
 import { ACTIVITY_LOG_ACTIONS } from '@/constants/activity-log'
 import { returnDevice } from './device-assignments'
 
 // ============================================
-// Lấy danh sách devices của user hiện tại
-// FIX: Added auth check + owner_id filter (consistent with getEndUsers)
-// Refactor: Return raw data { devices, assignments }
+// Lấy danh sách devices của organization hiện tại
+// RLS filter theo organization_id, explicit filter cho rõ ràng
 // ============================================
 export async function getDevices() {
-  const { supabase, user } = await requireAuth()
+  const { supabase, organization } = await requireAuth()
 
   // Parallel queries with Promise.all for performance
   const [devicesResult, assignmentsResult] = await Promise.all([
     supabase
       .from('devices')
-      // Chỉ select columns cần cho list view — bỏ code, location, notes, purchase_date, warranty_exp
-      // Giảm payload size đáng kể khi có nhiều devices
+      // Chỉ select columns cần cho list view — giảm payload size
       .select('id, name, status, type, specs, created_at, updated_at')
-      .eq('owner_id', user.id)
+      .eq('organization_id', organization.id)
       .is('deleted_at', null)
       .order('created_at', { ascending: false }),
     supabase
@@ -35,7 +34,7 @@ export async function getDevices() {
         end_users (full_name, email)
         `
       )
-      .eq('user_id', user.id)
+      .eq('organization_id', organization.id)
       .is('returned_at', null),
   ])
 
@@ -63,7 +62,7 @@ export async function getDevices() {
 
 // ============================================
 // Lấy chi tiết 1 device + sheets
-// RLS đảm bảo chỉ owner mới xem được
+// RLS đảm bảo chỉ members cùng org mới xem được
 // ============================================
 export async function getDeviceWithSheets(deviceId: string) {
   const { supabase } = await requireAuth()
@@ -121,18 +120,21 @@ export async function getDeviceWithSheets(deviceId: string) {
 }
 
 // ============================================
-// Tạo device mới — tự động gắn owner_id = auth.uid()
+// Tạo device mới — gắn organization_id + owner_id (audit)
+// Viewer bị chặn bởi requirePermission
 // ============================================
 export async function createDevice(
-  deviceData: Omit<DeviceInsert, 'owner_id' | 'id' | 'created_at' | 'updated_at'>
+  deviceData: Omit<DeviceInsert, 'owner_id' | 'organization_id' | 'id' | 'created_at' | 'updated_at'>
 ) {
-  const { supabase, user } = await requireAuth()
+  const { supabase, user, organization, role } = await requireAuth()
+  requirePermission(role, 'devices:write')
 
   const { data, error } = await supabase
     .from('devices')
     .insert({
       ...deviceData,
       owner_id: user.id,
+      organization_id: organization.id,
     })
     .select()
     .single()
@@ -147,10 +149,11 @@ export async function createDevice(
 }
 
 // ============================================
-// Cập nhật device — RLS đảm bảo chỉ owner mới sửa được
+// Cập nhật device — RLS đảm bảo chỉ cùng org mới sửa được
 // ============================================
 export async function updateDevice(deviceId: string, updates: DeviceUpdate) {
-  const { supabase } = await requireAuth()
+  const { supabase, role } = await requireAuth()
+  requirePermission(role, 'devices:write')
 
   // 1. Fetch current device data to get existing specs
   const { data: currentDevice, error: fetchError } = await supabase
@@ -164,8 +167,7 @@ export async function updateDevice(deviceId: string, updates: DeviceUpdate) {
     return { data: null, error: fetchError?.message || 'Không tìm thấy thiết bị' }
   }
 
-  // 2. Prepare payload
-  // If 'specs' is in updates, merge it with currentSpecs
+  // 2. Prepare payload — merge specs nếu có
   let finalUpdates = { ...updates }
 
   if (updates.specs) {
@@ -196,7 +198,6 @@ export async function updateDevice(deviceId: string, updates: DeviceUpdate) {
 
 // ============================================
 // Kiểm tra device có đang bàn giao cho end-user không
-// Dùng cho confirm dialog trước khi xóa
 // ============================================
 export async function checkDeviceAssignment(deviceId: string): Promise<{
   hasAssignment: boolean
@@ -232,7 +233,6 @@ export async function checkDeviceAssignment(deviceId: string): Promise<{
 
 // ============================================
 // Kiểm tra batch nhiều devices có đang bàn giao không (1 round-trip)
-// Thay thế N lần checkDeviceAssignment trong bulk delete
 // ============================================
 export async function checkDevicesAssignments(deviceIds: string[]): Promise<{
   assignedCount: number
@@ -258,10 +258,10 @@ export async function checkDevicesAssignments(deviceIds: string[]): Promise<{
 
 // ============================================
 // Xóa device — tự động thu hồi assignment trước khi soft delete
-// Pattern nhất quán với deleteEndUser()
 // ============================================
 export async function deleteDevice(deviceId: string) {
-  const { supabase, user } = await requireAuth()
+  const { supabase, role } = await requireAuth()
+  requirePermission(role, 'devices:write')
 
   // B1: Thu hồi thiết bị đang bàn giao (nếu có)
   const { data: activeAssignment } = await supabase
@@ -273,7 +273,6 @@ export async function deleteDevice(deviceId: string) {
 
   if (activeAssignment) {
     const returnResult = await returnDevice(activeAssignment.id)
-    // Nếu lỗi thu hồi, vẫn tiếp tục xóa device nhưng log warning
     if (!returnResult.success) {
       console.error('Lỗi tự động thu hồi thiết bị khi xóa device:', returnResult.error)
     }
@@ -299,10 +298,11 @@ export async function deleteDevice(deviceId: string) {
 // Import device từ Excel — tạo device + nhiều sheets cùng lúc
 // ============================================
 export async function importDevice(
-  deviceData: Omit<DeviceInsert, 'owner_id' | 'id' | 'created_at' | 'updated_at'>,
+  deviceData: Omit<DeviceInsert, 'owner_id' | 'organization_id' | 'id' | 'created_at' | 'updated_at'>,
   sheets: { sheet_name: string; sheet_data: any[]; sort_order: number }[]
 ) {
-  const { supabase, user } = await requireAuth()
+  const { supabase, user, organization, role } = await requireAuth()
+  requirePermission(role, 'devices:write')
 
   // Bước 1: Tạo device
   const { data: device, error: deviceError } = await supabase
@@ -310,6 +310,7 @@ export async function importDevice(
     .insert({
       ...deviceData,
       owner_id: user.id,
+      organization_id: organization.id,
     })
     .select()
     .single()
@@ -331,7 +332,7 @@ export async function importDevice(
     const { error: sheetsError } = await supabase.from('device_sheets').insert(sheetsToInsert)
 
     if (sheetsError) {
-      // Rollback: soft delete device nếu tạo sheets thất bại (đảm bảo tính nhất quán của hệ thống)
+      // Rollback: soft delete device nếu tạo sheets thất bại
       console.error('Lỗi tạo sheets, rollback device (soft-delete):', sheetsError.message)
       await supabase
         .from('devices')
@@ -345,6 +346,7 @@ export async function importDevice(
   await supabase.from('activity_logs').insert({
     device_id: device.id,
     user_id: user.id,
+    organization_id: organization.id,
     action: ACTIVITY_LOG_ACTIONS.IMPORT,
     details: `Import ${deviceData.name} với ${sheets.length} sheets`,
   })
@@ -354,18 +356,17 @@ export async function importDevice(
 }
 
 // ============================================
-// Lấy thống kê devices cho sidebar
+// Lấy thống kê devices cho dashboard
 // ============================================
 export async function getDeviceStats() {
-  const { supabase, user } = await requireAuth()
+  const { supabase, organization } = await requireAuth()
 
-  // Dùng 4 count queries song song thay vì fetch toàn bộ rows rồi đếm trong JS
-  // Giảm đáng kể data transfer khi số lượng devices lớn
+  // Dùng 4 count queries song song thay vì fetch toàn bộ rows
   const baseQuery = () =>
     supabase
       .from('devices')
       .select('*', { count: 'exact', head: true })
-      .eq('owner_id', user.id)
+      .eq('organization_id', organization.id)
       .is('deleted_at', null)
 
   const [totalResult, activeResult, brokenResult, inactiveResult] = await Promise.all([
@@ -388,9 +389,10 @@ export async function getDeviceStats() {
 // Cập nhật danh sách sheets hiển thị (visibleSheets)
 // ============================================
 export async function updateDeviceVisibleSheets(deviceId: string, visibleSheets: string[]) {
-  const { supabase } = await requireAuth()
+  const { supabase, role } = await requireAuth()
+  requirePermission(role, 'devices:write')
 
-  // Atomic JSONB merge tại DB level — tránh race condition read-modify-write
+  // Atomic JSONB merge tại DB level
   const { error } = await supabase.rpc('set_device_visible_sheets', {
     p_device_id: deviceId,
     p_visible_sheets: JSON.stringify(visibleSheets),
@@ -407,18 +409,18 @@ export async function updateDeviceVisibleSheets(deviceId: string, visibleSheets:
 
 // ============================================
 // Batch update status for multiple devices (1 request)
-// Thay thế N individual updateStatusMutation calls
 // ============================================
 export async function bulkUpdateDeviceStatus(deviceIds: string[], status: string) {
   if (!deviceIds.length) return { success: true, error: null }
 
-  const { supabase, user } = await requireAuth()
+  const { supabase, organization, role } = await requireAuth()
+  requirePermission(role, 'devices:write')
 
   const { error } = await supabase
     .from('devices')
     .update({ status, updated_at: new Date().toISOString() })
     .in('id', deviceIds)
-    .eq('owner_id', user.id)
+    .eq('organization_id', organization.id)
 
   if (error) {
     console.error('Lỗi batch update status:', error.message)

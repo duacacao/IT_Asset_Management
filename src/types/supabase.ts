@@ -10,6 +10,7 @@ export type Database = {
           details: string | null
           device_id: string | null
           id: number
+          organization_id: string
           user_id: string | null
         }
         Insert: {
@@ -18,6 +19,7 @@ export type Database = {
           details?: string | null
           device_id?: string | null
           id?: number
+          organization_id: string
           user_id?: string | null
         }
         Update: {
@@ -26,6 +28,7 @@ export type Database = {
           details?: string | null
           device_id?: string | null
           id?: number
+          organization_id?: string
           user_id?: string | null
         }
         Relationships: [
@@ -37,10 +40,133 @@ export type Database = {
             referencedColumns: ['id']
           },
           {
-            foreignKeyName: 'activity_logs_user_id_profiles_id_fk'
+            foreignKeyName: 'activity_logs_organization_id_fkey'
+            columns: ['organization_id']
+            isOneToOne: false
+            referencedRelation: 'organizations'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'activity_logs_user_id_fk'
             columns: ['user_id']
             isOneToOne: false
             referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      departments: {
+        Row: {
+          created_at: string | null
+          deleted_at: string | null
+          id: string
+          name: string
+          organization_id: string
+          parent_id: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          deleted_at?: string | null
+          id?: string
+          name: string
+          organization_id: string
+          parent_id?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          deleted_at?: string | null
+          id?: string
+          name?: string
+          organization_id?: string
+          parent_id?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'departments_organization_id_fkey'
+            columns: ['organization_id']
+            isOneToOne: false
+            referencedRelation: 'organizations'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'departments_parent_id_fkey'
+            columns: ['parent_id']
+            isOneToOne: false
+            referencedRelation: 'departments'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'departments_user_id_fkey'
+            columns: ['user_id']
+            isOneToOne: false
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      device_assignments: {
+        Row: {
+          assigned_at: string
+          created_at: string
+          device_id: string
+          end_user_id: string
+          id: string
+          notes: string | null
+          organization_id: string
+          returned_at: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          assigned_at?: string
+          created_at?: string
+          device_id: string
+          end_user_id: string
+          id?: string
+          notes?: string | null
+          organization_id: string
+          returned_at?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          assigned_at?: string
+          created_at?: string
+          device_id?: string
+          end_user_id?: string
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          returned_at?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'device_assignments_device_id_fkey'
+            columns: ['device_id']
+            isOneToOne: false
+            referencedRelation: 'devices'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'device_assignments_end_user_id_fkey'
+            columns: ['end_user_id']
+            isOneToOne: false
+            referencedRelation: 'end_users'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'device_assignments_organization_id_fkey'
+            columns: ['organization_id']
+            isOneToOne: false
+            referencedRelation: 'organizations'
             referencedColumns: ['id']
           },
         ]
@@ -53,6 +179,7 @@ export type Database = {
           sheet_data: Json | null
           sheet_name: string
           sort_order: number | null
+          updated_at: string | null
         }
         Insert: {
           created_at?: string | null
@@ -61,6 +188,7 @@ export type Database = {
           sheet_data?: Json | null
           sheet_name: string
           sort_order?: number | null
+          updated_at?: string | null
         }
         Update: {
           created_at?: string | null
@@ -69,6 +197,7 @@ export type Database = {
           sheet_data?: Json | null
           sheet_name?: string
           sort_order?: number | null
+          updated_at?: string | null
         }
         Relationships: [
           {
@@ -80,52 +209,16 @@ export type Database = {
           },
         ]
       }
-      device_assignments: {
-        Row: {
-          id: string
-          device_id: string
-          end_user_id: string
-          user_id: string
-          assigned_at: string
-          returned_at: string | null
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          device_id: string
-          end_user_id: string
-          user_id: string
-          assigned_at?: string
-          returned_at?: string | null
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          device_id?: string
-          end_user_id?: string
-          user_id?: string
-          assigned_at?: string
-          returned_at?: string | null
-          created_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: 'device_assignments_device_id_fkey'
-            columns: ['device_id']
-            isOneToOne: false
-            referencedRelation: 'devices'
-            referencedColumns: ['id']
-          },
-        ]
-      }
       devices: {
         Row: {
           code: string | null
           created_at: string
+          deleted_at: string | null
           id: string
           location: string | null
           name: string
           notes: string | null
+          organization_id: string
           owner_id: string | null
           purchase_date: string | null
           specs: Json | null
@@ -137,10 +230,12 @@ export type Database = {
         Insert: {
           code?: string | null
           created_at?: string
+          deleted_at?: string | null
           id?: string
           location?: string | null
           name: string
           notes?: string | null
+          organization_id: string
           owner_id?: string | null
           purchase_date?: string | null
           specs?: Json | null
@@ -152,10 +247,12 @@ export type Database = {
         Update: {
           code?: string | null
           created_at?: string
+          deleted_at?: string | null
           id?: string
           location?: string | null
           name?: string
           notes?: string | null
+          organization_id?: string
           owner_id?: string | null
           purchase_date?: string | null
           specs?: Json | null
@@ -166,8 +263,227 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: 'devices_organization_id_fkey'
+            columns: ['organization_id']
+            isOneToOne: false
+            referencedRelation: 'organizations'
+            referencedColumns: ['id']
+          },
+          {
             foreignKeyName: 'devices_owner_id_profiles_id_fk'
             columns: ['owner_id']
+            isOneToOne: false
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      end_users: {
+        Row: {
+          created_at: string | null
+          deleted_at: string | null
+          department_id: string
+          email: string | null
+          full_name: string
+          id: string
+          notes: string | null
+          organization_id: string
+          phone: string | null
+          position_id: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          deleted_at?: string | null
+          department_id: string
+          email?: string | null
+          full_name: string
+          id?: string
+          notes?: string | null
+          organization_id: string
+          phone?: string | null
+          position_id?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          deleted_at?: string | null
+          department_id?: string
+          email?: string | null
+          full_name?: string
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          phone?: string | null
+          position_id?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'end_users_department_id_fkey'
+            columns: ['department_id']
+            isOneToOne: false
+            referencedRelation: 'departments'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'end_users_organization_id_fkey'
+            columns: ['organization_id']
+            isOneToOne: false
+            referencedRelation: 'organizations'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'end_users_position_id_fkey'
+            columns: ['position_id']
+            isOneToOne: false
+            referencedRelation: 'positions'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'end_users_user_id_fkey'
+            columns: ['user_id']
+            isOneToOne: false
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      organization_members: {
+        Row: {
+          created_at: string | null
+          id: string
+          organization_id: string
+          role: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          organization_id: string
+          role?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          organization_id?: string
+          role?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'organization_members_organization_id_fkey'
+            columns: ['organization_id']
+            isOneToOne: false
+            referencedRelation: 'organizations'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'organization_members_user_id_fkey'
+            columns: ['user_id']
+            isOneToOne: false
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      organizations: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          id: string
+          logo_url: string | null
+          name: string
+          settings: Json | null
+          slug: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          logo_url?: string | null
+          name: string
+          settings?: Json | null
+          slug: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          logo_url?: string | null
+          name?: string
+          settings?: Json | null
+          slug?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'organizations_created_by_fkey'
+            columns: ['created_by']
+            isOneToOne: false
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      positions: {
+        Row: {
+          created_at: string | null
+          deleted_at: string | null
+          department_id: string | null
+          id: string
+          name: string
+          organization_id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          deleted_at?: string | null
+          department_id?: string | null
+          id?: string
+          name: string
+          organization_id: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          deleted_at?: string | null
+          department_id?: string | null
+          id?: string
+          name?: string
+          organization_id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'positions_department_id_fkey'
+            columns: ['department_id']
+            isOneToOne: false
+            referencedRelation: 'departments'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'positions_organization_id_fkey'
+            columns: ['organization_id']
+            isOneToOne: false
+            referencedRelation: 'organizations'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'positions_user_id_fkey'
+            columns: ['user_id']
             isOneToOne: false
             referencedRelation: 'profiles'
             referencedColumns: ['id']
@@ -178,176 +494,79 @@ export type Database = {
         Row: {
           avatar_url: string | null
           created_at: string
+          current_organization_id: string | null
           email: string
           full_name: string | null
           id: string
           role: string | null
-          settings: Json | null
+          settings: Json
           updated_at: string
-          user_id: string
         }
         Insert: {
           avatar_url?: string | null
           created_at?: string
+          current_organization_id?: string | null
           email: string
           full_name?: string | null
           id?: string
           role?: string | null
-          settings?: Json | null
+          settings?: Json
           updated_at?: string
-          user_id: string
         }
         Update: {
           avatar_url?: string | null
           created_at?: string
+          current_organization_id?: string | null
           email?: string
           full_name?: string | null
           id?: string
           role?: string | null
-          settings?: Json | null
+          settings?: Json
           updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      end_users: {
-        Row: {
-          created_at: string
-          deleted_at: string | null
-          department_id: string
-          email: string | null
-          full_name: string
-          id: string
-          notes: string | null
-          phone: string | null
-          position_id: string | null
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          deleted_at?: string | null
-          department_id: string
-          email?: string | null
-          full_name: string
-          id?: string
-          notes?: string | null
-          phone?: string | null
-          position_id?: string | null
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          deleted_at?: string | null
-          department_id?: string
-          email?: string | null
-          full_name?: string
-          id?: string
-          notes?: string | null
-          phone?: string | null
-          position_id?: string
-          updated_at?: string
-          user_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: 'end_users_department_id_departments_id_fk'
-            columns: ['department_id']
+            foreignKeyName: 'profiles_current_organization_id_fkey'
+            columns: ['current_organization_id']
             isOneToOne: false
-            referencedRelation: 'departments'
-            referencedColumns: ['id']
-          },
-          {
-            foreignKeyName: 'end_users_position_id_positions_id_fk'
-            columns: ['position_id']
-            isOneToOne: false
-            referencedRelation: 'positions'
-            referencedColumns: ['id']
-          },
-          {
-            foreignKeyName: 'end_users_user_id_profiles_user_id_fk'
-            columns: ['user_id']
-            isOneToOne: false
-            referencedRelation: 'profiles'
-            referencedColumns: ['user_id']
-          },
-        ]
-      }
-      departments: {
-        Row: {
-          created_at: string
-          deleted_at: string | null
-          id: string
-          name: string
-          parent_id: string | null
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          deleted_at?: string | null
-          id?: string
-          name: string
-          parent_id?: string | null
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          deleted_at?: string | null
-          id?: string
-          name?: string
-          parent_id?: string | null
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: 'departments_parent_id_departments_id_fk'
-            columns: ['parent_id']
-            isOneToOne: false
-            referencedRelation: 'departments'
+            referencedRelation: 'organizations'
             referencedColumns: ['id']
           },
         ]
-      }
-      positions: {
-        Row: {
-          created_at: string
-          deleted_at: string | null
-          department_id: string | null
-          id: string
-          name: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          deleted_at?: string | null
-          department_id?: string | null
-          id?: string
-          name: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          deleted_at?: string | null
-          department_id?: string | null
-          id?: string
-          name?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
       }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_my_org_id: { Args: Record<string, never>; Returns: string }
+      get_my_org_role: { Args: Record<string, never>; Returns: string }
+      add_sheet_row: {
+        Args: { p_row_data: Json; p_sheet_id: string }
+        Returns: Tables<'device_sheets'>
+      }
+      delete_sheet_row: {
+        Args: { p_row_index: number; p_sheet_id: string }
+        Returns: Tables<'device_sheets'>
+      }
+      merge_profile_settings: {
+        Args: { p_settings: Json; p_user_id: string }
+        Returns: undefined
+      }
+      reorder_sheets: { Args: { p_orders: Json }; Returns: undefined }
+      set_device_visible_sheets: {
+        Args: { p_device_id: string; p_visible_sheets: Json }
+        Returns: undefined
+      }
+      update_sheet_cell: {
+        Args: {
+          p_key: string
+          p_row_index: number
+          p_sheet_id: string
+          p_value: Json
+        }
+        Returns: Tables<'device_sheets'>
+      }
     }
     Enums: {
       [_ in never]: never
@@ -381,6 +600,8 @@ export type Device = Tables<'devices'>
 export type DeviceSheet = Tables<'device_sheets'>
 export type ActivityLog = Tables<'activity_logs'>
 export type EndUsers = Tables<'end_users'>
+export type Organization = Tables<'organizations'>
+export type OrganizationMember = Tables<'organization_members'>
 
 export type DeviceInsert = TablesInsert<'devices'>
 export type DeviceUpdate = TablesUpdate<'devices'>
