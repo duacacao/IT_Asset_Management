@@ -30,51 +30,53 @@ export function MembersToolbar({
     viewOptions,
 }: MembersToolbarProps) {
     return (
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex flex-1 items-center gap-2">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div className="flex flex-1 flex-col gap-3 md:flex-row md:items-center">
                 {/* Search */}
-                <div className="relative max-w-xs flex-1">
-                    <Search className="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
+                <div className="relative w-full md:w-72">
+                    <Search className="text-muted-foreground absolute top-2.5 left-2.5 h-4 w-4" />
                     <Input
                         placeholder="Tìm thành viên..."
                         value={search}
                         onChange={(e) => onSearchChange(e.target.value)}
-                        className="h-9 rounded-xl border-border/50 pl-9 shadow-sm"
+                        className="rounded-xl border-border/50 bg-white pl-9 shadow-sm dark:bg-card"
                     />
                 </div>
 
                 {/* Role Filter */}
-                <Select value={roleFilter} onValueChange={onRoleFilterChange}>
-                    <SelectTrigger className="h-9 w-[140px] cursor-pointer rounded-xl border-border/50 shadow-sm">
-                        <SelectValue placeholder="Vai trò" />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-xl border-border/50 shadow-md">
-                        <SelectItem value="ALL" className="cursor-pointer">
-                            Tất cả ({totalCount})
-                        </SelectItem>
-                        {ROLES.map((role) => (
-                            <SelectItem key={role} value={role} className="cursor-pointer">
-                                {ROLE_LABELS[role]}
+                <div className="flex gap-2">
+                    <Select value={roleFilter} onValueChange={onRoleFilterChange}>
+                        <SelectTrigger className="w-full rounded-xl border-border/50 bg-white shadow-sm dark:bg-card md:w-[140px]">
+                            <SelectValue placeholder="Vai trò" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl border-border/50 shadow-md">
+                            <SelectItem value="ALL" className="cursor-pointer">
+                                Tất cả ({totalCount})
                             </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-
-                {viewOptions}
+                            {ROLES.map((role) => (
+                                <SelectItem key={role} value={role} className="cursor-pointer">
+                                    {ROLE_LABELS[role]}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
             </div>
 
             <div className="flex items-center gap-2">
-                {/* Nút thêm thành viên — chỉ admin+ thấy */}
                 <PermissionGate permission="members:write">
                     <Button
                         onClick={onAdd}
-                        className="h-9 cursor-pointer rounded-xl bg-primary text-primary-foreground shadow-sm hover:bg-primary/90"
+                        variant="default"
+                        size="icon"
+                        title="Thêm thành viên"
+                        className="cursor-pointer rounded-xl shadow-sm"
                     >
-                        <UserPlus className="mr-2 h-4 w-4" />
-                        Thêm thành viên
+                        <UserPlus className="h-4 w-4" />
                     </Button>
                 </PermissionGate>
+                {viewOptions}
             </div>
-        </div>
+        </div >
     )
 }

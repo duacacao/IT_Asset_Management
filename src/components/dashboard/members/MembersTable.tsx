@@ -84,11 +84,17 @@ export const MembersTable = memo(function MembersTable({
                         {table.getHeaderGroups().map((headerGroup) => (
                             <TableRow key={headerGroup.id}>
                                 {headerGroup.headers.map((header) => {
+                                    let widthClass = ''
+                                    const id = header.id
+
+                                    if (id === 'select') widthClass = 'w-[40px] align-middle'
+                                    else if (id === 'full_name') widthClass = 'w-[40%] min-w-[250px]'
+                                    else if (id === 'role') widthClass = 'w-[20%] min-w-[150px]'
+                                    else if (id === 'created_at') widthClass = 'w-[20%] min-w-[150px]'
+                                    else if (id === 'actions') widthClass = 'w-[120px] text-right pr-4'
+
                                     return (
-                                        <TableHead
-                                            key={header.id}
-                                            className="text-muted-foreground h-11 font-medium"
-                                        >
+                                        <TableHead key={header.id} className={widthClass}>
                                             {header.isPlaceholder
                                                 ? null
                                                 : flexRender(header.column.columnDef.header, header.getContext())}

@@ -22,6 +22,7 @@ import { getProfile, updateProfile } from '@/app/actions/profile'
 import { useAuth } from '@/contexts/AuthContext'
 import { User, Calendar, Shield } from 'lucide-react'
 import { AppLoader } from '@/components/ui/app-loader'
+import { RoleBadge } from '@/components/permission/RoleBadge'
 
 const accountFormSchema = z.object({
   full_name: z.string().min(1, 'Tên không được để trống').max(100, 'Tên quá dài'),
@@ -38,7 +39,7 @@ interface UserData {
 }
 
 export default function AccountSettings() {
-  const { user: authUser, isLoading: isAuthLoading } = useAuth()
+  const { user: authUser, role, isLoading: isAuthLoading } = useAuth()
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [userData, setUserData] = useState<UserData | null>(null)
@@ -181,12 +182,10 @@ export default function AccountSettings() {
 
               <div className="grid grid-cols-2 gap-4 pt-2">
                 <div className="space-y-2">
-                  <FormLabel className="text-muted-foreground">Vai trò</FormLabel>
+                  <FormLabel className="text-muted-foreground">Vai trò trong tổ chức</FormLabel>
                   <div className="flex items-center gap-2">
                     <Shield className="text-muted-foreground h-4 w-4" />
-                    <Badge variant={userData?.role === 'admin' ? 'default' : 'secondary'}>
-                      {userData?.role === 'admin' ? 'Admin' : 'Người dùng'}
-                    </Badge>
+                    {role ? <RoleBadge role={role} /> : <Badge variant="secondary">Không xác định</Badge>}
                   </div>
                 </div>
 
