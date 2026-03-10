@@ -7,7 +7,6 @@ import Link from 'next/link'
 
 import { NavMain } from '@/components/nav-main'
 import { NavUser } from '@/components/nav-user'
-import { useAppStatsQuery } from '@/hooks/queries/appQueries'
 import { Logo } from '@/components/logo'
 import {
   Sidebar,
@@ -17,38 +16,9 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarGroup,
-  SidebarGroupLabel,
   useSidebar,
 } from '@/components/ui/sidebar'
 
-function SidebarQuickStats() {
-  const { data: appStats } = useAppStatsQuery()
-  const { state } = useSidebar()
-
-  if (state === 'collapsed') return null
-
-  const totalDevices = appStats?.devicesCount ?? 0
-  const totalUsers = appStats?.endUsersCount ?? 0
-
-  return (
-    <SidebarGroup>
-      <SidebarGroupLabel>Thống kê nhanh</SidebarGroupLabel>
-      <div className="px-2 py-1">
-        <div className="grid grid-cols-2 gap-2">
-          <div className="flex items-center justify-center gap-2 rounded-xl bg-teal-500/5 px-3 py-2 cursor-pointer hover:bg-teal-500/10 transition-colors duration-300">
-            <Laptop className="h-4 w-4 text-teal-500" />
-            <p className="text-sm font-bold">{totalDevices}</p>
-          </div>
-          <div className="flex items-center justify-center gap-2 rounded-xl bg-blue-500/5 px-3 py-2 cursor-pointer hover:bg-blue-500/10 transition-colors duration-300">
-            <Users className="h-4 w-4 text-blue-500" />
-            <p className="text-sm font-bold">{totalUsers}</p>
-          </div>
-        </div>
-      </div>
-    </SidebarGroup>
-  )
-}
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const navGroups = [
@@ -137,7 +107,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <SidebarQuickStats />
         {navGroups.map((group) => (
           <NavMain key={group.label} label={group.label} items={group.items} />
         ))}
