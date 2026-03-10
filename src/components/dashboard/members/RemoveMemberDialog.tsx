@@ -37,7 +37,7 @@ export function RemoveMemberDialog({ open, onOpenChange, member }: RemoveMemberD
 
     return (
         <AlertDialog open={open} onOpenChange={onOpenChange}>
-            <AlertDialogContent className="rounded-xl">
+            <AlertDialogContent className="rounded-xl border-border/50 shadow-2xl" style={{ maxWidth: 400 }}>
                 <AlertDialogHeader>
                     <AlertDialogTitle>Xóa thành viên khỏi tổ chức?</AlertDialogTitle>
                     <AlertDialogDescription>

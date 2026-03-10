@@ -4,7 +4,6 @@ import { useState } from 'react'
 import {
     Dialog,
     DialogContent,
-    DialogDescription,
     DialogFooter,
     DialogHeader,
     DialogTitle,
@@ -17,8 +16,9 @@ import { RoleBadge } from '@/components/permission/RoleBadge'
 import { useUpdateRoleMutation } from '@/hooks/mutations/memberMutations'
 import { useAuth } from '@/contexts/AuthContext'
 import { ROLES, ROLE_LABELS, type Role } from '@/types/permission'
-import { isRoleAtLeast, canManageMember } from '@/lib/permissions'
+import { canManageMember } from '@/lib/permissions'
 import type { OrganizationMember } from '@/types/organization'
+import { ArrowRight } from 'lucide-react'
 
 interface EditRoleDialogProps {
     open: boolean
@@ -31,10 +31,9 @@ export function EditRoleDialog({ open, onOpenChange, member }: EditRoleDialogPro
     const updateMutation = useUpdateRoleMutation()
     const [newRole, setNewRole] = useState<Role>('member')
 
-    // Sync khi member thay đổi
     const currentRole = member?.role || 'member'
 
-    // Roles mà actor có thể gán cho target
+    // Roles mà actor có thể gán — lọc theo quyền hạn
     const assignableRoles = ROLES.filter((r) => {
         if (r === 'owner') return false
         if (!actorRole) return false
@@ -52,32 +51,54 @@ export function EditRoleDialog({ open, onOpenChange, member }: EditRoleDialogPro
     }
 
     const memberName = member?.profiles?.full_name || 'Thành viên'
+    const initials = memberName
+        .split(' ')
+        .map((w) => w[0])
+        .slice(0, 2)
+        .join('')
+        .toUpperCase()
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="rounded-xl sm:max-w-md">
-                <DialogHeader>
-                    <DialogTitle>Đổi vai trò</DialogTitle>
-                    <DialogDescription>
-                        Thay đổi vai trò của <strong>{memberName}</strong> trong tổ chức.
-                    </DialogDescription>
+            <DialogContent className="rounded-xl border-border/50 shadow-2xl sm:max-w-sm">
+                <DialogHeader className="pb-0">
+                    {/* Avatar + tên thành viên — context rõ ràng */}
+                    <div className="mb-3 flex items-center gap-3">
+                        <div className="bg-primary/10 text-primary flex size-10 shrink-0 items-center justify-center rounded-full text-sm font-semibold">
+                            {initials}
+                        </div>
+                        <div className="min-w-0">
+                            <p className="text-sm font-medium truncate">{memberName}</p>
+                            <p className="text-muted-foreground text-xs">{member?.profiles?.email}</p>
+                        </div>
+                    </div>
+                    <DialogTitle className="text-base">Đổi vai trò</DialogTitle>
                 </DialogHeader>
 
-                <div className="space-y-4 py-2">
+                <div className="space-y-4 py-1">
+                    {/* Flow: Hiện tại → Mới */}
                     <div className="flex items-center gap-2">
-                        <span className="text-muted-foreground text-sm">Vai trò hiện tại:</span>
-                        <RoleBadge role={currentRole} />
+                        <div className="flex flex-1 flex-col items-start gap-1">
+                            <span className="text-muted-foreground text-xs">Hiện tại</span>
+                            <RoleBadge role={currentRole} className="text-xs px-2.5 py-0.5" />
+                        </div>
+                        <ArrowRight className="text-muted-foreground mt-4 size-4 shrink-0" />
+                        <div className="flex flex-1 flex-col gap-1">
+                            <span className="text-muted-foreground text-xs">Thay đổi thành</span>
+                            <RoleBadge role={newRole} className="text-xs px-2.5 py-0.5" />
+                        </div>
                     </div>
 
-                    <div className="space-y-2">
-                        <Label>Vai trò mới</Label>
+                    {/* Chọn vai trò */}
+                    <div className="space-y-1.5">
+                        <Label className="text-xs text-muted-foreground">Chọn vai trò mới</Label>
                         <Select value={newRole} onValueChange={(v) => setNewRole(v as Role)}>
-                            <SelectTrigger className="rounded-xl cursor-pointer">
+                            <SelectTrigger className="h-9 w-full cursor-pointer rounded-lg border-border/60 text-sm">
                                 <SelectValue />
                             </SelectTrigger>
-                            <SelectContent className="rounded-xl">
+                            <SelectContent className="rounded-xl border-border/50 shadow-md">
                                 {assignableRoles.map((role) => (
-                                    <SelectItem key={role} value={role} className="cursor-pointer">
+                                    <SelectItem key={role} value={role} className="cursor-pointer text-sm">
                                         {ROLE_LABELS[role]}
                                     </SelectItem>
                                 ))}
@@ -86,19 +107,25 @@ export function EditRoleDialog({ open, onOpenChange, member }: EditRoleDialogPro
                     </div>
                 </div>
 
-                <DialogFooter>
-                    <Button variant="outline" onClick={() => onOpenChange(false)} className="cursor-pointer rounded-xl">
+                <DialogFooter className="pt-2">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => onOpenChange(false)}
+                        className="cursor-pointer rounded-lg border-border/50"
+                    >
                         Hủy
                     </Button>
                     <Button
+                        size="sm"
                         onClick={handleSubmit}
                         disabled={updateMutation.isPending || newRole === currentRole}
-                        className="cursor-pointer rounded-xl"
+                        className="cursor-pointer rounded-lg"
                     >
                         {updateMutation.isPending ? (
                             <>
-                                <AppLoader layout="horizontal" hideText className="mr-2" />
-                                Đang lưu...
+                                <AppLoader layout="horizontal" hideText className="mr-1.5" />
+                                Đang lưu…
                             </>
                         ) : (
                             'Lưu thay đổi'
