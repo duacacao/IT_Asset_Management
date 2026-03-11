@@ -33,6 +33,7 @@ import { EndUserWithDevice } from '@/types/end-user'
 import { EmptyState } from '@/components/EmptyState'
 import { Users2, ChevronsLeft, ChevronsRight, ChevronLeft, ChevronRight } from 'lucide-react'
 import { DataTableViewOptions } from '@/components/ui/data-table-view-options'
+import { usePermissions } from '@/hooks/use-permissions'
 
 import { ReactNode } from 'react'
 
@@ -60,10 +61,11 @@ export const EndUserTable = memo(function EndUserTable({
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
+  const { canEdit, canDelete } = usePermissions()
 
   const columns = useMemo(
-    () => createEndUserColumns({ onEdit, onDelete, onView }),
-    [onEdit, onDelete, onView]
+    () => createEndUserColumns({ onEdit, onDelete, onView, canEdit, canDelete }),
+    [onEdit, onDelete, onView, canEdit, canDelete]
   )
 
   const table = useReactTable({
@@ -113,7 +115,7 @@ export const EndUserTable = memo(function EndUserTable({
       {/* Toolbar with view options */}
       {toolbar && toolbar(<DataTableViewOptions table={table} />)}
 
-      <div className="relative overflow-hidden rounded-xl border-none shadow-md bg-white dark:bg-card transition-all duration-300">
+      <div className="dark:bg-card relative overflow-hidden rounded-xl border-none bg-white shadow-md transition-all duration-300">
         <Table containerClassName="h-[calc(100vh-220px)] overflow-auto">
           <TableHeader className="bg-background sticky top-0 z-10 shadow-sm">
             {table.getHeaderGroups().map((headerGroup) => (
@@ -130,10 +132,7 @@ export const EndUserTable = memo(function EndUserTable({
                   else if (id === 'actions') widthClass = 'w-[120px] text-right pr-4'
 
                   return (
-                    <TableHead
-                      key={header.id}
-                      className={widthClass}
-                    >
+                    <TableHead key={header.id} className={widthClass}>
                       {header.isPlaceholder
                         ? null
                         : flexRender(header.column.columnDef.header, header.getContext())}
@@ -149,7 +148,7 @@ export const EndUserTable = memo(function EndUserTable({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && 'selected'}
-                  className="border-border/20 transition-colors hover:bg-muted/30"
+                  className="border-border/20 hover:bg-muted/30 transition-colors"
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
@@ -195,10 +194,10 @@ export const EndUserTable = memo(function EndUserTable({
                 table.setPageSize(Number(value))
               }}
             >
-              <SelectTrigger className="h-8 w-[70px] rounded-xl border-border/50 shadow-sm">
+              <SelectTrigger className="border-border/50 h-8 w-[70px] rounded-xl shadow-sm">
                 <SelectValue placeholder={table.getState().pagination.pageSize} />
               </SelectTrigger>
-              <SelectContent className="rounded-xl border-border/50 shadow-md">
+              <SelectContent className="border-border/50 rounded-xl shadow-md">
                 {[10, 20, 30, 50].map((pageSize) => (
                   <SelectItem key={pageSize} value={`${pageSize}`}>
                     {pageSize}
@@ -218,7 +217,7 @@ export const EndUserTable = memo(function EndUserTable({
             <Button
               variant="outline"
               size="icon"
-              className="h-8 w-8 cursor-pointer rounded-xl border-border/50 shadow-sm"
+              className="border-border/50 h-8 w-8 cursor-pointer rounded-xl shadow-sm"
               onClick={() => table.setPageIndex(0)}
               disabled={!table.getCanPreviousPage()}
             >
@@ -227,7 +226,7 @@ export const EndUserTable = memo(function EndUserTable({
             <Button
               variant="outline"
               size="icon"
-              className="h-8 w-8 cursor-pointer rounded-xl border-border/50 shadow-sm"
+              className="border-border/50 h-8 w-8 cursor-pointer rounded-xl shadow-sm"
               onClick={() => table.previousPage()}
               disabled={!table.getCanPreviousPage()}
             >
@@ -236,7 +235,7 @@ export const EndUserTable = memo(function EndUserTable({
             <Button
               variant="outline"
               size="icon"
-              className="h-8 w-8 cursor-pointer rounded-xl border-border/50 shadow-sm"
+              className="border-border/50 h-8 w-8 cursor-pointer rounded-xl shadow-sm"
               onClick={() => table.nextPage()}
               disabled={!table.getCanNextPage()}
             >
@@ -245,7 +244,7 @@ export const EndUserTable = memo(function EndUserTable({
             <Button
               variant="outline"
               size="icon"
-              className="h-8 w-8 cursor-pointer rounded-xl border-border/50 shadow-sm"
+              className="border-border/50 h-8 w-8 cursor-pointer rounded-xl shadow-sm"
               onClick={() => table.setPageIndex(table.getPageCount() - 1)}
               disabled={!table.getCanNextPage()}
             >

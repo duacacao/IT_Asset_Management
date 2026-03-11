@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Pencil } from 'lucide-react'
 import { getDeviceIcon } from './end-user-columns'
+import { usePermissions } from '@/hooks/use-permissions'
 
 import { EndUserWithDevice } from '@/types/end-user'
 
@@ -24,10 +25,10 @@ interface EndUserDetailDialogProps {
 function ReadOnlyField({ label, value }: { label: string; value: string }) {
   return (
     <div className="grid gap-1.5">
-      <span className="text-muted-foreground text-xs font-semibold uppercase tracking-wider">
+      <span className="text-muted-foreground text-xs font-semibold tracking-wider uppercase">
         {label}
       </span>
-      <p className="text-foreground rounded-xl border border-border/20 bg-muted/20 px-3 py-2 text-sm">
+      <p className="text-foreground border-border/20 bg-muted/20 rounded-xl border px-3 py-2 text-sm">
         {value || '-'}
       </p>
     </div>
@@ -40,11 +41,13 @@ export function EndUserDetailDialog({
   user,
   onEdit,
 }: EndUserDetailDialogProps) {
+  const { canEdit } = usePermissions()
+
   if (!user) return null
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px] rounded-xl border-border/50 shadow-lg">
+      <DialogContent className="border-border/50 rounded-xl shadow-lg sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Chi tiết nhân viên</DialogTitle>
         </DialogHeader>
@@ -63,13 +66,17 @@ export function EndUserDetailDialog({
           </div>
 
           <div className="grid gap-1.5">
-            <span className="text-muted-foreground text-xs font-semibold uppercase tracking-wider">
+            <span className="text-muted-foreground text-xs font-semibold tracking-wider uppercase">
               Thiết bị đang sử dụng
             </span>
             {user.devices && user.devices.length > 0 ? (
               <div className="flex flex-wrap gap-1.5">
                 {user.devices.map((d) => (
-                  <Badge key={d.id} variant="outline" className="rounded-full gap-1 border-border/50">
+                  <Badge
+                    key={d.id}
+                    variant="outline"
+                    className="border-border/50 gap-1 rounded-full"
+                  >
                     {getDeviceIcon(d.type)}
                     {d.name}
                     {d.type && <span className="text-muted-foreground">({d.type})</span>}
@@ -82,10 +89,10 @@ export function EndUserDetailDialog({
           </div>
 
           <div className="grid gap-1.5">
-            <span className="text-muted-foreground text-xs font-semibold uppercase tracking-wider">
+            <span className="text-muted-foreground text-xs font-semibold tracking-wider uppercase">
               Ghi chú
             </span>
-            <p className="text-foreground rounded-xl border border-border/20 bg-muted/20 px-3 py-2 text-sm min-h-[80px] whitespace-pre-wrap">
+            <p className="text-foreground border-border/20 bg-muted/20 min-h-[80px] rounded-xl border px-3 py-2 text-sm whitespace-pre-wrap">
               {user.notes || '-'}
             </p>
           </div>
@@ -100,14 +107,16 @@ export function EndUserDetailDialog({
           >
             Đóng
           </Button>
-          <Button
-            type="button"
-            onClick={() => onEdit(user)}
-            className="cursor-pointer rounded-xl"
-          >
-            <Pencil className="mr-2 h-4 w-4" />
-            Sửa
-          </Button>
+          {canEdit && (
+            <Button
+              type="button"
+              onClick={() => onEdit(user)}
+              className="cursor-pointer rounded-xl"
+            >
+              <Pencil className="mr-2 h-4 w-4" />
+              Sửa
+            </Button>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>

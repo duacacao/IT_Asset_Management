@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/select'
 
 import { ReactNode } from 'react'
+import { usePermissions } from '@/hooks/use-permissions'
 
 interface Option {
   label: string
@@ -65,6 +66,8 @@ export function EndUserToolbar({
     setFilters({ search: '', department: 'ALL', position: 'ALL' })
   }
 
+  const { canCreate, canDelete } = usePermissions()
+
   const hasActiveFilters =
     filters.search !== '' || filters.department !== 'ALL' || filters.position !== 'ALL'
 
@@ -76,7 +79,7 @@ export function EndUserToolbar({
           <Search className="text-muted-foreground absolute top-2.5 left-2.5 h-4 w-4" />
           <Input
             placeholder="Tìm theo tên, email, SĐT..."
-            className="rounded-xl border-border/50 bg-white pl-9 shadow-sm dark:bg-card"
+            className="border-border/50 dark:bg-card rounded-xl bg-white pl-9 shadow-sm"
             value={filters.search}
             onChange={handleSearchChange}
           />
@@ -85,10 +88,10 @@ export function EndUserToolbar({
         {/* Filters */}
         <div className="flex gap-2">
           <Select value={filters.department} onValueChange={handleDeptChange}>
-            <SelectTrigger className="w-full rounded-xl border-border/50 bg-white shadow-sm dark:bg-card md:w-[180px]">
+            <SelectTrigger className="border-border/50 dark:bg-card w-full rounded-xl bg-white shadow-sm md:w-[180px]">
               <SelectValue placeholder="Phòng ban" />
             </SelectTrigger>
-            <SelectContent className="rounded-xl border-border/50 shadow-md">
+            <SelectContent className="border-border/50 rounded-xl shadow-md">
               <SelectItem value="ALL">Tất cả phòng ban</SelectItem>
               {departments.map((d) => (
                 <SelectItem key={d.value} value={d.value}>
@@ -99,10 +102,10 @@ export function EndUserToolbar({
           </Select>
 
           <Select value={filters.position} onValueChange={handlePosChange}>
-            <SelectTrigger className="w-full rounded-xl border-border/50 bg-white shadow-sm dark:bg-card md:w-[180px]">
+            <SelectTrigger className="border-border/50 dark:bg-card w-full rounded-xl bg-white shadow-sm md:w-[180px]">
               <SelectValue placeholder="Chức vụ" />
             </SelectTrigger>
-            <SelectContent className="rounded-xl border-border/50 shadow-md">
+            <SelectContent className="border-border/50 rounded-xl shadow-md">
               <SelectItem value="ALL">Tất cả chức vụ</SelectItem>
               {positions.map((p) => (
                 <SelectItem key={p.value} value={p.value}>
@@ -128,26 +131,28 @@ export function EndUserToolbar({
 
       {/* Actions */}
       <div className="flex items-center gap-2">
-        {selectedCount > 0 && (
+        {canDelete && selectedCount > 0 && (
           <Button
             variant="destructive"
             size="sm"
             onClick={onBulkDelete}
-            className="cursor-pointer rounded-xl gap-2"
+            className="cursor-pointer gap-2 rounded-xl"
           >
             <Trash className="h-4 w-4" />
             Xóa ({selectedCount})
           </Button>
         )}
-        <Button
-          variant="default"
-          onClick={onAdd}
-          size="sm"
-          className="cursor-pointer rounded-xl shadow-sm gap-2 h-9"
-        >
-          <Plus className="h-4 w-4" />
-          <span className="hidden sm:inline">Thêm mới</span>
-        </Button>
+        {canCreate && (
+          <Button
+            variant="default"
+            onClick={onAdd}
+            size="icon"
+            title="Thêm mới"
+            className="cursor-pointer rounded-xl shadow-sm"
+          >
+            <Plus className="h-4 w-4" />
+          </Button>
+        )}
         {viewOptions}
       </div>
     </div>

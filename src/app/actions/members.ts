@@ -132,7 +132,7 @@ export async function createMemberAccount(input: {
         return { data: null, error: memberError.message }
     }
 
-    revalidatePath('/settings/members')
+    revalidatePath('/settings/permissions')
     return { data: member as unknown as OrganizationMember, error: null }
 }
 
@@ -176,7 +176,7 @@ export async function updateMemberRole(
         return { success: false, error: error.message }
     }
 
-    revalidatePath('/settings/members')
+    revalidatePath('/settings/permissions')
     return { success: true, error: null }
 }
 
@@ -219,7 +219,7 @@ export async function removeMember(
         return { success: false, error: error.message }
     }
 
-    revalidatePath('/settings/members')
+    revalidatePath('/settings/permissions')
     return { success: true, error: null }
 }
 

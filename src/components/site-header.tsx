@@ -33,6 +33,7 @@ const ROUTE_LABELS: Record<string, string> = {
   '/settings/account': 'Tài khoản',
   '/settings/appearance': 'Giao diện',
   '/settings/history': 'Lịch sử hệ thống',
+  '/settings/permissions': 'Quản trị & Phân quyền',
 }
 
 // Parent group labels cho breadcrumb hierarchy
@@ -43,6 +44,7 @@ const ROUTE_PARENTS: Record<string, { label: string; href: string }[]> = {
   '/settings/account': [{ label: 'Cài đặt', href: '/settings/account' }],
   '/settings/appearance': [{ label: 'Cài đặt', href: '/settings/account' }],
   '/settings/history': [{ label: 'Cài đặt', href: '/settings/account' }],
+  '/settings/permissions': [{ label: 'Cài đặt', href: '/settings/account' }],
 }
 
 /**

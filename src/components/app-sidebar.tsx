@@ -43,8 +43,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   // Admin+ thấy link "Thành viên" — member/viewer không thấy
   if (isAdmin) {
     settingsItems.splice(0, 0, {
-      title: 'Thành viên',
-      url: '/settings/members',
+      title: 'Quản trị & Phân quyền',
+      url: '/settings/permissions',
     })
   }
 
