@@ -3,6 +3,7 @@
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Plus, Search, Trash } from 'lucide-react'
+import { usePermissions } from '@/hooks/use-permissions'
 
 import { ReactNode } from 'react'
 
@@ -23,22 +24,24 @@ export function DepartmentToolbar({
   onBulkDelete,
   viewOptions,
 }: DepartmentToolbarProps) {
+  const { canCreate, canDelete } = usePermissions()
+
   return (
     <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
       {/* Left: Search */}
       <div className="relative w-full md:w-72">
-        <Search className="absolute top-2.5 left-2.5 h-4 w-4 text-muted-foreground" />
+        <Search className="text-muted-foreground absolute top-2.5 left-2.5 h-4 w-4" />
         <Input
           placeholder="Tìm theo tên phòng ban..."
           value={searchTerm}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="rounded-xl border-border/50 bg-white pl-9 shadow-sm dark:bg-card"
+          className="border-border/50 dark:bg-card rounded-xl bg-white pl-9 shadow-sm"
         />
       </div>
 
       {/* Right: Actions */}
       <div className="flex items-center gap-2">
-        {selectedCount > 0 && (
+        {canDelete && selectedCount > 0 && (
           <Button
             variant="destructive"
             size="sm"
@@ -49,15 +52,17 @@ export function DepartmentToolbar({
             Xóa ({selectedCount})
           </Button>
         )}
-        <Button
-          variant="default"
-          size="icon"
-          onClick={onAdd}
-          title="Thêm phòng ban"
-          className="cursor-pointer rounded-xl shadow-sm h-9 w-9"
-        >
-          <Plus className="h-4 w-4" />
-        </Button>
+        {canCreate && (
+          <Button
+            variant="default"
+            size="icon"
+            onClick={onAdd}
+            title="Thêm phòng ban"
+            className="h-9 w-9 cursor-pointer rounded-xl shadow-sm"
+          >
+            <Plus className="h-4 w-4" />
+          </Button>
+        )}
         {viewOptions}
       </div>
     </div>

@@ -20,6 +20,7 @@ import { getLayoutedElements } from '@/lib/org-chart-layout'
 import type { OrgDepartment } from '@/app/actions/organization'
 import { Search, Building2 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
+import { usePermissions } from '@/hooks/use-permissions'
 
 // Register custom node types — all nodes are department type
 const nodeTypes: NodeTypes = {
@@ -65,7 +66,7 @@ function buildFlowElements(departments: OrgDepartment[]) {
         target: nodeId,
         type: 'default',
         style: {
-          stroke: '#3b82f6',
+          stroke: 'var(--color-primary)',
           strokeWidth: 2,
         },
         animated: false,
@@ -78,6 +79,9 @@ function buildFlowElements(departments: OrgDepartment[]) {
 
 export function OrganizationChart({ departments }: OrganizationChartProps) {
   const [searchTerm, setSearchTerm] = useState('')
+
+  // Viewer không được kéo thả node trên cây tổ chức
+  const { canEdit } = usePermissions()
 
   // Build initial elements
   const { nodes: initialNodes, edges: initialEdges } = useMemo(
@@ -137,8 +141,7 @@ export function OrganizationChart({ departments }: OrganizationChartProps) {
     if (highlightedNodes.size === 0) return edges
 
     return edges.map((edge) => {
-      const isHighlighted =
-        highlightedNodes.has(edge.target) || highlightedNodes.has(edge.source)
+      const isHighlighted = highlightedNodes.has(edge.target) || highlightedNodes.has(edge.source)
       return {
         ...edge,
         style: {
@@ -167,7 +170,7 @@ export function OrganizationChart({ departments }: OrganizationChartProps) {
         fitViewOptions={{ padding: 0.2 }}
         minZoom={0.3}
         maxZoom={1.5}
-        nodesDraggable={true}
+        nodesDraggable={canEdit}
         nodesConnectable={false}
         elementsSelectable={true}
         proOptions={{ hideAttribution: true }}
@@ -179,14 +182,14 @@ export function OrganizationChart({ departments }: OrganizationChartProps) {
           className="!bg-muted/20 [&>pattern>circle]:fill-muted-foreground/15"
         />
         <Controls
-          className="!rounded-xl !border !border-border/50 !bg-white !shadow-md dark:!bg-card [&_button]:!border-border/30 [&_button]:!bg-transparent [&_button_svg]:!fill-foreground"
+          className="!border-border/50 dark:!bg-card [&_button]:!border-border/30 [&_button_svg]:!fill-foreground !rounded-xl !border !bg-white !shadow-md [&_button]:!bg-transparent"
           showInteractive={false}
         />
 
         {/* Search panel */}
         <Panel position="top-left">
-          <div className="flex items-center gap-2 rounded-xl bg-white/90 px-3 py-2 shadow-md backdrop-blur-sm dark:bg-card/90">
-            <Search className="h-4 w-4 text-muted-foreground" />
+          <div className="dark:bg-card/90 flex items-center gap-2 rounded-xl bg-white/90 px-3 py-2 shadow-md backdrop-blur-sm">
+            <Search className="text-muted-foreground h-4 w-4" />
             <Input
               type="text"
               placeholder="Tìm phòng ban, chức vụ..."
@@ -199,17 +202,17 @@ export function OrganizationChart({ departments }: OrganizationChartProps) {
 
         {/* Stats panel */}
         <Panel position="top-right">
-          <div className="flex items-center gap-3 rounded-xl bg-white/90 px-4 py-2.5 shadow-md backdrop-blur-sm dark:bg-card/90">
-            <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-              <Building2 className="h-3.5 w-3.5 text-blue-500 dark:text-blue-400" />
-              <span className="font-medium text-foreground">{departments.length}</span>
+          <div className="dark:bg-card/90 flex items-center gap-3 rounded-xl bg-white/90 px-4 py-2.5 shadow-md backdrop-blur-sm">
+            <div className="text-muted-foreground flex items-center gap-1.5 text-sm">
+              <Building2 className="text-primary h-3.5 w-3.5" />
+              <span className="text-foreground font-medium">{departments.length}</span>
               phòng ban
             </div>
             {totalEmployees > 0 && (
               <>
-                <div className="h-4 w-px bg-border/60" />
-                <span className="text-sm text-muted-foreground">
-                  <span className="font-medium text-foreground">{totalEmployees}</span> nhân sự
+                <div className="bg-border/60 h-4 w-px" />
+                <span className="text-muted-foreground text-sm">
+                  <span className="text-foreground font-medium">{totalEmployees}</span> nhân sự
                 </span>
               </>
             )}

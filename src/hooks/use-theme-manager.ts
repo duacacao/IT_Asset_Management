@@ -126,6 +126,15 @@ export function useThemeManager() {
     document.documentElement.style.setProperty('--radius', radius)
   }
 
+  const applyTypography = (fontSize: number, fontWeight: string, fontFamily: string) => {
+    const root = document.documentElement
+    // Scale body font size via HTML element
+    root.style.fontSize = `${fontSize}px`
+    // Update CSS variables for font weight and family
+    root.style.setProperty('--base-font-weight', fontWeight)
+    root.style.setProperty('--font-sans', `var(--font-${fontFamily})`)
+  }
+
   return {
     theme,
     setTheme,
@@ -134,5 +143,6 @@ export function useThemeManager() {
     applyTheme,
     applyTweakcnTheme,
     applyRadius,
+    applyTypography,
   }
 }

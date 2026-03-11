@@ -11,7 +11,7 @@ export const shadcnThemePresets: Record<string, ThemePreset> = {
         'card-foreground': 'oklch(0.145 0 0)',
         popover: 'oklch(1 0 0)',
         'popover-foreground': 'oklch(0.145 0 0)',
-        primary: 'oklch(0.205 0 0)',
+        primary: 'oklch(0.44 0.18 259)',
         'primary-foreground': 'oklch(0.985 0 0)',
         secondary: 'oklch(0.97 0 0)',
         'secondary-foreground': 'oklch(0.205 0 0)',
@@ -29,7 +29,7 @@ export const shadcnThemePresets: Record<string, ThemePreset> = {
         'chart-3': 'oklch(0.398 0.07 227.392)',
         'chart-4': 'oklch(0.828 0.189 84.429)',
         'chart-5': 'oklch(0.769 0.188 70.08)',
-        radius: '0.625rem',
+        radius: '0.75rem',
         'font-sans':
           "ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji'",
         'font-mono':
@@ -60,7 +60,7 @@ export const shadcnThemePresets: Record<string, ThemePreset> = {
         'chart-3': 'oklch(0.769 0.188 70.08)',
         'chart-4': 'oklch(0.627 0.265 303.9)',
         'chart-5': 'oklch(0.645 0.246 16.439)',
-        radius: '0.625rem',
+        radius: '0.75rem',
         'font-sans':
           "ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji'",
         'font-mono':

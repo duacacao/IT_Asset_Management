@@ -11,7 +11,7 @@ import { tweakcnThemes } from '@/config/theme-data'
 export function ThemeSyncProvider({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, user, isLoading: isAuthLoading } = useAuth()
   const { theme, setTheme } = useTheme()
-  const { applyTheme, applyTweakcnTheme, applyRadius, resetTheme, isDarkMode } = useThemeManager()
+  const { applyTheme, applyTweakcnTheme, applyRadius, resetTheme, isDarkMode, applyTypography } = useThemeManager()
   const isSyncedRef = useRef(false)
   const lastSyncedThemeRef = useRef<string | null>(null)
 
@@ -22,6 +22,9 @@ export function ThemeSyncProvider({ children }: { children: React.ReactNode }) {
     selectedTweakcnTheme,
     setSelectedTweakcnTheme,
     selectedRadius,
+    fontSize,
+    fontWeight,
+    fontFamily,
   } = useAppearanceStore()
 
   // 1. Initial Sync: Lấy theme từ DB khi user login + auth đã load xong
@@ -93,14 +96,23 @@ export function ThemeSyncProvider({ children }: { children: React.ReactNode }) {
     if (selectedRadius && selectedRadius !== '0.5rem') {
       applyRadius(selectedRadius)
     }
+
+    // Apply typography
+    if (fontSize && fontWeight && fontFamily) {
+      applyTypography(fontSize, fontWeight, fontFamily)
+    }
   }, [
     selectedTheme,
     selectedTweakcnTheme,
     selectedRadius,
+    fontSize,
+    fontWeight,
+    fontFamily,
     isDarkMode,
     applyTheme,
     applyTweakcnTheme,
     applyRadius,
+    applyTypography,
     resetTheme,
   ])
 

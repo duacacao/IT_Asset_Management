@@ -1,7 +1,9 @@
 'use client'
 
-import { EllipsisVertical, LogOut, CircleUser } from 'lucide-react'
+import { useState } from 'react'
+import { EllipsisVertical, LogOut, CircleUser, RefreshCw } from 'lucide-react'
 import Link from 'next/link'
+import { toast } from 'sonner'
 
 import {
   DropdownMenu,
@@ -31,7 +33,21 @@ function getDisplayName(email: string | undefined): string {
 
 export function NavUser() {
   const { isMobile } = useSidebar()
-  const { user, isLoading, isLoggingOut, logout, organization, role } = useAuth()
+  const { user, isLoading, isLoggingOut, logout, organization, role, refreshAuth } = useAuth()
+  const [isSyncing, setIsSyncing] = useState(false)
+
+  // Handler: Đồng bộ quyền thủ công
+  const handleSync = async () => {
+    setIsSyncing(true)
+    try {
+      await refreshAuth()
+      toast.success('Đã đồng bộ vai trò mới nhất')
+    } catch {
+      toast.error('Không thể đồng bộ. Vui lòng thử lại.')
+    } finally {
+      setIsSyncing(false)
+    }
+  }
 
   // Lấy thông tin từ Supabase Auth user object
   const displayName = user?.user_metadata?.full_name || getDisplayName(user?.email)
@@ -93,9 +109,11 @@ export function NavUser() {
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <div className="flex items-center gap-1.5">
                   <span className="truncate font-medium">{displayName}</span>
-                  {role && <RoleBadge role={role} className="text-[10px] px-1.5 py-0 h-4" />}
+                  {role && <RoleBadge role={role} className="h-4 px-1.5 py-0 text-[10px]" />}
                 </div>
-                <span className="text-muted-foreground truncate text-xs">{orgName || displayEmail}</span>
+                <span className="text-muted-foreground truncate text-xs">
+                  {orgName || displayEmail}
+                </span>
               </div>
               <EllipsisVertical className="ml-auto size-4" />
             </SidebarMenuButton>
@@ -114,9 +132,11 @@ export function NavUser() {
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <div className="flex items-center gap-1.5">
                     <span className="truncate font-medium">{displayName}</span>
-                    {role && <RoleBadge role={role} className="text-[10px] px-1.5 py-0 h-4" />}
+                    {role && <RoleBadge role={role} className="h-4 px-1.5 py-0 text-[10px]" />}
                   </div>
-                  <span className="text-muted-foreground truncate text-xs">{orgName || displayEmail}</span>
+                  <span className="text-muted-foreground truncate text-xs">
+                    {orgName || displayEmail}
+                  </span>
                 </div>
               </div>
             </DropdownMenuLabel>
@@ -127,6 +147,14 @@ export function NavUser() {
                   <CircleUser />
                   Tài khoản
                 </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="cursor-pointer"
+                onClick={handleSync}
+                disabled={isSyncing}
+              >
+                <RefreshCw className={isSyncing ? 'animate-spin' : ''} />
+                {isSyncing ? 'Đang đồng bộ...' : 'Đồng bộ quyền'}
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />

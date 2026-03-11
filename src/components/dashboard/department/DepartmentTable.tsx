@@ -12,11 +12,19 @@ import {
   type VisibilityState,
   flexRender,
 } from '@tanstack/react-table'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 import { createDepartmentColumns } from './department-columns'
 import { DataTableViewOptions } from '@/components/ui/data-table-view-options'
 import { ReactNode } from 'react'
 import type { Department, Position } from '@/types/department'
+import { usePermissions } from '@/hooks/use-permissions'
 
 interface DepartmentTableProps {
   data: Department[]
@@ -45,9 +53,21 @@ export function DepartmentTable({
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
 
+  // Permission flags — ẩn actions cho viewer
+  const { canEdit, canDelete } = usePermissions()
+
   const columns = useMemo(
-    () => createDepartmentColumns({ onEdit, onDelete, departments: data, positions, memberCounts }),
-    [onEdit, onDelete, data, positions, memberCounts]
+    () =>
+      createDepartmentColumns({
+        onEdit,
+        onDelete,
+        departments: data,
+        positions,
+        memberCounts,
+        canEdit,
+        canDelete,
+      }),
+    [onEdit, onDelete, data, positions, memberCounts, canEdit, canDelete]
   )
 
   // Client-side search filter
@@ -58,10 +78,7 @@ export function DepartmentTable({
   }, [data, searchTerm])
 
   const rowSelection = useMemo(() => {
-    return selectedIds.reduce(
-      (acc, id) => ({ ...acc, [id]: true }),
-      {} as Record<string, boolean>
-    )
+    return selectedIds.reduce((acc, id) => ({ ...acc, [id]: true }), {} as Record<string, boolean>)
   }, [selectedIds])
 
   const table = useReactTable({
@@ -88,7 +105,7 @@ export function DepartmentTable({
       {/* Toolbar with view options */}
       {toolbar && toolbar(<DataTableViewOptions table={table} />)}
 
-      <div className="relative overflow-hidden rounded-xl border-none bg-white shadow-md transition-all duration-300 dark:bg-card">
+      <div className="dark:bg-card relative overflow-hidden rounded-xl border-none bg-white shadow-md transition-all duration-300">
         <div className="h-[calc(100vh-280px)] overflow-auto">
           <Table>
             <TableHeader className="bg-background sticky top-0 z-10 shadow-sm">
@@ -106,7 +123,9 @@ export function DepartmentTable({
 
                     return (
                       <TableHead key={header.id} className={widthClass}>
-                        {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(header.column.columnDef.header, header.getContext())}
                       </TableHead>
                     )
                   })}
@@ -119,7 +138,7 @@ export function DepartmentTable({
                   <TableRow
                     key={row.id}
                     data-state={row.getIsSelected() && 'selected'}
-                    className="border-border/20 transition-colors hover:bg-muted/30"
+                    className="border-border/20 hover:bg-muted/30 transition-colors"
                   >
                     {row.getVisibleCells().map((cell) => (
                       <TableCell key={cell.id} className="py-3">

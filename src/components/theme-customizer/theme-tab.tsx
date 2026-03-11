@@ -1,6 +1,6 @@
 'use client'
 
-import { Palette, Dices, Sun, Moon } from 'lucide-react'
+import { Palette, Dices, Sun, Moon, Minus, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import {
@@ -19,6 +19,13 @@ import { useAppearanceStore } from '@/stores/useAppearanceStore'
 import React from 'react'
 import './circular-transition.css'
 
+const FONT_OPTIONS = [
+  { value: 'inter', label: 'Inter', desc: 'Hiện đại, trung tính' },
+  { value: 'be-vietnam', label: 'Be Vietnam Pro', desc: 'Tối ưu tiếng Việt' },
+  { value: 'lexend', label: 'Lexend', desc: 'Dễ đọc, thoáng' },
+  { value: 'nunito', label: 'Nunito', desc: 'Mềm mại, thân thiện' },
+]
+
 export function ThemeTab() {
   const {
     selectedTheme,
@@ -27,6 +34,12 @@ export function ThemeTab() {
     setSelectedTweakcnTheme,
     selectedRadius,
     setSelectedRadius,
+    fontSize,
+    setFontSize,
+    fontWeight,
+    setFontWeight,
+    fontFamily,
+    setFontFamily,
   } = useAppearanceStore()
 
   const { isDarkMode, applyTheme, applyTweakcnTheme, applyRadius } = useThemeManager()
@@ -177,6 +190,77 @@ export function ThemeTab() {
             </div>
           </SelectContent>
         </Select>
+      </div>
+
+      <Separator />
+
+      {/* Font Size & Weight */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-4">
+        <div className="space-y-3">
+          <Label className="text-sm font-medium">Cỡ chữ: {fontSize}px</Label>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setFontSize(Math.max(12, fontSize - 1))}
+              disabled={fontSize <= 12}
+            >
+              <Minus className="h-4 w-4" />
+            </Button>
+            <div className="flex-1 text-center bg-background border rounded-md py-2 text-sm font-medium">
+              {fontSize}px
+            </div>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setFontSize(Math.min(24, fontSize + 1))}
+              disabled={fontSize >= 24}
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          <Label className="text-sm font-medium">Độ đậm chữ</Label>
+          <div className="flex items-center gap-1.5">
+            {['300', '400', '500', '600', '700'].map((w) => (
+              <Button
+                key={w}
+                variant={fontWeight === w ? 'secondary' : 'outline'}
+                size="sm"
+                onClick={() => setFontWeight(w)}
+                className={`flex-1 px-0 ${fontWeight === w ? 'border-primary ring-1 ring-primary' : ''}`}
+              >
+                {w}
+              </Button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <Separator />
+
+      {/* Font Family */}
+      <div className="space-y-3">
+        <Label className="text-sm font-medium">Kiểu chữ</Label>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {FONT_OPTIONS.map((f) => (
+            <div
+              key={f.value}
+              onClick={() => setFontFamily(f.value)}
+              className={`cursor-pointer rounded-md border p-3 transition-colors ${
+                fontFamily === f.value
+                  ? 'border-primary bg-primary/5'
+                  : 'border-border hover:border-border/60'
+              }`}
+            >
+              <div className={`font-medium text-sm mb-1 ${fontFamily === f.value ? 'text-primary' : ''}`}>{f.label}</div>
+              <div className="text-xs text-muted-foreground mb-3">{f.desc}</div>
+              <div className="text-xs opacity-50 font-sans" style={{ fontFamily: `var(--font-${f.value}), sans-serif` }}>Aa Bb Cc 1 2 3</div>
+            </div>
+          ))}
+        </div>
       </div>
 
       <Separator />

@@ -106,45 +106,60 @@ export function createDeviceColumns({
   onUpdateDevice,
   onExportDevice,
   setDeleteId,
+  canEdit = true,
+  canDelete = true,
+  canExport = true,
 }: {
   onViewDevice: (device: Device) => void
   onUpdateDevice: (device: Device) => void
   onExportDevice: (device: Device) => void
   setDeleteId: (id: string) => void
+  canEdit?: boolean
+  canDelete?: boolean
+  canExport?: boolean
 }): ColumnDef<Device>[] {
+  // Viewer không cần select column (không có bulk actions)
+  const showSelect = canEdit || canDelete || canExport
+
   return [
-    {
-      id: 'select',
-      header: ({ table }) => (
-        <Checkbox
-          checked={
-            table.getIsAllPageRowsSelected() ||
-            (table.getIsSomePageRowsSelected() && 'indeterminate')
-          }
-          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-          aria-label="Select all"
-          className="translate-y-[2px]"
-        />
-      ),
-      cell: ({ row }) => (
-        <div data-no-row-click>
-          <Checkbox
-            checked={row.getIsSelected()}
-            onCheckedChange={(value) => row.toggleSelected(!!value)}
-            aria-label="Select row"
-            className="translate-y-[2px]"
-          />
-        </div>
-      ),
-      enableSorting: false,
-      enableHiding: false,
-    },
+    ...(showSelect
+      ? [
+          {
+            id: 'select',
+            header: ({ table }: { table: import('@tanstack/react-table').Table<Device> }) => (
+              <Checkbox
+                checked={
+                  table.getIsAllPageRowsSelected() ||
+                  (table.getIsSomePageRowsSelected() && 'indeterminate')
+                }
+                onCheckedChange={(value: boolean) => table.toggleAllPageRowsSelected(!!value)}
+                aria-label="Select all"
+                className="translate-y-[2px]"
+              />
+            ),
+            cell: ({ row }: { row: import('@tanstack/react-table').Row<Device> }) => (
+              <div data-no-row-click>
+                <Checkbox
+                  checked={row.getIsSelected()}
+                  onCheckedChange={(value: boolean) => row.toggleSelected(!!value)}
+                  aria-label="Select row"
+                  className="translate-y-[2px]"
+                />
+              </div>
+            ),
+            enableSorting: false,
+            enableHiding: false,
+          } as ColumnDef<Device>,
+        ]
+      : []),
     {
       accessorKey: 'deviceInfo.name',
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Tên thiết bị" className="pl-2" />,
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Tên thiết bị" className="pl-2" />
+      ),
       cell: ({ row }) => (
         <div className="flex items-center gap-3 py-1 pr-12 pl-4">
-          <div className="bg-muted/30 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border/50 shadow-sm">
+          <div className="bg-muted/30 border-border/50 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border shadow-sm">
             {getDeviceIcon(row.original.type)}
           </div>
           <div className="flex flex-col">
@@ -222,45 +237,53 @@ export function createDeviceColumns({
           >
             <Eye className="text-muted-foreground h-4 w-4" />
           </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={(e) => {
-              e.stopPropagation()
-              onUpdateDevice(row.original)
-            }}
-            title="Chỉnh sửa"
-          >
-            <Pencil className="text-muted-foreground h-4 w-4" />
-          </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" aria-label="Thêm hành động">
-                <MoreHorizontal className="text-muted-foreground h-4 w-4" aria-hidden="true" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="rounded-xl border-border/50 shadow-md">
-              <DropdownMenuItem
-                onClick={(e) => {
-                  e.stopPropagation()
-                  onExportDevice(row.original)
-                }}
-              >
-                <Download className="mr-2 h-4 w-4" />
-                Xuất file
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={(e) => {
-                  e.stopPropagation()
-                  setDeleteId(row.original.id)
-                }}
-                className="text-destructive focus:text-destructive"
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Xóa
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {canEdit && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={(e) => {
+                e.stopPropagation()
+                onUpdateDevice(row.original)
+              }}
+              title="Chỉnh sửa"
+            >
+              <Pencil className="text-muted-foreground h-4 w-4" />
+            </Button>
+          )}
+          {(canExport || canDelete) && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" aria-label="Thêm hành động">
+                  <MoreHorizontal className="text-muted-foreground h-4 w-4" aria-hidden="true" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="border-border/50 rounded-xl shadow-md">
+                {canExport && (
+                  <DropdownMenuItem
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onExportDevice(row.original)
+                    }}
+                  >
+                    <Download className="mr-2 h-4 w-4" />
+                    Xuất file
+                  </DropdownMenuItem>
+                )}
+                {canDelete && (
+                  <DropdownMenuItem
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setDeleteId(row.original.id)
+                    }}
+                    className="text-destructive focus:text-destructive"
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Xóa
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
       ),
     },

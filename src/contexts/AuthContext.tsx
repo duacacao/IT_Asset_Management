@@ -32,7 +32,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   // Organization + role state — fetch sau khi user authenticated
-  const [organization, setOrganization] = useState<{ id: string; name: string; slug: string } | null>(null)
+  const [organization, setOrganization] = useState<{
+    id: string
+    name: string
+    slug: string
+  } | null>(null)
   const [role, setRole] = useState<Role | null>(null)
   const router = useRouter()
 
@@ -53,7 +57,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           .single()
 
         if (membership?.organizations) {
-          const org = membership.organizations as unknown as { id: string; name: string; slug: string }
+          const org = membership.organizations as unknown as {
+            id: string
+            name: string
+            slug: string
+          }
           setOrganization(org)
           setRole(membership.role as Role)
         } else {
@@ -102,10 +110,46 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => subscription.unsubscribe()
   }, [supabase, router, queryClient, fetchOrgContext])
 
+  // ============================================
+  // Realtime: lắng nghe thay đổi role trên organization_members
+  // Khi admin đổi role của user hiện tại → tự động refresh
+  // ============================================
+  useEffect(() => {
+    if (!user) return
+
+    const channel = supabase
+      .channel('org-member-role-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'organization_members',
+          filter: `user_id=eq.${user.id}`,
+        },
+        (payload) => {
+          // Role thay đổi → cập nhật state ngay lập tức
+          const newRole = payload.new?.role as Role | undefined
+          if (newRole && newRole !== role) {
+            setRole(newRole)
+            // Invalidate tất cả queries để UI refresh theo quyền mới
+            queryClient.invalidateQueries()
+          }
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [user, role, supabase, queryClient])
+
   // refreshAuth — gọi sau server action sign-in để client-side detect session mới
   const refreshAuth = useCallback(async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession()
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
 
       if (session?.user) {
         setUser(session.user)
@@ -116,7 +160,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       const {
         data: { user: currentUser },
-        error
+        error,
       } = await supabase.auth.getUser()
 
       if (error) {
@@ -137,7 +181,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsLoggingOut(true)
     try {
       await serverSignOut()
-      supabase.auth.signOut({ scope: 'local' }).catch(() => { })
+      supabase.auth.signOut({ scope: 'local' }).catch(() => {})
 
       queryClient.removeQueries()
       setUser(null)

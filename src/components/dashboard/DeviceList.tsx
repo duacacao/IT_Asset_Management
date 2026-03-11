@@ -38,6 +38,7 @@ import { checkDeviceAssignment, checkDevicesAssignments } from '@/app/actions/de
 import { createDeviceColumns } from './device-columns'
 import { EmptyState } from '@/components/EmptyState'
 import { DataTableViewOptions } from '@/components/ui/data-table-view-options'
+import { usePermissions } from '@/hooks/use-permissions'
 
 // Params truyền vào toolbar render prop — export để page có thể tham chiếu type
 export interface DeviceToolbarParams {
@@ -126,10 +127,22 @@ export function DeviceList({
   const updateStatusMutation = useUpdateStatusMutation()
   const bulkUpdateStatusMutation = useBulkUpdateStatusMutation()
 
+  // Permission flags — ẩn actions cho viewer
+  const { canEdit, canDelete, canImportExport } = usePermissions()
+
   // Columns — lấy từ device-columns.tsx để giữ file gọn
   const columns = useMemo(
-    () => createDeviceColumns({ onViewDevice, onUpdateDevice, onExportDevice, setDeleteId }),
-    [onViewDevice, onUpdateDevice, onExportDevice, setDeleteId]
+    () =>
+      createDeviceColumns({
+        onViewDevice,
+        onUpdateDevice,
+        onExportDevice,
+        setDeleteId,
+        canEdit,
+        canDelete,
+        canExport: canImportExport,
+      }),
+    [onViewDevice, onUpdateDevice, onExportDevice, setDeleteId, canEdit, canDelete, canImportExport]
   )
 
   const table = useReactTable({
@@ -201,7 +214,7 @@ export function DeviceList({
         })}
 
       {/* Table — chiều cao cố định, scroll nếu nhiều thiết bị */}
-      <div className="relative overflow-hidden rounded-xl border-none bg-white shadow-md dark:bg-card">
+      <div className="dark:bg-card relative overflow-hidden rounded-xl border-none bg-white shadow-md">
         <Table containerClassName="h-[calc(100vh-220px)] overflow-auto">
           <TableHeader className="bg-background sticky top-0 z-10 shadow-sm">
             {table.getHeaderGroups().map((headerGroup) => (

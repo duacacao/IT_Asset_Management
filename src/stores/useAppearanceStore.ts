@@ -7,6 +7,11 @@ interface AppearanceState {
   selectedTweakcnTheme: string
   selectedRadius: string
 
+  // Typography
+  fontSize: number
+  fontWeight: string
+  fontFamily: string
+
   // Sidebar config
   sidebarVariant: 'sidebar' | 'floating' | 'inset'
   sidebarCollapsible: 'offcanvas' | 'icon' | 'none'
@@ -16,6 +21,9 @@ interface AppearanceState {
   setSelectedTheme: (theme: string) => void
   setSelectedTweakcnTheme: (theme: string) => void
   setSelectedRadius: (radius: string) => void
+  setFontSize: (size: number) => void
+  setFontWeight: (weight: string) => void
+  setFontFamily: (family: string) => void
   resetAppearance: () => void
 
   // Actions — Sidebar
@@ -28,6 +36,9 @@ const DEFAULT_STATE = {
   selectedTheme: 'default',
   selectedTweakcnTheme: '',
   selectedRadius: '0.5rem',
+  fontSize: 16,
+  fontWeight: '400',
+  fontFamily: 'inter',
   sidebarVariant: 'inset' as const,
   sidebarCollapsible: 'offcanvas' as const,
   sidebarSide: 'left' as const,
@@ -43,6 +54,10 @@ export const useAppearanceStore = create<AppearanceState>()(
       setSelectedTweakcnTheme: (theme) => set({ selectedTweakcnTheme: theme, selectedTheme: '' }),
 
       setSelectedRadius: (radius) => set({ selectedRadius: radius }),
+
+      setFontSize: (size) => set({ fontSize: size }),
+      setFontWeight: (weight) => set({ fontWeight: weight }),
+      setFontFamily: (family) => set({ fontFamily: family }),
 
       resetAppearance: () => set(DEFAULT_STATE),
 

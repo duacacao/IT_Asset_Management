@@ -27,21 +27,21 @@ function DepartmentNodeComponent({ data }: NodeProps) {
       <div
         className={`flex items-center gap-3 px-4 py-3 ${
           isRoot
-            ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white dark:from-blue-500 dark:to-blue-400'
+            ? 'bg-primary text-primary-foreground'
             : 'border-b border-border/40 bg-muted/30'
         }`}
       >
         <div
           className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
-            isRoot ? 'bg-white/20' : 'bg-blue-500/10 dark:bg-blue-400/10'
+            isRoot ? 'bg-primary-foreground/20' : 'bg-primary/10'
           }`}
         >
-          <Building2 className={`h-4 w-4 ${isRoot ? 'text-white' : 'text-blue-600 dark:text-blue-400'}`} />
+          <Building2 className={`h-4 w-4 ${isRoot ? 'text-primary-foreground' : 'text-primary'}`} />
         </div>
         <div className="min-w-0 flex-1">
           <h4
             className={`truncate text-sm font-semibold leading-tight ${
-              isRoot ? 'text-white' : 'text-foreground'
+              isRoot ? 'text-primary-foreground' : 'text-foreground'
             }`}
           >
             {label}
@@ -70,7 +70,7 @@ function DepartmentNodeComponent({ data }: NodeProps) {
               <div className="flex items-center gap-2">
                 <div
                   className={`h-1.5 w-1.5 rounded-full ${
-                    index === 0 ? 'bg-blue-500 dark:bg-blue-400' : 'bg-muted-foreground/30'
+                    index === 0 ? 'bg-primary' : 'bg-muted-foreground/30'
                   }`}
                 />
                 <span
@@ -105,13 +105,13 @@ function DepartmentNodeComponent({ data }: NodeProps) {
         <Handle
           type="target"
           position={Position.Top}
-          className="!h-2.5 !w-2.5 !rounded-full !border-2 !border-card !bg-blue-500 !shadow-sm dark:!bg-blue-400"
+          className="!h-2.5 !w-2.5 !rounded-full !border-2 !border-card !bg-primary !shadow-sm"
         />
       )}
       <Handle
         type="source"
         position={Position.Bottom}
-        className="!h-2.5 !w-2.5 !rounded-full !border-2 !border-card !bg-blue-500 !shadow-sm dark:!bg-blue-400"
+        className="!h-2.5 !w-2.5 !rounded-full !border-2 !border-card !bg-primary !shadow-sm"
       />
     </div>
   )
