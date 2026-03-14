@@ -1,116 +1,115 @@
 # IT Assets Management — Device Dashboard
 
-Ung dung web quan ly tai san IT (thiet bi, phan cung) xay dung tren **Next.js 16** + **Supabase**. Ho tro multi-tenant, phan quyen RBAC, import/export Excel, so do to chuc, realtime sync, va giao dien Soft Premium voi dark/light mode.
+Ứng dụng web quản lý tài sản IT (thiết bị, phần cứng) xây dựng trên **Next.js 16** + **Supabase**. Hỗ trợ multi-tenant, phân quyền RBAC, import/export Excel, sơ đồ tổ chức, realtime sync, và giao diện Soft Premium với dark/light mode.
 
 ---
 
-## Muc luc
+## Mục lục
 
-- [Tinh nang chinh](#tinh-nang-chinh)
+- [Tính năng chính](#tính-năng-chính)
 - [Tech Stack](#tech-stack)
-- [Cau truc du an](#cau-truc-du-an)
-- [Bat dau](#bat-dau)
-  - [Yeu cau he thong](#yeu-cau-he-thong)
-  - [1. Clone va Cai dat](#1-clone-va-cai-dat)
-  - [2. Thiet lap Database](#2-thiet-lap-database)
-  - [3. Cau hinh Environment](#3-cau-hinh-environment)
-  - [4. Chay ung dung](#4-chay-ung-dung)
+- [Cấu trúc dự án](#cấu-trúc-dự-án)
+- [Bắt đầu](#bắt-đầu)
+  - [Yêu cầu hệ thống](#yêu-cầu-hệ-thống)
+  - [1. Clone & Cài đặt](#1-clone--cài-đặt)
+  - [2. Thiết lập Database](#2-thiết-lập-database)
+  - [3. Cấu hình Environment](#3-cấu-hình-environment)
+  - [4. Chạy ứng dụng](#4-chạy-ứng-dụng)
 - [Database Schema](#database-schema)
-- [He thong phan quyen (RBAC)](#he-thong-phan-quyen-rbac)
+- [Hệ thống phân quyền (RBAC)](#hệ-thống-phân-quyền-rbac)
 - [Docker Deployment](#docker-deployment)
-- [Environment Variables](#environment-variables)
 - [License](#license)
 
 ---
 
-## Tinh nang chinh
+## Tính năng chính
 
-### Xac thuc va Phan quyen
+### Xác thực & Phân quyền
 
-| Tinh nang                       | Mo ta                                                                                     |
+| Tính năng                       | Mô tả                                                                                     |
 | ------------------------------- | ----------------------------------------------------------------------------------------- |
-| **Xac thuc nguoi dung**         | Dang nhap / Dang ky qua Supabase Auth, bao ve route bang Middleware                       |
-| **Multi-tenant (Organization)** | Moi tai khoan thuoc 1 to chuc, du lieu cach ly hoan toan giua cac to chuc qua RLS         |
-| **Phan quyen RBAC**             | 4 role: Owner > Admin > Member > Viewer — kiem soat quyen doc/ghi/quan tri                |
-| **Quan ly thanh vien**          | Admin+ co the them/xoa thanh vien, thay doi role, reset mat khau (Settings > Permissions) |
+| **Xác thực người dùng**         | Đăng nhập / Đăng ký qua Supabase Auth, bảo vệ route bằng Middleware                       |
+| **Multi-tenant (Organization)** | Mỗi tài khoản thuộc 1 tổ chức, dữ liệu cách ly hoàn toàn giữa các tổ chức qua RLS         |
+| **Phân quyền RBAC**             | 4 role: Owner > Admin > Member > Viewer — kiểm soát quyền đọc/ghi/quản trị                |
+| **Quản lý thành viên**          | Admin+ có thể thêm/xoá thành viên, thay đổi role, reset mật khẩu (Settings > Permissions) |
 
-### Quan ly Thiet bi
+### Quản lý Thiết bị
 
-| Tinh nang                   | Mo ta                                                                                               |
+| Tính năng                   | Mô tả                                                                                               |
 | --------------------------- | --------------------------------------------------------------------------------------------------- |
-| **CRUD thiet bi**           | Tao, xem, sua, xoa thiet bi voi form accordion va floating card layout                              |
-| **Trang chi tiet thiet bi** | Trang rieng `/device/[id]` hien thi thong tin tong quan, thong so ky thuat (JSONB), va sheets       |
-| **Dynamic detail cards**    | Hien thi thong tin chi tiet khac nhau tuy theo loai thiet bi (PC, Laptop, v.v.)                     |
-| **Device Sheets**           | Quan ly bang tinh (spreadsheet-like) gan voi thiet bi — them/xoa dong, sua cell, doi ten, sap xep   |
-| **Import Excel**            | Keo tha file `.xlsx` — ho tro import nhieu files, chon sheets truoc khi import, soft-delete khi loi |
-| **Xuat Excel/CSV**          | Xuat du lieu thiet bi ra file CSV (UTF-8 BOM tuong thich Excel)                                     |
-| **Thao tac hang loat**      | Chon nhieu thiet bi -> doi trang thai / xoa cung luc                                                |
-| **Menu 3-dot actions**      | Menu hanh dong nhanh tren moi dong thiet bi                                                         |
-| **Tim kiem va Loc**         | Tim kiem, loc theo trang thai, sap xep, phan trang                                                  |
-| **Soft delete**             | Xoa mem thiet bi (luu `deleted_at`), khong mat du lieu vinh vien                                    |
+| **CRUD thiết bị**           | Tạo, xem, sửa, xoá thiết bị với form accordion và floating card layout                              |
+| **Trang chi tiết thiết bị** | Trang riêng `/device/[id]` hiển thị thông tin tổng quan, thông số kỹ thuật (JSONB), và sheets       |
+| **Dynamic detail cards**    | Hiển thị thông tin chi tiết khác nhau tuỳ theo loại thiết bị (PC, Laptop, v.v.)                     |
+| **Device Sheets**           | Quản lý bảng tính (spreadsheet-like) gắn với thiết bị — thêm/xoá dòng, sửa cell, đổi tên, sắp xếp   |
+| **Import Excel**            | Kéo thả file `.xlsx` — hỗ trợ import nhiều files, chọn sheets trước khi import, soft-delete khi lỗi |
+| **Xuất Excel/CSV**          | Xuất dữ liệu thiết bị ra file CSV (UTF-8 BOM tương thích Excel)                                     |
+| **Thao tác hàng loạt**      | Chọn nhiều thiết bị -> đổi trạng thái / xoá cùng lúc                                                |
+| **Menu 3-dot actions**      | Menu hành động nhanh trên mỗi dòng thiết bị                                                         |
+| **Tìm kiếm & Lọc**          | Tìm kiếm, lọc theo trạng thái, sắp xếp, phân trang                                                  |
+| **Soft delete**             | Xoá mềm thiết bị (lưu `deleted_at`), không mất dữ liệu vĩnh viễn                                    |
 
-### Quan ly Nhan vien (End-User)
+### Quản lý Nhân viên (End-User)
 
-| Tinh nang                      | Mo ta                                                                |
+| Tính năng                      | Mô tả                                                                |
 | ------------------------------ | -------------------------------------------------------------------- |
-| **CRUD nhan vien**             | Tao ho so nhan vien (ten, email, phone, ghi chu)                     |
-| **Ban giao thiet bi**          | Gan thiet bi cho nhan vien (1:1 hoac 1:N), ho tro smart reassignment |
-| **Thu hoi thiet bi**           | Thu hoi thiet bi tu nhan vien, tu dong cap nhat trang thai           |
-| **Ban giao/Thu hoi hang loat** | Gan hoac thu hoi nhieu thiet bi cung luc                             |
-| **Lich su ban giao**           | Theo doi lich su ban giao/thu hoi thiet bi                           |
-| **Du lieu cach ly**            | Du lieu nhan vien cach ly theo tai khoan/to chuc                     |
+| **CRUD nhân viên**             | Tạo hồ sơ nhân viên (tên, email, phone, ghi chú)                     |
+| **Bàn giao thiết bị**          | Gán thiết bị cho nhân viên (1:1 hoặc 1:N), hỗ trợ smart reassignment |
+| **Thu hồi thiết bị**           | Thu hồi thiết bị từ nhân viên, tự động cập nhật trạng thái           |
+| **Bàn giao/Thu hồi hàng loạt** | Gán hoặc thu hồi nhiều thiết bị cùng lúc                             |
+| **Lịch sử bàn giao**           | Theo dõi lịch sử bàn giao/thu hồi thiết bị                           |
+| **Dữ liệu cách ly**            | Dữ liệu nhân viên cách ly theo tài khoản/tổ chức                     |
 
-### Phong ban va Chuc vu
+### Phòng ban & Chức vụ
 
-| Tinh nang             | Mo ta                                                                                           |
+| Tính năng             | Mô tả                                                                                           |
 | --------------------- | ----------------------------------------------------------------------------------------------- |
-| **Quan ly phong ban** | CRUD phong ban voi cau truc phan cap (parent-child)                                             |
-| **Quan ly chuc vu**   | CRUD chuc vu/vi tri cong viec trong phong ban                                                   |
-| **So do to chuc**     | Hien thi so do to chuc tuong tac (Organization Chart) su dung @xyflow/react + dagre auto-layout |
+| **Quản lý phòng ban** | CRUD phòng ban với cấu trúc phân cấp (parent-child)                                             |
+| **Quản lý chức vụ**   | CRUD chức vụ/vị trí công việc trong phòng ban                                                   |
+| **Sơ đồ tổ chức**     | Hiển thị sơ đồ tổ chức tương tác (Organization Chart) sử dụng @xyflow/react + dagre auto-layout |
 
-### Dashboard va Thong ke
+### Dashboard & Thống kê
 
-| Tinh nang                       | Mo ta                                                                  |
+| Tính năng                       | Mô tả                                                                  |
 | ------------------------------- | ---------------------------------------------------------------------- |
-| **Dashboard tong quan**         | Bieu do thong ke thiet bi (Recharts), the KPI, hoat dong gan day       |
-| **Bieu do trang thai thiet bi** | Chart hien thi phan bo trang thai thiet bi                             |
-| **Bieu do phong ban**           | Chart thong ke nhan vien theo phong ban                                |
-| **Hoat dong gan day**           | Feed hien thi cac hanh dong gan nhat (import, ban giao, thu hoi, v.v.) |
+| **Dashboard tổng quan**         | Biểu đồ thống kê thiết bị (Recharts), thẻ KPI, hoạt động gần đây       |
+| **Biểu đồ trạng thái thiết bị** | Chart hiển thị phân bố trạng thái thiết bị                             |
+| **Biểu đồ phòng ban**           | Chart thống kê nhân viên theo phòng ban                                |
+| **Hoạt động gần đây**           | Feed hiển thị các hành động gần nhất (import, bàn giao, thu hồi, v.v.) |
 
-### Giao dien va Trai nghiem
+### Giao diện & Trải nghiệm
 
-| Tinh nang                 | Mo ta                                                                            |
+| Tính năng                 | Mô tả                                                                            |
 | ------------------------- | -------------------------------------------------------------------------------- |
-| **Soft Premium UI**       | Giao dien thiet ke phong cach premium, nhat quan toan bo ung dung                |
-| **Dark / Light mode**     | Chuyen doi giao dien sang/toi voi hieu ung chuyen doi tron (circular transition) |
-| **Theme Customizer**      | Tuy chinh mau sac, border-radius, font, sidebar layout, nhieu theme presets      |
-| **Command Palette**       | Tim kiem nhanh va dieu huong bang `Ctrl+K` (cmdk)                                |
-| **Breadcrumb navigation** | Dieu huong breadcrumb tren moi trang                                             |
-| **Responsive**            | Ho tro mobile va desktop                                                         |
-| **Toast notifications**   | Thong bao hanh dong voi soft toast variant (Sonner)                              |
-| **Loading states**        | Trang thai loading nhat quan toan project                                        |
-| **Empty states**          | Component hien thi khi khong co du lieu                                          |
+| **Soft Premium UI**       | Giao diện thiết kế phong cách premium, nhất quán toàn bộ ứng dụng                |
+| **Dark / Light mode**     | Chuyển đổi giao diện sáng/tối với hiệu ứng chuyển đổi tròn (circular transition) |
+| **Theme Customizer**      | Tuỳ chỉnh màu sắc, border-radius, font, sidebar layout, nhiều theme presets      |
+| **Command Palette**       | Tìm kiếm nhanh và điều hướng bằng `Ctrl+K` (cmdk)                                |
+| **Breadcrumb navigation** | Điều hướng breadcrumb trên mỗi trang                                             |
+| **Responsive**            | Hỗ trợ mobile và desktop                                                         |
+| **Toast notifications**   | Thông báo hành động với soft toast variant (Sonner)                              |
+| **Loading states**        | Trạng thái loading nhất quán toàn project                                        |
+| **Empty states**          | Component hiển thị khi không có dữ liệu                                          |
 
-### He thong va Bao mat
+### Hệ thống & Bảo mật
 
-| Tinh nang                 | Mo ta                                                                                     |
+| Tính năng                 | Mô tả                                                                                     |
 | ------------------------- | ----------------------------------------------------------------------------------------- |
-| **Realtime sync**         | Supabase Realtime subscriptions cho devices, assignments, end-users — tu dong cap nhat UI |
-| **Activity Logs**         | Ghi log moi hanh dong (import, assign, return, v.v.) voi retention 30 ngay                |
-| **Cron cleanup**          | API endpoint tu dong xoa log cu hon 30 ngay                                               |
+| **Realtime sync**         | Supabase Realtime subscriptions cho devices, assignments, end-users — tự động cập nhật UI |
+| **Activity Logs**         | Ghi log mọi hành động (import, assign, return, v.v.) với retention 30 ngày                |
+| **Cron cleanup**          | API endpoint tự động xoá log cũ hơn 30 ngày                                               |
 | **Security headers**      | CSP (Content Security Policy), HSTS                                                       |
-| **Zod validation**        | Validate du lieu dau vao bang Zod o server-side                                           |
-| **requireAuth helper**    | Kiem tra auth + org + role o moi Server Action                                            |
-| **Atomic DB operations**  | Su dung Postgres RPC functions de tranh race conditions (JSONB)                           |
-| **Row Level Security**    | RLS tren tat ca cac bang, dam bao cach ly du lieu giua cac to chuc                        |
-| **Tai lieu huong dan**    | He thong docs tich hop (MDX) voi 7 bai huong dan chi tiet                                 |
-| **Vercel Speed Insights** | Theo doi hieu nang ung dung tren production                                               |
+| **Zod validation**        | Validate dữ liệu đầu vào bằng Zod ở server-side                                           |
+| **requireAuth helper**    | Kiểm tra auth + org + role ở mọi Server Action                                            |
+| **Atomic DB operations**  | Sử dụng Postgres RPC functions để tránh race conditions (JSONB)                           |
+| **Row Level Security**    | RLS trên tất cả các bảng, đảm bảo cách ly dữ liệu giữa các tổ chức                        |
+| **Tài liệu hướng dẫn**    | Hệ thống docs tích hợp (MDX) với 7 bài hướng dẫn chi tiết                                 |
+| **Vercel Speed Insights** | Theo dõi hiệu năng ứng dụng trên production                                               |
 
 ---
 
 ## Tech Stack
 
-| Lop                    | Cong nghe                                                |
+| Lớp                    | Công nghệ                                                |
 | ---------------------- | -------------------------------------------------------- |
 | **Framework**          | Next.js 16.1.1 (App Router), React 19, TypeScript 5.9    |
 | **Styling**            | Tailwind CSS 4.x, shadcn/ui (Radix UI), 34 UI components |
@@ -130,82 +129,82 @@ Ung dung web quan ly tai san IT (thiet bi, phan cung) xay dung tren **Next.js 16
 
 ---
 
-## Cau truc du an
+## Cấu trúc dự án
 
 <details>
-<summary>Click de xem cau truc thu muc chi tiet</summary>
+<summary>Click để xem cấu trúc thư mục chi tiết</summary>
 
 ```
 device-dashboard/
-├── public/                          # Static assets
+├── public/                          # Tài nguyên tĩnh
 ├── docker/
-│   └── init.sql                     # Database initialization script
-├── docs/                            # MDX documentation files (7 guides)
+│   └── init.sql                     # Script khởi tạo Database
+├── docs/                            # Tài liệu MDX (7 bài hướng dẫn)
 ├── src/
 │   ├── app/
-│   │   ├── (auth)/                  # Auth pages (Sign-in, Sign-up, Error pages)
+│   │   ├── (auth)/                  # Trang xác thực (Đăng nhập, Đăng ký, Lỗi)
 │   │   │   ├── sign-in/
 │   │   │   ├── sign-up/
-│   │   │   └── errors/              # 401, 403, 404, 500, Maintenance
-│   │   ├── (dashboard)/             # Protected dashboard pages
-│   │   │   ├── dashboard/           # Tong quan — KPI cards, charts
-│   │   │   ├── devices/             # Danh sach thiet bi
-│   │   │   ├── device/[id]/         # Chi tiet thiet bi
-│   │   │   ├── end-user/            # Quan ly nhan vien
-│   │   │   ├── department/          # Phong ban & Chuc vu
-│   │   │   ├── organization/        # So do to chuc
-│   │   │   ├── docs/                # Tai lieu huong dan
-│   │   │   │   └── [slug]/          # Trang doc rieng
+│   │   │   └── errors/              # 401, 403, 404, 500, Bảo trì
+│   │   ├── (dashboard)/             # Trang quản lý (Protected)
+│   │   │   ├── dashboard/           # Tổng quan — Thẻ KPI, biểu đồ
+│   │   │   ├── devices/             # Danh sách thiết bị
+│   │   │   ├── device/[id]/         # Chi tiết thiết bị
+│   │   │   ├── end-user/            # Quản lý nhân viên
+│   │   │   ├── department/          # Phòng ban & Chức vụ
+│   │   │   ├── organization/        # Sơ đồ tổ chức
+│   │   │   ├── docs/                # Tài liệu hướng dẫn
+│   │   │   │   └── [slug]/          # Trang doc riêng
 │   │   │   ├── settings/
-│   │   │   │   ├── account/         # Cai dat tai khoan
-│   │   │   │   ├── appearance/      # Giao dien & Theme
-│   │   │   │   ├── history/         # Lich su he thong
-│   │   │   │   └── permissions/     # Quan tri & Phan quyen (Admin+)
-│   │   │   └── users/               # Quan ly users
+│   │   │   │   ├── account/         # Cài đặt tài khoản
+│   │   │   │   ├── appearance/      # Giao diện & Theme
+│   │   │   │   ├── history/         # Lịch sử hệ thống
+│   │   │   │   └── permissions/     # Quản trị & Phân quyền (Admin+)
+│   │   │   └── users/               # Quản lý users
 │   │   ├── actions/                 # Server Actions (12 files)
-│   │   │   ├── auth.ts              # Sign in/up/out
-│   │   │   ├── devices.ts           # CRUD + import + bulk ops
-│   │   │   ├── device-sheets.ts     # Spreadsheet operations
-│   │   │   ├── device-assignments.ts # Ban giao/thu hoi
-│   │   │   ├── end-users.ts         # CRUD nhan vien
-│   │   │   ├── departments.ts       # CRUD phong ban
-│   │   │   ├── positions.ts         # CRUD chuc vu
-│   │   │   ├── members.ts           # Quan ly thanh vien org
-│   │   │   ├── organization.ts      # Hierarchy cho org chart
-│   │   │   ├── activity-logs.ts     # Logs + cleanup
-│   │   │   ├── app-stats.ts         # Dashboard stats
-│   │   │   └── profile.ts           # Profile + settings
+│   │   │   ├── auth.ts              # Đăng nhập/Đăng ký/Đăng xuất
+│   │   │   ├── devices.ts           # CRUD + import + thao tác hàng loạt
+│   │   │   ├── device-sheets.ts     # Thao tác bảng tính
+│   │   │   ├── device-assignments.ts # Bàn giao/Thu hồi
+│   │   │   ├── end-users.ts         # CRUD nhân viên
+│   │   │   ├── departments.ts       # CRUD phòng ban
+│   │   │   ├── positions.ts         # CRUD chức vụ
+│   │   │   ├── members.ts           # Quản lý thành viên tổ chức
+│   │   │   ├── organization.ts      # Hierarchy cho sơ đồ tổ chức
+│   │   │   ├── activity-logs.ts     # Nhật ký + dọn dẹp
+│   │   │   ├── app-stats.ts         # Thống kê Dashboard
+│   │   │   └── profile.ts           # Hồ sơ + cài đặt
 │   │   └── api/
-│   │       ├── auth/me/             # GET current user
-│   │       └── cron/cleanup-logs/   # Cron xoa log cu
+│   │       ├── auth/me/             # GET người dùng hiện tại
+│   │       └── cron/cleanup-logs/   # Cron xoá log cũ
 │   ├── components/
 │   │   ├── ui/                      # 34 shadcn/ui components
-│   │   ├── auth/                    # Auth forms
-│   │   ├── dashboard/               # Device, EndUser, Department, Members, OrgChart components
+│   │   ├── auth/                    # Form xác thực
+│   │   ├── dashboard/               # Components: Thiết bị, Nhân viên, Phòng ban, Thành viên, Sơ đồ tổ chức
 │   │   ├── permission/              # PermissionGate, RoleBadge
 │   │   ├── carousel/                # Sheet tabs carousel
-│   │   ├── theme-customizer/        # Theme customizer UI
-│   │   ├── app-sidebar.tsx          # Sidebar navigation (role-based)
-│   │   ├── CommandPalette.tsx       # Ctrl+K command palette
-│   │   └── ...                      # Logo, ModeToggle, EmptyState, etc.
+│   │   ├── theme-customizer/        # Giao diện tuỳ chỉnh theme
+│   │   ├── app-sidebar.tsx          # Sidebar điều hướng (theo role)
+│   │   ├── CommandPalette.tsx       # Command palette Ctrl+K
+│   │   └── ...                      # Logo, ModeToggle, EmptyState, v.v.
 │   ├── hooks/
-│   │   ├── queries/                 # TanStack Query hooks (devices, endUsers, org, logs, stats)
-│   │   ├── mutations/               # TanStack Mutation hooks (devices, endUsers, members)
+│   │   ├── queries/                 # TanStack Query hooks (thiết bị, nhân viên, tổ chức, logs, stats)
+│   │   ├── mutations/               # TanStack Mutation hooks (thiết bị, nhân viên, thành viên)
 │   │   ├── usePermission.ts         # RBAC permission hooks
 │   │   └── ...                      # Mobile, sidebar, theme hooks
-│   ├── stores/                      # Zustand stores (appearance, UI state)
+│   ├── stores/                      # Zustand stores (giao diện, UI state)
 │   ├── contexts/                    # AuthContext, SidebarContext, ThemeContext
 │   ├── providers/                   # QueryProvider, RealtimeProvider
-│   ├── types/                       # TypeScript definitions (supabase, device, end-user, permission, etc.)
-│   ├── lib/                         # Utilities (auth, permissions, excel, export, docs, time, etc.)
-│   ├── config/                      # Theme config & presets
-│   ├── constants/                   # Device, EndUser, ActivityLog constants
+│   ├── types/                       # TypeScript definitions (supabase, device, end-user, permission, v.v.)
+│   ├── lib/                         # Utilities (auth, permissions, excel, export, docs, time, v.v.)
+│   ├── config/                      # Cấu hình theme & presets
+│   ├── constants/                   # Hằng số: Device, EndUser, ActivityLog
 │   └── utils/                       # Supabase client helpers, theme presets
-├── test/                            # Test files
+├── test/                            # File test
 ├── docker-compose.yml               # Docker services
 ├── Dockerfile                       # Docker build
-├── vercel.json                      # Vercel config
-├── vitest.config.ts                 # Vitest config
+├── vercel.json                      # Cấu hình Vercel
+├── vitest.config.ts                 # Cấu hình Vitest
 ├── package.json
 └── README.md
 ```
@@ -214,16 +213,16 @@ device-dashboard/
 
 ---
 
-## Bat dau
+## Bắt đầu
 
-### Yeu cau he thong
+### Yêu cầu hệ thống
 
-| Phan mem    | Phien ban | Ghi chu                            |
+| Phần mềm    | Phiên bản | Ghi chú                            |
 | ----------- | --------- | ---------------------------------- |
-| **Node.js** | >= 18.x   | [Tai tai day](https://nodejs.org/) |
-| **Docker**  | Latest    | Chi can neu self-host database     |
+| **Node.js** | >= 18.x   | [Tải tại đây](https://nodejs.org/) |
+| **Docker**  | Latest    | Chỉ cần nếu self-host database     |
 
-### 1. Clone va Cai dat
+### 1. Clone & Cài đặt
 
 ```bash
 git clone https://github.com/duacacao/IT_Asset_Management.git
@@ -231,22 +230,22 @@ cd device-dashboard
 npm install
 ```
 
-### 2. Thiet lap Database
+### 2. Thiết lập Database
 
-Xem file `docker/init.sql` de biet cau truc bang can tao tren Supabase hoac Docker Postgres.
+Xem file `docker/init.sql` để biết cấu trúc bảng cần tạo trên Supabase hoặc Docker Postgres.
 
-### 3. Cau hinh Environment
+### 3. Cấu hình Environment
 
 ```bash
 cp .env.example .env.local
-# Dien NEXT_PUBLIC_SUPABASE_URL va ANON_KEY
+# Điền NEXT_PUBLIC_SUPABASE_URL và ANON_KEY
 ```
 
-### 4. Chay ung dung
+### 4. Chạy ứng dụng
 
 ```bash
 npm run dev
-# Truy cap: http://localhost:3000
+# Truy cập: http://localhost:3000
 ```
 
 ---
@@ -254,9 +253,9 @@ npm run dev
 ## Database Schema
 
 <details>
-<summary>Click de xem so do Database (9 bang chinh)</summary>
+<summary>Click để xem sơ đồ Database (9 bảng chính)</summary>
 
-### Tong quan
+### Tổng quan
 
 ```mermaid
 graph LR
@@ -286,145 +285,145 @@ graph LR
     devices --> activity_logs
 ```
 
-### 1. `profiles` (App Users)
+### 1. `profiles` (Người dùng hệ thống)
 
-Nguoi dung dang nhap vao he thong. Lien ket voi `auth.users`.
+Người dùng đăng nhập vào hệ thống. Liên kết với `auth.users`.
 
-| Cot                       | Type  | Mo ta                         |
+| Cột                       | Type  | Mô tả                         |
 | ------------------------- | ----- | ----------------------------- |
 | `id`                      | UUID  | PK, FK -> auth.users          |
 | `email`                   | TEXT  | Email                         |
-| `full_name`               | TEXT  | Ten hien thi                  |
+| `full_name`               | TEXT  | Tên hiển thị                  |
 | `avatar_url`              | TEXT  | Avatar                        |
-| `settings`                | JSONB | Cai dat ca nhan (theme, v.v.) |
+| `settings`                | JSONB | Cài đặt cá nhân (theme, v.v.) |
 | `current_organization_id` | UUID  | FK -> organizations           |
-| `role`                    | TEXT  | Role hien tai                 |
+| `role`                    | TEXT  | Role hiện tại                 |
 
-### 2. `organizations` (To chuc)
+### 2. `organizations` (Tổ chức)
 
-Ho tro multi-tenant, moi to chuc co du lieu rieng biet.
+Hỗ trợ multi-tenant, mỗi tổ chức có dữ liệu riêng biệt.
 
-| Cot          | Type  | Mo ta           |
+| Cột          | Type  | Mô tả           |
 | ------------ | ----- | --------------- |
 | `id`         | UUID  | PK              |
-| `name`       | TEXT  | Ten to chuc     |
+| `name`       | TEXT  | Tên tổ chức     |
 | `slug`       | TEXT  | Slug URL        |
 | `logo_url`   | TEXT  | Logo            |
-| `settings`   | JSONB | Cai dat to chuc |
+| `settings`   | JSONB | Cài đặt tổ chức |
 | `created_by` | UUID  | FK -> profiles  |
 
-### 3. `organization_members` (Thanh vien)
+### 3. `organization_members` (Thành viên)
 
-| Cot               | Type | Mo ta                                |
+| Cột               | Type | Mô tả                                |
 | ----------------- | ---- | ------------------------------------ |
 | `id`              | UUID | PK                                   |
 | `organization_id` | UUID | FK -> organizations                  |
 | `user_id`         | UUID | FK -> profiles                       |
 | `role`            | TEXT | `owner`, `admin`, `member`, `viewer` |
 
-### 4. `devices` (Thiet bi)
+### 4. `devices` (Thiết bị)
 
-| Cot               | Type      | Mo ta                         |
+| Cột               | Type      | Mô tả                         |
 | ----------------- | --------- | ----------------------------- |
 | `id`              | UUID      | PK                            |
-| `code`            | TEXT      | Ma tai san (Unique)           |
-| `name`            | TEXT      | Ten thiet bi                  |
-| `type`            | TEXT      | Loai thiet bi                 |
+| `code`            | TEXT      | Mã tài sản (Unique)           |
+| `name`            | TEXT      | Tên thiết bị                  |
+| `type`            | TEXT      | Loại thiết bị                 |
 | `status`          | TEXT      | `active`, `broken`, `sold`... |
-| `specs`           | JSONB     | Thong so ky thuat chi tiet    |
-| `location`        | TEXT      | Vi tri                        |
-| `purchase_date`   | DATE      | Ngay mua                      |
-| `warranty_exp`    | DATE      | Het han bao hanh              |
+| `specs`           | JSONB     | Thông số kỹ thuật chi tiết    |
+| `location`        | TEXT      | Vị trí                        |
+| `purchase_date`   | DATE      | Ngày mua                      |
+| `warranty_exp`    | DATE      | Hết hạn bảo hành              |
 | `owner_id`        | UUID      | FK -> profiles                |
 | `organization_id` | UUID      | FK -> organizations           |
 | `deleted_at`      | TIMESTAMP | Soft delete                   |
 
-### 5. `device_sheets` (Bang tinh thiet bi)
+### 5. `device_sheets` (Bảng tính thiết bị)
 
-| Cot          | Type  | Mo ta             |
+| Cột          | Type  | Mô tả             |
 | ------------ | ----- | ----------------- |
 | `id`         | UUID  | PK                |
 | `device_id`  | UUID  | FK -> devices     |
-| `sheet_name` | TEXT  | Ten sheet         |
-| `sheet_data` | JSONB | Du lieu bang tinh |
-| `sort_order` | INT   | Thu tu sap xep    |
+| `sheet_name` | TEXT  | Tên sheet         |
+| `sheet_data` | JSONB | Dữ liệu bảng tính |
+| `sort_order` | INT   | Thứ tự sắp xếp    |
 
-### 6. `end_users` (Nhan vien su dung thiet bi)
+### 6. `end_users` (Nhân viên sử dụng thiết bị)
 
-| Cot               | Type      | Mo ta               |
+| Cột               | Type      | Mô tả               |
 | ----------------- | --------- | ------------------- |
 | `id`              | UUID      | PK                  |
-| `full_name`       | TEXT      | Ten nhan vien       |
+| `full_name`       | TEXT      | Tên nhân viên       |
 | `email`           | TEXT      | Email               |
-| `phone`           | TEXT      | So dien thoai       |
+| `phone`           | TEXT      | Số điện thoại       |
 | `department_id`   | UUID      | FK -> departments   |
 | `position_id`     | UUID      | FK -> positions     |
 | `organization_id` | UUID      | FK -> organizations |
 | `deleted_at`      | TIMESTAMP | Soft delete         |
 
-### 7. `departments` (Phong ban)
+### 7. `departments` (Phòng ban)
 
-| Cot               | Type      | Mo ta                        |
+| Cột               | Type      | Mô tả                        |
 | ----------------- | --------- | ---------------------------- |
 | `id`              | UUID      | PK                           |
-| `name`            | TEXT      | Ten phong ban                |
-| `parent_id`       | UUID      | FK -> departments (phan cap) |
+| `name`            | TEXT      | Tên phòng ban                |
+| `parent_id`       | UUID      | FK -> departments (phân cấp) |
 | `organization_id` | UUID      | FK -> organizations          |
 | `deleted_at`      | TIMESTAMP | Soft delete                  |
 
-### 8. `positions` (Chuc vu)
+### 8. `positions` (Chức vụ)
 
-| Cot               | Type      | Mo ta               |
+| Cột               | Type      | Mô tả               |
 | ----------------- | --------- | ------------------- |
 | `id`              | UUID      | PK                  |
-| `name`            | TEXT      | Ten chuc vu         |
+| `name`            | TEXT      | Tên chức vụ         |
 | `department_id`   | UUID      | FK -> departments   |
 | `organization_id` | UUID      | FK -> organizations |
 | `deleted_at`      | TIMESTAMP | Soft delete         |
 
-### 9. `activity_logs` (Nhat ky hoat dong)
+### 9. `activity_logs` (Nhật ký hoạt động)
 
-| Cot               | Type      | Mo ta                                         |
+| Cột               | Type      | Mô tả                                         |
 | ----------------- | --------- | --------------------------------------------- |
 | `id`              | UUID      | PK                                            |
-| `action`          | TEXT      | Loai hanh dong (IMPORT, ASSIGN, RETURN, v.v.) |
-| `details`         | TEXT      | Chi tiet                                      |
+| `action`          | TEXT      | Loại hành động (IMPORT, ASSIGN, RETURN, v.v.) |
+| `details`         | TEXT      | Chi tiết                                      |
 | `device_id`       | UUID      | FK -> devices                                 |
 | `user_id`         | UUID      | FK -> profiles                                |
 | `organization_id` | UUID      | FK -> organizations                           |
-| `created_at`      | TIMESTAMP | Thoi gian                                     |
+| `created_at`      | TIMESTAMP | Thời gian                                     |
 
 ### Database Functions (RPC)
 
-- `get_my_org_id`, `get_my_org_role` — helper functions
-- `add_sheet_row`, `delete_sheet_row`, `update_sheet_cell` — atomic sheet operations
-- `reorder_sheets` — batch reorder
+- `get_my_org_id`, `get_my_org_role` — Hàm helper
+- `add_sheet_row`, `delete_sheet_row`, `update_sheet_cell` — Thao tác bảng tính atomic
+- `reorder_sheets` — Sắp xếp lại thứ tự sheets
 - `set_device_visible_sheets` — JSONB merge cho visible sheets
-- `merge_profile_settings` — atomic JSONB merge cho profile settings
+- `merge_profile_settings` — Atomic JSONB merge cho cài đặt profile
 
 </details>
 
 ---
 
-## He thong phan quyen (RBAC)
+## Hệ thống phân quyền (RBAC)
 
-4 cap role: **Owner > Admin > Member > Viewer**
+4 cấp role: **Owner > Admin > Member > Viewer**
 
-| Quyen                                                                      | Owner | Admin | Member | Viewer |
+| Quyền                                                                      | Owner | Admin | Member | Viewer |
 | -------------------------------------------------------------------------- | ----- | ----- | ------ | ------ |
-| Xem du lieu (thiet bi, nhan vien, phong ban, logs, stats)                  | Co    | Co    | Co     | Co     |
-| Ghi du lieu (CRUD thiet bi, nhan vien, phong ban, ban giao, import/export) | Co    | Co    | Co     | Khong  |
-| Quan ly thanh vien (them/xoa/doi role/reset password)                      | Co    | Co    | Khong  | Khong  |
-| Quan ly to chuc                                                            | Co    | Co    | Khong  | Khong  |
-| Xoa/chuyen to chuc                                                         | Co    | Khong | Khong  | Khong  |
+| Xem dữ liệu (thiết bị, nhân viên, phòng ban, logs, stats)                  | Có    | Có    | Có     | Có     |
+| Ghi dữ liệu (CRUD thiết bị, nhân viên, phòng ban, bàn giao, import/export) | Có    | Có    | Có     | Không  |
+| Quản lý thành viên (thêm/xoá/đổi role/reset password)                      | Có    | Có    | Không  | Không  |
+| Quản lý tổ chức                                                            | Có    | Có    | Không  | Không  |
+| Xoá/chuyển tổ chức                                                         | Có    | Không | Không  | Không  |
 
-UI tu dong an/hien cac chuc nang dua tren role cua nguoi dung thong qua `PermissionGate` component va `usePermission` hook.
+UI tự động ẩn/hiện các chức năng dựa trên role của người dùng thông qua `PermissionGate` component và `usePermission` hook.
 
 ---
 
 ## Docker Deployment
 
-Xem file `docker-compose.yml` va `Dockerfile` de chay stack local voi PostgreSQL.
+Xem file `docker-compose.yml` và `Dockerfile` để chạy stack local với PostgreSQL.
 
 ```bash
 docker-compose up -d
