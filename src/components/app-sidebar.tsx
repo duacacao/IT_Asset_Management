@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { LayoutDashboard, Settings, Laptop, Users, BookOpen, UsersRound } from 'lucide-react'
+import { LayoutDashboard, Settings, Laptop, Users, UsersRound } from 'lucide-react'
 
 import Link from 'next/link'
 
@@ -19,7 +19,6 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar'
 import { useIsAdmin } from '@/hooks/usePermission'
-
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const isAdmin = useIsAdmin()
@@ -39,14 +38,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       url: '/settings/history',
     },
   ]
-
-  // Admin+ thấy link "Thành viên" — member/viewer không thấy
-  if (isAdmin) {
-    settingsItems.splice(0, 0, {
-      title: 'Quản trị & Phân quyền',
-      url: '/settings/permissions',
-    })
-  }
 
   const navGroups = [
     {
@@ -86,11 +77,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     {
       label: 'Hệ thống',
       items: [
-        {
-          title: 'Tài liệu',
-          url: '/docs',
-          icon: BookOpen,
-        },
+        ...(isAdmin
+          ? [
+              {
+                title: 'Quản trị & Phân quyền',
+                url: '/permission',
+                icon: UsersRound,
+              },
+            ]
+          : []),
         {
           title: 'Cài đặt',
           url: '#',
@@ -131,4 +126,3 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     </Sidebar>
   )
 }
-

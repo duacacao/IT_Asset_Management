@@ -28,12 +28,11 @@ const ROUTE_LABELS: Record<string, string> = {
   '/department': 'Phòng ban & Chức vụ',
   '/users': 'Nhân sự',
   '/organization': 'Sơ đồ tổ chức',
-  '/docs': 'Tài liệu',
+  '/permission': 'Quản trị & Phân quyền',
   '/settings': 'Cài đặt',
   '/settings/account': 'Tài khoản',
   '/settings/appearance': 'Giao diện',
   '/settings/history': 'Lịch sử hệ thống',
-  '/settings/permissions': 'Quản trị & Phân quyền',
 }
 
 // Parent group labels cho breadcrumb hierarchy
@@ -44,7 +43,6 @@ const ROUTE_PARENTS: Record<string, { label: string; href: string }[]> = {
   '/settings/account': [{ label: 'Cài đặt', href: '/settings/account' }],
   '/settings/appearance': [{ label: 'Cài đặt', href: '/settings/account' }],
   '/settings/history': [{ label: 'Cài đặt', href: '/settings/account' }],
-  '/settings/permissions': [{ label: 'Cài đặt', href: '/settings/account' }],
 }
 
 /**
@@ -61,13 +59,6 @@ function useBreadcrumbs() {
     if (pathname.startsWith('/device/')) {
       crumbs.push({ label: 'Thiết bị', href: '/devices', isCurrentPage: false })
       crumbs.push({ label: 'Chi tiết thiết bị', isCurrentPage: true })
-      return crumbs
-    }
-
-    // Dynamic route: /docs/[slug] → "Tài liệu > ..."
-    if (pathname.startsWith('/docs/') && pathname !== '/docs') {
-      crumbs.push({ label: 'Tài liệu', href: '/docs', isCurrentPage: false })
-      crumbs.push({ label: 'Bài viết', isCurrentPage: true })
       return crumbs
     }
 
