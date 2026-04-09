@@ -7,6 +7,7 @@ import { inter, beVietnamPro, lexend, nunito } from '@/lib/fonts'
 
 import { Toaster } from '@/components/ui/sonner'
 import { CommandPalette } from '@/components/CommandPalette'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 
 export const metadata: Metadata = {
   title: 'IT Asset Management',
@@ -35,6 +36,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </AuthProvider>
           </QueryProvider>
         </ThemeProvider>
+        <SpeedInsights />
       </body>
     </html>
   )
